@@ -1,0 +1,14 @@
+node_modules
+.agents
+.claude
+.vscode
+.temp/
+/.svelte-kit
+/build
+.npmrc
+CLAUDE.md
+package-lock.json
+skills-lock.json
+.env
+.env.*
+!.env.example
