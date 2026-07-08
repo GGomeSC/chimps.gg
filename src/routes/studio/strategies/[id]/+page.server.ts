@@ -2,7 +2,8 @@ import { error, fail } from '@sveltejs/kit';
 import { supabase } from '$lib/server/supabase';
 import { isHeroTower, PATH_PATTERN } from '$lib/server/placements';
 import { parseStrategyForm } from '$lib/server/strategy-form';
-import type { StepAction, StepInsert } from '$lib/types/db';
+import { TOWER_ICON_BUCKET, type TowerWithIcon } from '$lib/tower-icons';
+import type { StepAction, StepInsert, TowerRow } from '$lib/types/db';
 import type { Actions, PageServerLoad } from './$types';
 
 const STEP_ACTIONS: readonly StepAction[] = ['place', 'upgrade', 'sell', 'retarget', 'other'];
@@ -63,6 +64,11 @@ function strategyId(params: { id: string }): number {
 	return id;
 }
 
+function withTowerIconUrl(tower: TowerRow): TowerWithIcon {
+	const { data } = supabase.storage.from(TOWER_ICON_BUCKET).getPublicUrl(tower.icon_path);
+	return { ...tower, icon_url: data.publicUrl };
+}
+
 export const load: PageServerLoad = async ({ params }) => {
 	const id = strategyId(params);
 
@@ -82,7 +88,7 @@ export const load: PageServerLoad = async ({ params }) => {
 		strategy: strategy.data,
 		maps: maps.data!,
 		modes: modes.data!,
-		towers: towers.data!,
+		towers: towers.data!.map(withTowerIconUrl),
 		placements: placements.data!,
 		steps: steps.data!
 	};

@@ -39,9 +39,7 @@
 	let editNotes = $state('');
 
 	const selected = $derived(placements.find((p) => p.id === selectedId) ?? null);
-	const selectedTower = $derived(
-		selected ? (data.towers.find((t) => t.id === selected.tower_id) ?? null) : null
-	);
+	const selectedTower = $derived(selected ? requireTower(selected.tower_id) : null);
 
 	async function api<T>(path: string, method: string, body?: unknown): Promise<T | null> {
 		apiError = null;
@@ -120,9 +118,15 @@
 		placements = placements.map((p) => (p.id === updated.id ? updated : p));
 	}
 
+	function requireTower(towerId: number) {
+		const tower = data.towers.find((t) => t.id === towerId);
+		if (!tower) throw new Error(`Missing tower ${towerId}`);
+		return tower;
+	}
+
 	function placementLabel(placement: PlacementRow): string {
-		const tower = data.towers.find((t) => t.id === placement.tower_id);
-		const name = placement.label ?? tower?.name ?? '?';
+		const tower = requireTower(placement.tower_id);
+		const name = placement.label ?? tower.name;
 		return `#${placement.id} ${name}`;
 	}
 </script>
@@ -229,9 +233,12 @@
 						<button
 							type="button"
 							class:active={tower.id === activeTowerId}
+							title={tower.name}
+							aria-label={tower.name}
 							onclick={() => (activeTowerId = activeTowerId === tower.id ? null : tower.id)}
 						>
-							{tower.name}
+							<img src={tower.icon_url} alt="" draggable="false" />
+							<span class="sr-only">{tower.name}</span>
 						</button>
 					{/each}
 				</div>
@@ -446,25 +453,47 @@
 	}
 
 	.palette h3 {
-		margin: 0.5rem 0 0.25rem;
-		font-size: 0.8rem;
+		margin: 0.4rem 0 0.2rem;
+		font-size: 0.7rem;
 		text-transform: uppercase;
 		color: #666;
 	}
 
 	.palette-group {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 0.25rem;
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(1.85rem, 1fr));
+		gap: 0.2rem;
 	}
 
 	.palette-group button {
-		font-size: 0.8rem;
+		display: grid;
+		place-items: center;
+		width: 100%;
+		aspect-ratio: 1;
+		padding: 0.15rem;
+	}
+
+	.palette-group img {
+		width: 1.35rem;
+		height: 1.35rem;
+		object-fit: contain;
 	}
 
 	.palette-group button.active {
 		background: #111;
 		color: white;
+	}
+
+	.sr-only {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		padding: 0;
+		margin: -1px;
+		overflow: hidden;
+		clip: rect(0, 0, 0, 0);
+		white-space: nowrap;
+		border: 0;
 	}
 
 	.panel {

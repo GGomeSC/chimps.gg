@@ -1,11 +1,12 @@
 <script lang="ts">
-	import type { PlacementRow, TowerRow } from '$lib/types/db';
+	import type { PlacementRow } from '$lib/types/db';
+	import type { TowerWithIcon } from '$lib/tower-icons';
 
 	type Point = { x: number; y: number };
 	type Props = {
 		imageUrl: string | null;
 		placements: PlacementRow[];
-		towers: TowerRow[];
+		towers: TowerWithIcon[];
 		mode?: 'edit' | 'view';
 		selectedId?: number | null;
 		/** edit mode: whether a palette tower is armed, so map clicks place it */
@@ -45,22 +46,19 @@
 		};
 	}
 
-	function initials(name: string): string {
-		return name
-			.split(/\s+/)
-			.map((word) => word[0])
-			.join('')
-			.slice(0, 2)
-			.toUpperCase();
-	}
-
 	function markerPos(placement: PlacementRow): Point {
 		return drag?.id === placement.id ? drag.pos : { x: placement.pos_x, y: placement.pos_y };
 	}
 
+	function requireTower(towerId: number): TowerWithIcon {
+		const tower = towerById.get(towerId);
+		if (!tower) throw new Error(`Missing tower ${towerId}`);
+		return tower;
+	}
+
 	function markerTitle(placement: PlacementRow): string {
-		const tower = towerById.get(placement.tower_id);
-		const parts = [tower?.name ?? '?'];
+		const tower = requireTower(placement.tower_id);
+		const parts = [tower.name];
 		if (placement.final_path) parts.push(placement.final_path);
 		if (placement.label) parts.push(`“${placement.label}”`);
 		return parts.join(' · ');
@@ -116,27 +114,28 @@
 	onclick={onMapClick}
 >
 	{#if imageUrl}
-		<img src={imageUrl} alt="Map" draggable="false" />
+		<img class="map-image" src={imageUrl} alt="Map" draggable="false" />
 	{:else}
 		<div class="no-image">No map image</div>
 	{/if}
 
 	{#each placements as placement (placement.id)}
-		{@const tower = towerById.get(placement.tower_id)}
+		{@const tower = requireTower(placement.tower_id)}
 		{@const pos = markerPos(placement)}
 		<button
 			type="button"
-			class="marker cat-{(tower?.category ?? 'Primary').toLowerCase()}"
+			class="marker cat-{tower.category.toLowerCase()}"
 			class:selected={placement.id === selectedId}
 			style="left: {pos.x * 100}%; top: {pos.y * 100}%;"
 			title={markerTitle(placement)}
+			aria-label={markerTitle(placement)}
 			tabindex={mode === 'edit' ? 0 : -1}
 			onclick={(e) => e.stopPropagation()}
 			onpointerdown={(e) => onMarkerDown(e, placement)}
 			onpointermove={onMarkerMove}
 			onpointerup={() => onMarkerUp(placement)}
 		>
-			{placement.label ?? initials(tower?.name ?? '?')}
+			<img class="marker-icon" src={tower.icon_url} alt={tower.name} draggable="false" />
 		</button>
 	{/each}
 </div>
@@ -152,7 +151,7 @@
 		cursor: crosshair;
 	}
 
-	img {
+	.map-image {
 		display: block;
 		width: 100%;
 		border-radius: 0.5rem;
@@ -170,16 +169,23 @@
 	.marker {
 		position: absolute;
 		transform: translate(-50%, -50%);
-		min-width: 1.75rem;
-		height: 1.75rem;
-		padding: 0 0.3rem;
+		width: 2rem;
+		height: 2rem;
+		padding: 0.15rem;
 		border-radius: 999px;
 		border: 2px solid rgba(0, 0, 0, 0.4);
-		color: white;
-		font-size: 0.7rem;
-		font-weight: 700;
-		text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+		box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
 		touch-action: none;
+		overflow: hidden;
+	}
+
+	.marker-icon {
+		display: block;
+		width: 100%;
+		height: 100%;
+		border-radius: 999px;
+		object-fit: contain;
+		pointer-events: none;
 	}
 
 	.map.edit .marker {

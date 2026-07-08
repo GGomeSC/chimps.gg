@@ -11,7 +11,9 @@
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
 		"discover:nk": "node --env-file=.env --import=tsx scripts/discover-nk.ts",
-		"sync:maps": "node --env-file=.env --import=tsx scripts/sync-maps.ts"
+		"sync:maps": "node --env-file=.env --import=tsx scripts/sync-maps.ts",
+		"setup:tower-icons": "node --env-file=.env --import=tsx scripts/ensure-tower-icons-bucket.ts",
+		"check:tower-icons": "node --env-file=.env --import=tsx scripts/check-tower-icons.ts"
 	},
 	"devDependencies": {
 		"@sveltejs/adapter-auto": "^7.0.1",
