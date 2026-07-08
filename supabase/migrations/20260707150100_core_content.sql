@@ -61,7 +61,7 @@ create table public.steps (
   placement_id bigint references public.placements (id) on delete cascade,
   round_number smallint not null check (round_number between 1 and 200),
   action text not null check (action in ('place', 'upgrade', 'sell', 'retarget', 'other')),
-  -- Path state after this step, e.g. '2-0-3'.
+  -- Path state after this step, e.g. '0-0-0'.
   target_path text check (target_path ~ '^[0-5]-[0-5]-[0-5]$'),
   description text,
   order_index integer not null,

@@ -2,7 +2,8 @@
 // these in the same change as any migration.
 
 export type MapDifficulty = 'Beginner' | 'Intermediate' | 'Advanced' | 'Expert';
-export type TowerCategory = 'Primary' | 'Military' | 'Magic' | 'Support';
+// Heroes are towers with category 'Hero' (no separate heroes table).
+export type TowerCategory = 'Primary' | 'Military' | 'Magic' | 'Support' | 'Hero';
 export type StrategyStatus = 'draft' | 'ready' | 'archived';
 export type StepAction = 'place' | 'upgrade' | 'sell' | 'retarget' | 'other';
 
@@ -44,15 +45,6 @@ export type TowerInsert = {
 	name: string;
 	category: TowerCategory;
 	base_cost?: number | null;
-}
-
-export type HeroRow = {
-	id: number;
-	name: string;
-}
-
-export type HeroInsert = {
-	name: string;
 }
 
 export type GameModeRow = {
@@ -153,12 +145,6 @@ export type Database = {
 				Update: Partial<TowerInsert>;
 				Relationships: [];
 			};
-			heroes: {
-				Row: HeroRow;
-				Insert: HeroInsert;
-				Update: Partial<HeroInsert>;
-				Relationships: [];
-			};
 			game_modes: {
 				Row: GameModeRow;
 				Insert: GameModeInsert;
@@ -185,7 +171,12 @@ export type Database = {
 			};
 		};
 		Views: Record<string, never>;
-		Functions: Record<string, never>;
+		Functions: {
+			reorder_steps: {
+				Args: { p_strategy_id: number; p_step_ids: number[] };
+				Returns: undefined;
+			};
+		};
 		Enums: Record<string, never>;
 		CompositeTypes: Record<string, never>;
 	};
