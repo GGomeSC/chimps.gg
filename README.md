@@ -21,8 +21,8 @@ Cada estratégia é feita para um mapa e modo de jogo específico e registra o l
 
 > **Status: Fase 1 — internal content-authoring foundation.**
 > Schema, database types e um sync de maps da Ninja Kiwi. Ainda não há site público nem
-> editor visual. O `/studio` não tem autenticação e **não é seguro para produção**
-> (apenas uso local).
+> editor visual. O `/studio` é uma ferramenta interna protegida por Supabase magic link
+> e allowlist de emails.
 
 ## Stack
 
@@ -35,6 +35,26 @@ npm install
 cp .env.example .env   # depois preencha suas chaves do Supabase
 npm run dev            # studio em http://localhost:5173/studio/maps
 ```
+
+## Studio auth
+
+O `/studio` usa Supabase Auth com magic link e `STUDIO_ALLOWED_EMAILS`.
+Para produção:
+
+1. Crie/invite manualmente os usuários permitidos no Supabase Auth.
+2. Desabilite "Allow new users to sign up" no dashboard do Supabase.
+3. Configure `STUDIO_ALLOWED_EMAILS` na Vercel.
+4. Na template "Magic link or OTP", use:
+
+```html
+<a href="{{ .RedirectTo }}&token_hash={{ .TokenHash }}&type=email">Entrar no chimps.gg studio</a>
+```
+
+5. Adicione redirect URLs como `http://localhost:5173/auth/confirm**` e
+   `https://<dominio>/auth/confirm**`.
+
+O SMTP padrão do Supabase é limitado e só envia para membros do projeto; use SMTP
+customizado antes de depender de vários emails na allowlist.
 
 ## Database
 

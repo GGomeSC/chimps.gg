@@ -4,6 +4,7 @@ node_modules
 .vscode
 .temp/
 /.svelte-kit
+/.vercel
 /build
 .npmrc
 CLAUDE.md

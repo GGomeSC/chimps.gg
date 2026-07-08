@@ -1,14 +1,22 @@
 <script lang="ts">
-	let { children } = $props();
+	let { data, children } = $props();
 </script>
 
 <div class="studio">
 	<header>
 		<strong>chimps.gg studio</strong>
-		<nav>
-			<a href="/studio/strategies">Strategies</a>
-			<a href="/studio/maps">Maps</a>
-		</nav>
+		{#if !data.isLogin}
+			<nav>
+				<a href="/studio/strategies">Strategies</a>
+				<a href="/studio/maps">Maps</a>
+			</nav>
+			{#if data.studioUser}
+				<form method="POST" action="/studio/logout" class="session">
+					<span>{data.studioUser.email}</span>
+					<button type="submit">Logout</button>
+				</form>
+			{/if}
+		{/if}
 	</header>
 	{@render children()}
 </div>
@@ -33,5 +41,18 @@
 	nav {
 		display: flex;
 		gap: 1rem;
+	}
+
+	.session {
+		margin-left: auto;
+		display: flex;
+		align-items: baseline;
+		gap: 0.75rem;
+		color: #555;
+		font-size: 0.9rem;
+	}
+
+	.session button {
+		font: inherit;
 	}
 </style>
