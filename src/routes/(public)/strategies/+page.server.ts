@@ -1,5 +1,13 @@
 import { canonicalUrl, discoverStrategies } from '$lib/server/public-content';
+import type { Config } from '@sveltejs/adapter-vercel';
 import type { PageServerLoad } from './$types';
+
+export const config: Config = {
+	isr: {
+		expiration: 180,
+		allowQuery: ['map', 'mode', 'hero', 'difficulty', 'mapDifficulty', 'version', 'cursor']
+	}
+};
 
 export const load: PageServerLoad = async ({ url, setHeaders }) => {
 	const discovery = await discoverStrategies(url);

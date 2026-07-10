@@ -1,5 +1,6 @@
 import { env } from '$env/dynamic/public';
 import { error } from '@sveltejs/kit';
+import { withRuntimeCache } from '$lib/server/runtime-cache';
 import { supabase } from '$lib/server/supabase';
 import { towerIconUrl } from '$lib/server/tower-icons';
 import { toStrategyMapPlacement, toStrategyMapTower } from '$lib/strategy-map';
@@ -23,6 +24,8 @@ import type {
 } from '$lib/types/public';
 
 const PAGE_SIZE = 24;
+const REFERENCE_CACHE_TTL = 60 * 60;
+const STRATEGY_METADATA_CACHE_TTL = 5 * 60;
 const MAP_DIFFICULTIES: readonly MapDifficulty[] = [
 	'Beginner',
 	'Intermediate',
@@ -66,19 +69,7 @@ export async function getLatestStrategies(limit = 6): Promise<PublicStrategySumm
 }
 
 export async function discoverStrategies(url: URL): Promise<StrategyDiscovery> {
-	const [references, versionRows] = await Promise.all([
-		loadReferenceData(),
-		supabase
-			.from('strategies')
-			.select('verified_version')
-			.eq('status', 'ready')
-			.not('verified_version', 'is', null)
-	]);
-	if (versionRows.error) throw publicDataError('strategy versions', versionRows.error.message);
-
-	const versions = [
-		...new Set(versionRows.data.map((row) => row.verified_version).filter(isString))
-	].sort(compareVersionsDescending);
+	const [references, versions] = await Promise.all([loadReferenceData(), loadStrategyVersions()]);
 	const filters = parseFilters(url.searchParams, references, versions);
 
 	const match: Partial<StrategyRow> = { status: 'ready' };
@@ -201,21 +192,10 @@ export async function getStrategyDetail(id: number): Promise<PublicStrategyDetai
 }
 
 export async function getHeroes(): Promise<HeroSummary[]> {
-	const [heroesResult, strategiesResult] = await Promise.all([
-		supabase.from('towers').select('*').eq('category', 'Hero').order('name'),
-		supabase.from('strategies').select('hero_id').eq('status', 'ready').not('hero_id', 'is', null)
-	]);
-	if (heroesResult.error) throw publicDataError('heroes', heroesResult.error.message);
-	if (strategiesResult.error) {
-		throw publicDataError('hero guide counts', strategiesResult.error.message);
-	}
-	const counts = new Map<number, number>();
-	for (const strategy of strategiesResult.data) {
-		if (strategy.hero_id) counts.set(strategy.hero_id, (counts.get(strategy.hero_id) ?? 0) + 1);
-	}
-	return heroesResult.data.map((hero) => ({
+	const [references, counts] = await Promise.all([loadReferenceData(), loadHeroGuideCounts()]);
+	return references.heroes.map((hero) => ({
 		...toHeroReference(hero),
-		guideCount: counts.get(hero.id) ?? 0
+		guideCount: counts[String(hero.id)] ?? 0
 	}));
 }
 
@@ -264,14 +244,74 @@ export async function getSitemapEntries(): Promise<{ strategyIds: number[]; hero
 }
 
 async function loadReferenceData(): Promise<ReferenceData> {
-	const [maps, modes, heroes] = await Promise.all([
-		supabase.from('maps').select('*').order('name'),
-		supabase.from('game_modes').select('*').order('id'),
-		supabase.from('towers').select('*').eq('category', 'Hero').order('name')
-	]);
-	const firstError = [maps, modes, heroes].find((result) => result.error);
-	if (firstError?.error) throw publicDataError('reference data', firstError.error.message);
-	return { maps: maps.data ?? [], modes: modes.data ?? [], heroes: heroes.data ?? [] };
+	return withRuntimeCache(
+		'reference-data-v1',
+		async () => {
+			const [maps, modes, heroes] = await Promise.all([
+				supabase.from('maps').select('*').order('name'),
+				supabase.from('game_modes').select('*').order('id'),
+				supabase.from('towers').select('*').eq('category', 'Hero').order('name')
+			]);
+			const firstError = [maps, modes, heroes].find((result) => result.error);
+			if (firstError?.error) throw publicDataError('reference data', firstError.error.message);
+			return { maps: maps.data ?? [], modes: modes.data ?? [], heroes: heroes.data ?? [] };
+		},
+		{
+			ttl: REFERENCE_CACHE_TTL,
+			tags: ['public-reference-data'],
+			name: 'Public reference data'
+		}
+	);
+}
+
+async function loadStrategyVersions(): Promise<string[]> {
+	return withRuntimeCache(
+		'strategy-versions-v1',
+		async () => {
+			const result = await supabase
+				.from('strategies')
+				.select('verified_version')
+				.eq('status', 'ready')
+				.not('verified_version', 'is', null);
+			if (result.error) throw publicDataError('strategy versions', result.error.message);
+			return [...new Set(result.data.map((row) => row.verified_version).filter(isString))].sort(
+				compareVersionsDescending
+			);
+		},
+		{
+			ttl: STRATEGY_METADATA_CACHE_TTL,
+			tags: ['public-strategy-metadata'],
+			name: 'Public strategy versions'
+		}
+	);
+}
+
+async function loadHeroGuideCounts(): Promise<Record<string, number>> {
+	return withRuntimeCache(
+		'hero-guide-counts-v1',
+		async () => {
+			const result = await supabase
+				.from('strategies')
+				.select('hero_id')
+				.eq('status', 'ready')
+				.not('hero_id', 'is', null);
+			if (result.error) throw publicDataError('hero guide counts', result.error.message);
+
+			const counts: Record<string, number> = {};
+			for (const strategy of result.data) {
+				if (strategy.hero_id) {
+					const heroId = String(strategy.hero_id);
+					counts[heroId] = (counts[heroId] ?? 0) + 1;
+				}
+			}
+			return counts;
+		},
+		{
+			ttl: STRATEGY_METADATA_CACHE_TTL,
+			tags: ['public-strategy-metadata'],
+			name: 'Public hero guide counts'
+		}
+	);
 }
 
 function parseFilters(

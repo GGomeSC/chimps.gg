@@ -46,6 +46,13 @@ Rotas públicas principais:
 Somente estratégias com `status = 'ready'` são expostas. Defina `PUBLIC_SITE_URL` com a
 origem canônica de produção (por padrão, `https://chimps.gg`) para metadata e sitemap.
 
+Na Vercel, as Functions executam em São Paulo (`gru1`), próximas ao Supabase em
+`sa-east-1`. As rotas públicas usam ISR por 5 minutos (3 minutos em `/strategies`) e
+Runtime Cache para referências por 1 hora e metadados derivados por 5 minutos. Por isso,
+uma estratégia publicada pode levar até 5 minutos para aparecer; contagens/opções
+derivadas podem atravessar mais um ciclo de cache, e alterações em mapas ou heróis podem
+levar pouco mais de 1 hora. O `/studio` não usa ISR.
+
 Para acessar o Studio localmente sem solicitar magic link, defina apenas no `.env`
 local:
 
