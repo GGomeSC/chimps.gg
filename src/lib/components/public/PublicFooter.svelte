@@ -64,6 +64,11 @@
 		color: inherit;
 		font-size: var(--text-meta);
 		font-weight: 700;
+		transition: color var(--motion-fast) ease;
+	}
+
+	nav a:hover {
+		color: var(--brand-strong);
 	}
 
 	@media (max-width: 52rem) {

@@ -28,7 +28,6 @@
 	--brand-soft: light-dark(#e4f0d4, #1a2b1a);
 	--brand-shadow: light-dark(#4f8d17, #315c12);
 	--accent: light-dark(#d8a02a, #efb93e);
-	--accent-strong: light-dark(#a97a10, #efb93e);
 	--accent-soft: light-dark(#f8ecc9, #3a2f14);
 	--error: light-dark(#b42318, #ff928a);
 	--ok: light-dark(#16723a, #65d58b);
@@ -141,7 +140,6 @@ a {
 	--space-3: 1rem;
 	--space-4: 1.5rem;
 	--space-5: 2rem;
-	--space-6: 3rem;
 	--text-meta: 0.875rem;
 	--text-body: 1.0625rem;
 	--text-lead: 1.125rem;
@@ -150,6 +148,10 @@ a {
 	--map-border: 1px solid var(--border);
 	--map-shadow: var(--shadow-card);
 	--map-marker-size: 2.75rem;
+	--motion-fast: 160ms;
+	--motion-standard: 260ms;
+	--motion-enter: 420ms;
+	--ease-out: cubic-bezier(0.22, 1, 0.36, 1);
 	--radius-sm: 0.75rem;
 	--radius-md: 1rem;
 	--radius-lg: 1.25rem;
@@ -158,16 +160,12 @@ a {
 /* Sticky footer: public main grows on short pages. */
 .public-site #main-content {
 	flex: 1 0 auto;
+	view-transition-name: public-content;
 }
 
 .public-site .page-shell {
 	width: min(calc(100% - (var(--public-gutter) * 2)), var(--public-content-max));
 	margin-inline: auto;
-}
-
-.mono {
-	font-family: var(--font-mono);
-	font-variant-numeric: tabular-nums;
 }
 
 .public-site .button {
@@ -245,23 +243,122 @@ a {
 	grid-template-columns: repeat(auto-fill, minmax(12.5rem, 1fr));
 }
 
-.public-site .dashboard-panel {
-	border: 1px solid var(--border);
-	border-radius: var(--radius-lg);
-	background: var(--surface);
-	box-shadow: var(--shadow-card);
+/* Public entrance motion uses only opacity and transforms so it stays on the compositor. */
+@keyframes public-enter {
+	from {
+		opacity: 0;
+		transform: translateY(0.65rem);
+	}
 }
 
-.public-site .dashboard-badge {
-	display: inline-flex;
-	min-height: 2rem;
-	align-items: center;
-	padding: 0.3rem 0.7rem;
-	border: 1px solid var(--border);
-	border-radius: 999px;
-	background: var(--surface-raised);
-	font-size: var(--text-meta);
-	font-weight: 750;
+@keyframes public-page-out {
+	to {
+		opacity: 0;
+		transform: translateY(-0.2rem);
+	}
+}
+
+@keyframes public-page-in {
+	from {
+		opacity: 0;
+		transform: translateY(0.35rem);
+	}
+}
+
+@keyframes public-pop {
+	from {
+		opacity: 0;
+		scale: 0.72;
+	}
+}
+
+::view-transition-old(public-content) {
+	animation: public-page-out 120ms ease-in both;
+}
+
+::view-transition-new(public-content) {
+	animation: public-page-in 260ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.public-site :is(.page-intro, .detail-header, .profile-header, .error-page) {
+	animation: public-enter var(--motion-enter) var(--ease-out) both;
+}
+
+.public-site :is(.filter-bar, .tier-tabs, .latest > header, .summary-row) {
+	animation: public-enter var(--motion-enter) var(--ease-out) 60ms backwards;
+}
+
+.public-site :is(.map-viewport, .latest .rail, .content-grid > *, .related-section, .coverage-section) {
+	animation: public-enter var(--motion-enter) var(--ease-out) 110ms backwards;
+}
+
+.public-site :is(.strategy-grid, .hero-grid, .map-page:first-child) > * {
+	animation: public-enter var(--motion-enter) var(--ease-out) 100ms backwards;
+}
+
+.public-site :is(.strategy-grid, .hero-grid, .map-page:first-child) > :nth-child(2) {
+	animation-delay: 135ms;
+}
+
+.public-site :is(.strategy-grid, .hero-grid, .map-page:first-child) > :nth-child(3) {
+	animation-delay: 170ms;
+}
+
+.public-site :is(.strategy-grid, .hero-grid, .map-page:first-child) > :nth-child(4) {
+	animation-delay: 205ms;
+}
+
+.public-site :is(.strategy-grid, .hero-grid, .map-page:first-child) > :nth-child(5) {
+	animation-delay: 240ms;
+}
+
+.public-site :is(.strategy-grid, .hero-grid, .map-page:first-child) > :nth-child(6) {
+	animation-delay: 275ms;
+}
+
+.public-site .build-order > li:nth-child(-n + 6) {
+	animation: public-enter var(--motion-enter) var(--ease-out) 100ms backwards;
+}
+
+.public-site .build-order > li:nth-child(2) { animation-delay: 135ms; }
+.public-site .build-order > li:nth-child(3) { animation-delay: 170ms; }
+.public-site .build-order > li:nth-child(4) { animation-delay: 205ms; }
+.public-site .build-order > li:nth-child(5) { animation-delay: 240ms; }
+.public-site .build-order > li:nth-child(6) { animation-delay: 275ms; }
+
+.public-site .theme-toggle span {
+	display: block;
+	transition: transform var(--motion-fast) var(--ease-out);
+}
+
+.public-site .theme-toggle:hover span,
+.public-site .theme-toggle:focus-visible span {
+	transform: rotate(12deg) scale(1.08);
+}
+
+.public-site .theme-toggle:active span {
+	transform: scale(0.9);
+}
+
+.public-site .map.view .marker {
+	animation: public-pop var(--motion-standard) var(--ease-out) backwards;
+	transition: scale var(--motion-fast) var(--ease-out);
+}
+
+.public-site .map.view .marker:nth-of-type(2) {
+	animation-delay: 35ms;
+}
+
+.public-site .map.view .marker:nth-of-type(3) {
+	animation-delay: 70ms;
+}
+
+.public-site .map.view .marker:nth-of-type(4) {
+	animation-delay: 105ms;
+}
+
+.public-site .map.view .marker.selected {
+	scale: 1.08;
 }
 
 @media (max-width: 48rem) {
@@ -294,5 +391,10 @@ a {
 		transition-duration: 0.01ms !important;
 		animation-duration: 0.01ms !important;
 		animation-iteration-count: 1 !important;
+	}
+
+	::view-transition-old(public-content),
+	::view-transition-new(public-content) {
+		animation: none;
 	}
 }

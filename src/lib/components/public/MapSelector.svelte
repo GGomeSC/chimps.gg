@@ -70,31 +70,33 @@
 		{/each}
 	</div>
 
-	<div id="map-grid" class="map-viewport" role="tabpanel" aria-live="polite">
-		<div class="map-track" bind:this={track} onscroll={updateActivePage}>
-			{#each pages as page, pageIndex}
-				<div class="map-page" aria-label={`${selected} maps, page ${pageIndex + 1} of ${pages.length}`}>
-					{#each page as map (map.id)}
-						{#if map.guideCount > 0}
-							<a class="map-tile" href={`/strategies?map=${map.id}`} aria-label={`${map.name}: ${map.guideCount} ready ${map.guideCount === 1 ? 'guide' : 'guides'}`}>
-								<FallbackImage src={map.imageUrl} alt="">
-									{#snippet fallback()}<span class="map-fallback">MAP</span>{/snippet}
-								</FallbackImage>
-								<span class="map-copy"><strong>{map.name}</strong><small>{map.guideCount} {map.guideCount === 1 ? 'guide' : 'guides'} <b aria-hidden="true">→</b></small></span>
-							</a>
-						{:else}
-							<div class="map-tile unavailable" aria-label={`${map.name}: no verified guides yet`}>
-								<FallbackImage src={map.imageUrl} alt="">
-									{#snippet fallback()}<span class="map-fallback">MAP</span>{/snippet}
-								</FallbackImage>
-								<span class="map-copy"><strong>{map.name}</strong><small>No verified guides yet</small></span>
-							</div>
-						{/if}
-					{/each}
-				</div>
-			{/each}
+	{#key selected}
+		<div id="map-grid" class="map-viewport" role="tabpanel" aria-live="polite">
+			<div class="map-track" bind:this={track} onscroll={updateActivePage}>
+				{#each pages as page, pageIndex}
+					<div class="map-page" aria-label={`${selected} maps, page ${pageIndex + 1} of ${pages.length}`}>
+						{#each page as map (map.id)}
+							{#if map.guideCount > 0}
+								<a class="map-tile" href={`/strategies?map=${map.id}`} aria-label={`${map.name}: ${map.guideCount} ready ${map.guideCount === 1 ? 'guide' : 'guides'}`}>
+									<FallbackImage src={map.imageUrl} alt="">
+										{#snippet fallback()}<span class="map-fallback">MAP</span>{/snippet}
+									</FallbackImage>
+									<span class="map-copy"><strong>{map.name}</strong><small>{map.guideCount} {map.guideCount === 1 ? 'guide' : 'guides'} <b aria-hidden="true">→</b></small></span>
+								</a>
+							{:else}
+								<div class="map-tile unavailable" aria-label={`${map.name}: no verified guides yet`}>
+									<FallbackImage src={map.imageUrl} alt="">
+										{#snippet fallback()}<span class="map-fallback">MAP</span>{/snippet}
+									</FallbackImage>
+									<span class="map-copy"><strong>{map.name}</strong><small>No verified guides yet</small></span>
+								</div>
+							{/if}
+						{/each}
+					</div>
+				{/each}
+			</div>
 		</div>
-	</div>
+	{/key}
 	{#if pages.length > 1}
 		<nav class="map-pagination" aria-label={`${selected} map pages`}>
 			<button type="button" aria-label="Previous map page" disabled={activePage === 0} onclick={() => scrollToPage(activePage - 1)}>←</button>
@@ -109,7 +111,7 @@
 <style>
 	.map-selector { display: grid; gap: var(--space-4); padding-top: var(--space-5); }
 	.tier-tabs { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-1); padding: var(--space-1); border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--surface); box-shadow: var(--shadow-card); }
-	.tier-tabs button { min-height: var(--control-height); padding: .65rem 1rem; border: 0; border-radius: var(--radius-sm); background: transparent; color: var(--fg-muted); font-size: var(--text-meta); font-weight: 750; }
+	.tier-tabs button { min-height: var(--control-height); padding: .65rem 1rem; border: 0; border-radius: var(--radius-sm); background: transparent; color: var(--fg-muted); font-size: var(--text-meta); font-weight: 750; transition: background var(--motion-standard) ease, color var(--motion-fast) ease; }
 	.tier-tabs button[aria-selected='true'] { background: color-mix(in srgb, var(--tier-color) 18%, var(--surface-raised)); box-shadow: inset 0 -2px var(--tier-color); color: var(--fg); }
 	.map-viewport { overflow: hidden; }
 	.map-track { display: flex; overflow-x: auto; scroll-behavior: smooth; scroll-snap-type: x mandatory; scrollbar-width: none; touch-action: pan-x pan-y; }
@@ -128,12 +130,15 @@
 	.unavailable :global(img) { opacity: .58; }
 	.map-fallback { display: grid; width: 100%; height: 100%; place-items: center; background: linear-gradient(145deg, var(--brand-soft), var(--accent-soft)); color: var(--fg-muted); font-weight: 900; letter-spacing: .15em; }
 	.map-pagination { display: flex; align-items: center; justify-content: center; gap: var(--space-2); min-height: var(--icon-control); }
-	.map-pagination > button { display: grid; width: var(--icon-control); height: var(--icon-control); place-items: center; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface-raised); color: var(--fg); }
+	.map-pagination > button { display: grid; width: var(--icon-control); height: var(--icon-control); place-items: center; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface-raised); color: var(--fg); transition: border-color var(--motion-fast) ease, transform var(--motion-fast) var(--ease-out); }
+	.map-pagination > button:not(:disabled):hover { border-color: var(--brand); transform: translateY(-1px); }
+	.map-pagination > button:not(:disabled):active { transform: scale(.94); }
 	.map-pagination > button:disabled { opacity: .35; cursor: default; }
 	.page-dots { display: flex; gap: .15rem; }
 	.page-dots button { display: grid; width: var(--icon-control); height: var(--icon-control); padding: 0; place-items: center; border: 0; background: transparent; }
-	.page-dots button::after { width: .5rem; height: .5rem; border-radius: 50%; background: var(--border-strong); content: ''; }
-	.page-dots button.active::after { width: 1.25rem; border-radius: 999px; background: var(--brand); }
+	.page-dots button::after { width: 1.25rem; height: .5rem; border-radius: 999px; background: var(--border-strong); content: ''; transform: scaleX(.4); transition: background var(--motion-fast) ease, transform var(--motion-standard) var(--ease-out); }
+	.page-dots button:hover::after { background: var(--fg-muted); transform: scaleX(.5); }
+	.page-dots button.active::after { background: var(--brand); transform: scaleX(1); }
 	@media (max-width: 52rem) { .map-page { grid-template-columns: repeat(2, minmax(0, 1fr)); } .tier-tabs { overflow-x: auto; grid-template-columns: repeat(4, minmax(8rem, 1fr)); } }
 	@media (max-width: 34rem) { .map-page { grid-template-columns: 1fr; } }
 	@media (prefers-reduced-motion: reduce) { .map-track { scroll-behavior: auto; } }

@@ -4,7 +4,7 @@ import type { StrategyMapPlacement, StrategyMapTower } from '$lib/types/public';
 export function toStrategyMapPlacement(
 	placement: Pick<
 		PlacementRow,
-		'id' | 'tower_id' | 'pos_x' | 'pos_y' | 'final_path' | 'label' | 'notes'
+		'id' | 'tower_id' | 'pos_x' | 'pos_y' | 'final_path' | 'label'
 	>
 ): StrategyMapPlacement {
 	return {
@@ -13,8 +13,7 @@ export function toStrategyMapPlacement(
 		x: placement.pos_x,
 		y: placement.pos_y,
 		finalPath: placement.final_path,
-		label: placement.label,
-		notes: placement.notes
+		label: placement.label
 	};
 }
 

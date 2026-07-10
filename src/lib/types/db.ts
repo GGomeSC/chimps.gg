@@ -22,7 +22,7 @@ export type MapRow = {
 	updated_at: string;
 }
 
-export type MapInsert = {
+type MapInsert = {
 	name: string;
 	difficulty?: MapDifficulty | null;
 	image_url?: string | null;
@@ -43,7 +43,7 @@ export type TowerRow = {
 	description: string | null;
 }
 
-export type TowerInsert = {
+type TowerInsert = {
 	name: string;
 	category: TowerCategory;
 	base_cost?: number | null;
@@ -56,7 +56,7 @@ export type GameModeRow = {
 	name: string;
 }
 
-export type GameModeInsert = {
+type GameModeInsert = {
 	name: string;
 }
 

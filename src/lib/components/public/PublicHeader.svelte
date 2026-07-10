@@ -92,6 +92,15 @@
 		text-decoration: none;
 	}
 
+	.brand :global(svg) {
+		transition: transform var(--motion-standard) var(--ease-out);
+	}
+
+	.brand:hover :global(svg),
+	.brand:focus-visible :global(svg) {
+		transform: translateY(-1px) rotate(-4deg);
+	}
+
 	.brand > span span {
 		color: var(--brand-strong);
 	}
@@ -111,7 +120,7 @@
 		font-size: var(--text-meta);
 		font-weight: 650;
 		text-decoration: none;
-		transition: color 150ms ease;
+		transition: color var(--motion-fast) ease;
 	}
 
 	nav > a:hover {
@@ -122,7 +131,7 @@
 		color: var(--fg);
 	}
 
-	nav > a[aria-current='page']::after {
+	nav > a::after {
 		position: absolute;
 		right: 0.8rem;
 		bottom: 0.35rem;
@@ -131,6 +140,14 @@
 		border-radius: 2px;
 		background: var(--brand);
 		content: '';
+		transform: scaleX(0);
+		transform-origin: left;
+		transition: transform var(--motion-standard) var(--ease-out);
+	}
+
+	nav > a:hover::after,
+	nav > a[aria-current='page']::after {
+		transform: scaleX(1);
 	}
 
 	.menu-button {
@@ -149,22 +166,41 @@
 		margin: 0.2rem 0;
 		border-radius: 2px;
 		background: var(--fg);
+		transition:
+			transform var(--motion-standard) var(--ease-out),
+			opacity var(--motion-fast) ease;
+	}
+
+	.menu-button[aria-expanded='true'] span:first-child {
+		transform: translateY(0.4rem) rotate(45deg);
+	}
+
+	.menu-button[aria-expanded='true'] span:nth-child(2) {
+		opacity: 0;
+	}
+
+	.menu-button[aria-expanded='true'] span:last-child {
+		transform: translateY(-0.4rem) rotate(-45deg);
 	}
 
 	.navigation-progress {
 		position: absolute;
-		right: 100%;
+		right: 0;
 		bottom: -1px;
 		left: 0;
 		height: 3px;
 		background: linear-gradient(90deg, var(--brand), var(--accent));
 		opacity: 0;
+		transform: scaleX(0);
+		transform-origin: left;
 	}
 
 	.navigation-progress.active {
-		right: 15%;
 		opacity: 1;
-		transition: right 800ms ease;
+		transform: scaleX(0.85);
+		transition:
+			transform 800ms var(--ease-out),
+			opacity var(--motion-fast) ease;
 	}
 
 	@media (max-width: 44rem) {
@@ -177,17 +213,30 @@
 			top: calc(100% + 0.5rem);
 			right: var(--public-gutter);
 			left: var(--public-gutter);
-			display: none;
+			display: grid;
 			align-items: stretch;
 			padding: var(--space-2);
 			border: 1px solid var(--border);
 			border-radius: var(--radius-lg);
 			background: var(--surface-raised);
 			box-shadow: var(--shadow-card-hover);
+			opacity: 0;
+			pointer-events: none;
+			transform: translateY(-0.5rem) scale(0.98);
+			transform-origin: top;
+			visibility: hidden;
+			transition:
+				opacity var(--motion-fast) ease,
+				transform var(--motion-standard) var(--ease-out),
+				visibility 0s linear var(--motion-standard);
 		}
 
 		nav.open {
-			display: grid;
+			opacity: 1;
+			pointer-events: auto;
+			transform: translateY(0) scale(1);
+			visibility: visible;
+			transition-delay: 0s;
 		}
 
 		nav > a {

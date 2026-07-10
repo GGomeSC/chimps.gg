@@ -14,7 +14,7 @@
 	}
 </script>
 
-<button type="button" onclick={toggle} aria-pressed={dark} aria-label="Toggle dark mode">
+<button class="theme-toggle" type="button" onclick={toggle} aria-pressed={dark} aria-label="Toggle dark mode">
 	<span aria-hidden="true">{dark ? '☀' : '☾'}</span>
 </button>
 

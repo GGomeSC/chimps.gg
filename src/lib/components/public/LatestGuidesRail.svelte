@@ -36,8 +36,9 @@
 	h2 { margin: 0; font-size: clamp(1.75rem, 3vw, 2.25rem); letter-spacing: -.03em; }
 	.actions { display: flex; align-items: center; gap: var(--space-1); }
 	.actions a { display: inline-flex; min-height: var(--icon-control); align-items: center; margin-right: var(--space-1); font-size: var(--text-meta); font-weight: 700; text-decoration: none; }
-	button { display: grid; width: var(--icon-control); height: var(--icon-control); place-items: center; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface-raised); color: var(--fg); }
-	button:hover { border-color: var(--brand); }
+	button { display: grid; width: var(--icon-control); height: var(--icon-control); place-items: center; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface-raised); color: var(--fg); transition: border-color var(--motion-fast) ease, transform var(--motion-fast) var(--ease-out); }
+	button:hover { border-color: var(--brand); transform: translateY(-1px); }
+	button:active { transform: scale(.94); }
 	.rail { display: flex; gap: var(--space-3); overflow-x: auto; padding: 1px 1px var(--space-2); scroll-behavior: smooth; scroll-snap-type: x mandatory; scrollbar-color: var(--border-strong) transparent; }
 	.quiet { padding: var(--space-4); border: 1px dashed var(--border-strong); border-radius: var(--radius-md); color: var(--fg-muted); text-align: center; }
 	@media (max-width: 36rem) { .actions button { display: none; } }

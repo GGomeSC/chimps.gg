@@ -23,7 +23,7 @@ export type PublicHeroReference = {
 };
 
 /** Lightweight final-layout marker for card overlays (normalized [0, 1] coords). */
-export type PlacementDot = {
+type PlacementDot = {
 	id: number;
 	x: number;
 	y: number;
@@ -39,7 +39,6 @@ export type PublicStrategySummary = {
 	hero: PublicHeroReference | null;
 	verifiedVersion: string;
 	executionDifficulty: number | null;
-	updatedAt: string;
 	placementDots: PlacementDot[];
 };
 
@@ -50,7 +49,6 @@ export type StrategyMapPlacement = {
 	y: number;
 	finalPath: string | null;
 	label: string | null;
-	notes: string | null;
 };
 
 export type StrategyMapTower = {
@@ -67,7 +65,6 @@ export type PublicStep = {
 	action: StepAction;
 	targetPath: string | null;
 	description: string | null;
-	orderIndex: number;
 };
 
 export type PublicStrategyDetail = PublicStrategySummary & {

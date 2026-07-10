@@ -19,7 +19,6 @@ import type {
 	PublicHeroDetail,
 	PublicHeroReference,
 	PublicMap,
-	PublicMode,
 	PublicStrategyDetail,
 	PublicStrategySummary,
 	StrategyFilterOptions,
@@ -36,7 +35,6 @@ const STRATEGY_BASE_SELECT = `
 	hero_id,
 	verified_version,
 	exec_difficulty,
-	updated_at,
 	map:maps!strategies_map_id_fkey(id,name,difficulty,image_url,nk_image_url),
 	mode:game_modes!strategies_game_mode_id_fkey(id,name),
 	hero:towers!strategies_hero_id_fkey(id,name,category,icon_path)
@@ -57,7 +55,6 @@ const STRATEGY_DETAIL_SELECT = `
 		pos_y,
 		final_path,
 		label,
-		notes,
 		tower:towers!placements_tower_id_fkey(id,name,category,icon_path)
 	),
 	steps(id,placement_id,round_number,action,target_path,description,order_index)
@@ -75,7 +72,6 @@ const HERO_DETAIL_SELECT = `
 		hero_id,
 		verified_version,
 		exec_difficulty,
-		updated_at,
 		map:maps!strategies_map_id_fkey(id,name,difficulty,image_url,nk_image_url),
 		mode:game_modes!strategies_game_mode_id_fkey(id,name),
 		placements(id,tower_id,pos_x,pos_y)
@@ -131,7 +127,6 @@ type StrategySummaryRecord = Pick<
 	| 'hero_id'
 	| 'verified_version'
 	| 'exec_difficulty'
-	| 'updated_at'
 > & {
 	map: MapReference | null;
 	mode: ModeReference | null;
@@ -144,7 +139,7 @@ type StrategyDetailRecord = Omit<StrategySummaryRecord, 'placements'> &
 		placements: Array<
 			Pick<
 				PlacementRow,
-				'id' | 'tower_id' | 'pos_x' | 'pos_y' | 'final_path' | 'label' | 'notes'
+				'id' | 'tower_id' | 'pos_x' | 'pos_y' | 'final_path' | 'label'
 			> & { tower: HeroReference | null }
 		>;
 		steps: Array<
@@ -165,11 +160,10 @@ type HeroDetailRecord = HeroReference & Pick<TowerRow, 'description'> & {
 	strategies: Array<Omit<StrategySummaryRecord, 'hero'>>;
 };
 
-export type StrategyDiscovery = {
+type StrategyDiscovery = {
 	strategies: PublicStrategySummary[];
 	filters: StrategyFilters;
 	options: StrategyFilterOptions;
-	totalCount: number;
 	nextCursor: number | null;
 };
 
@@ -235,26 +229,18 @@ export async function discoverStrategies(url: URL): Promise<StrategyDiscovery> {
 				.map((map) => map.id)
 		: null;
 
-	// The first page gets rows and total count in one response. Cursor pages keep
-	// a separate count query that deliberately omits the cursor so totalCount
-	// remains the full result-set size, not only the rows after the cursor.
-	let countQuery = filters.cursor
-		? supabase.from('strategies').select('id', { count: 'exact', head: true }).match(match)
-		: null;
 	let pageQuery = supabase
 		.from('strategies')
-		.select(STRATEGY_SUMMARY_SELECT, { count: 'exact' })
+		.select(STRATEGY_SUMMARY_SELECT)
 		.match(match)
 		.order('id', { ascending: false })
 		.limit(PAGE_SIZE + 1);
 	if (mapIds) {
-		if (countQuery) countQuery = countQuery.in('map_id', mapIds);
 		pageQuery = pageQuery.in('map_id', mapIds);
 	}
 	if (filters.cursor) pageQuery = pageQuery.lt('id', filters.cursor);
 
-	const [countResult, pageResult] = await Promise.all([countQuery, pageQuery]);
-	if (countResult?.error) throw publicDataError('strategy count', countResult.error.message);
+	const pageResult = await pageQuery;
 	if (pageResult.error) throw publicDataError('strategy discovery', pageResult.error.message);
 	const hasMore = pageResult.data.length > PAGE_SIZE;
 	const page = pageResult.data.slice(0, PAGE_SIZE);
@@ -263,7 +249,6 @@ export async function discoverStrategies(url: URL): Promise<StrategyDiscovery> {
 		strategies: page.map(toStrategySummary).filter((strategy) => strategy !== null),
 		filters,
 		options: filterOptions(references, versions),
-		totalCount: countResult?.count ?? pageResult.count ?? page.length,
 		nextCursor: hasMore ? page.at(-1)?.id ?? null : null
 	};
 }
@@ -307,8 +292,7 @@ export async function getStrategyDetail(id: number): Promise<PublicStrategyDetai
 				roundNumber: step.round_number,
 				action: step.action,
 				targetPath: step.target_path,
-				description: step.description,
-				orderIndex: step.order_index
+				description: step.description
 			}))
 	};
 }
@@ -471,7 +455,6 @@ function toStrategySummary(
 		hero: hero ? toHeroReference(hero) : null,
 		verifiedVersion: strategy.verified_version,
 		executionDifficulty: strategy.exec_difficulty,
-		updatedAt: strategy.updated_at,
 		placementDots: [...strategy.placements]
 			.sort((a, b) => a.id - b.id)
 			.map((placement) => ({

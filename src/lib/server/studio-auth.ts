@@ -1,6 +1,6 @@
 import { env } from '$env/dynamic/private';
 
-export const DEFAULT_STUDIO_REDIRECT = '/studio/strategies';
+const DEFAULT_STUDIO_REDIRECT = '/studio/strategies';
 
 export function normalizeEmail(value: unknown): string {
 	return typeof value === 'string' ? value.trim().toLowerCase() : '';

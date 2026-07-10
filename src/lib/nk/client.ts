@@ -20,7 +20,7 @@ function requireEnv(name: string): string {
 // .env.example) — no URL literals live in the source. Read from process.env
 // rather than $env/* because this module also runs in the tsx scripts, which
 // execute outside the SvelteKit/Vite build where $env/* is unavailable.
-export const NK_API_ROOT = requireEnv('NK_API_ROOT');
+const NK_API_ROOT = requireEnv('NK_API_ROOT');
 
 const USER_AGENT = 'chimps.gg-sync/0.1 (community strategy site; low-volume sync)';
 const MIN_REQUEST_INTERVAL_MS = 200;
@@ -31,7 +31,7 @@ function sleep(ms: number): Promise<void> {
 	return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-export async function nkFetch<T>(url: string): Promise<NkEnvelope<T>> {
+async function nkFetch<T>(url: string): Promise<NkEnvelope<T>> {
 	const wait = lastRequestAt + MIN_REQUEST_INTERVAL_MS - Date.now();
 	if (wait > 0) await sleep(wait);
 	lastRequestAt = Date.now();

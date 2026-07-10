@@ -4,7 +4,7 @@ import type { StrategyInsert, StrategyStatus } from '$lib/types/db';
 
 const STATUSES: readonly StrategyStatus[] = ['draft', 'ready', 'archived'];
 
-export type StrategyFormResult =
+type StrategyFormResult =
 	| { ok: true; data: StrategyInsert }
 	| { ok: false; error: string };
 

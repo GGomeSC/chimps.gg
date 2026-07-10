@@ -277,11 +277,18 @@
 		font-size: var(--text-meta);
 		font-weight: 600;
 		text-decoration: none;
-		transition: background 150ms ease;
+		transition:
+			background var(--motion-fast) ease,
+			transform var(--motion-fast) var(--ease-out);
 	}
 
 	.chip:hover {
 		background: color-mix(in srgb, var(--brand) 24%, var(--brand-soft));
+		transform: translateY(-1px);
+	}
+
+	.chip:active {
+		transform: scale(0.96);
 	}
 
 	.chip > span[aria-hidden] {
