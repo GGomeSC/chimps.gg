@@ -1,0 +1,93 @@
+import type { MapDifficulty, StepAction, TowerCategory } from './db';
+
+export type PublicMap = {
+	id: number;
+	name: string;
+	difficulty: MapDifficulty | null;
+	imageUrl: string | null;
+};
+
+export type PublicMode = {
+	id: number;
+	name: string;
+};
+
+export type PublicHeroReference = {
+	id: number;
+	name: string;
+	iconUrl: string;
+};
+
+export type PublicStrategySummary = {
+	id: number;
+	title: string;
+	description: string | null;
+	map: PublicMap;
+	mode: PublicMode;
+	hero: PublicHeroReference | null;
+	verifiedVersion: string;
+	executionDifficulty: number | null;
+	updatedAt: string;
+};
+
+export type StrategyMapPlacement = {
+	id: number;
+	towerId: number;
+	x: number;
+	y: number;
+	finalPath: string | null;
+	label: string | null;
+	notes: string | null;
+};
+
+export type StrategyMapTower = {
+	id: number;
+	name: string;
+	category: TowerCategory;
+	iconUrl: string;
+};
+
+export type PublicStep = {
+	id: number;
+	placementId: number | null;
+	roundNumber: number;
+	action: StepAction;
+	targetPath: string | null;
+	description: string | null;
+	orderIndex: number;
+};
+
+export type PublicStrategyDetail = PublicStrategySummary & {
+	sourceUrl: string | null;
+	placements: StrategyMapPlacement[];
+	towers: StrategyMapTower[];
+	steps: PublicStep[];
+};
+
+export type HeroSummary = PublicHeroReference & {
+	guideCount: number;
+};
+
+export type PublicHeroDetail = HeroSummary & {
+	strategies: PublicStrategySummary[];
+	maps: PublicMap[];
+	modes: PublicMode[];
+	versions: string[];
+};
+
+export type StrategyFilters = {
+	mapId: number | null;
+	modeId: number | null;
+	heroId: number | null;
+	executionDifficulty: number | null;
+	mapDifficulty: MapDifficulty | null;
+	version: string | null;
+	cursor: number | null;
+};
+
+export type StrategyFilterOptions = {
+	maps: Array<{ id: number; name: string }>;
+	modes: PublicMode[];
+	heroes: Array<{ id: number; name: string }>;
+	versions: string[];
+};

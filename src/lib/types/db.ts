@@ -66,6 +66,8 @@ export type StrategyRow = {
 	description: string | null;
 	hero_id: number | null;
 	source_url: string | null;
+	// A database constraint requires this to be nonblank when status is 'ready';
+	// it remains nullable for draft and archived strategies.
 	verified_version: string | null;
 	exec_difficulty: number | null;
 	status: StrategyStatus;

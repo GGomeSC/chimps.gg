@@ -2,7 +2,8 @@ import { error, fail } from '@sveltejs/kit';
 import { supabase } from '$lib/server/supabase';
 import { isHeroTower, PATH_PATTERN } from '$lib/server/placements';
 import { parseStrategyForm } from '$lib/server/strategy-form';
-import { TOWER_ICON_BUCKET, type TowerWithIcon } from '$lib/tower-icons';
+import { towerIconUrl } from '$lib/server/tower-icons';
+import type { TowerWithIcon } from '$lib/tower-icons';
 import type { StepAction, StepInsert, TowerRow } from '$lib/types/db';
 import type { Actions, PageServerLoad } from './$types';
 
@@ -65,8 +66,7 @@ function strategyId(params: { id: string }): number {
 }
 
 function withTowerIconUrl(tower: TowerRow): TowerWithIcon {
-	const { data } = supabase.storage.from(TOWER_ICON_BUCKET).getPublicUrl(tower.icon_path);
-	return { ...tower, icon_url: data.publicUrl };
+	return { ...tower, icon_url: towerIconUrl(tower.icon_path) };
 }
 
 export const load: PageServerLoad = async ({ params }) => {

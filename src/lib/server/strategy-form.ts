@@ -31,6 +31,15 @@ export function parseStrategyForm(form: FormData): StrategyFormResult {
 	const status = (text(form, 'status') ?? 'draft') as StrategyStatus;
 	if (!STATUSES.includes(status)) return { ok: false, error: 'Invalid status' };
 
+	const verifiedVersion = text(form, 'verified_version');
+	if (status === 'ready' && !verifiedVersion) {
+		return { ok: false, error: 'Ready strategies require a verified version' };
+	}
+	const sourceUrl = text(form, 'source_url');
+	if (sourceUrl && !isHttpUrl(sourceUrl)) {
+		return { ok: false, error: 'Source URL must use http or https' };
+	}
+
 	// Keys are DB columns (snake_case); locals are camelCase.
 	return {
 		ok: true,
@@ -42,8 +51,8 @@ export function parseStrategyForm(form: FormData): StrategyFormResult {
 			exec_difficulty: execDifficulty,
 			status,
 			description: text(form, 'description'),
-			source_url: text(form, 'source_url'),
-			verified_version: text(form, 'verified_version')
+			source_url: sourceUrl,
+			verified_version: verifiedVersion
 		}
 	};
 }
@@ -58,4 +67,13 @@ function text(form: FormData, name: string): string | null {
 function id(form: FormData, name: string): number | null {
 	const value = Number(text(form, name));
 	return Number.isInteger(value) && value > 0 ? value : null;
+}
+
+function isHttpUrl(value: string): boolean {
+	try {
+		const url = new URL(value);
+		return url.protocol === 'http:' || url.protocol === 'https:';
+	} catch {
+		return false;
+	}
 }

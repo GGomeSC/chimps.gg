@@ -1,17 +1,33 @@
-/* Theme tokens. Follows the system preference by default; an explicit choice
-   from the theme toggle is stored in localStorage and applied as
-   <html data-theme="..."> before first paint (see app.html). */
+/* Public design tokens extend the existing light/dark theme. The Studio keeps
+   using the neutral aliases below, while public components use the richer set. */
 :root {
 	color-scheme: light dark;
+	font-family:
+		Inter, ui-rounded, "SF Pro Rounded", "Segoe UI", system-ui, -apple-system, sans-serif;
+	font-synthesis: none;
+	text-rendering: optimizeLegibility;
 
-	--bg: light-dark(#ffffff, #16181d);
-	--fg: light-dark(#1a1a1a, #e4e6ea);
-	--fg-muted: light-dark(#666666, #9aa1ab);
-	--border: light-dark(#dddddd, #363b44);
-	--border-strong: light-dark(#bbbbbb, #4c525c);
-	--surface: light-dark(#f2f2f2, #23262d);
-	--error: light-dark(#b00020, #ff8080);
-	--ok: light-dark(#116329, #57c07d);
+	--bg: light-dark(#f7faf2, #101820);
+	--fg: light-dark(#172130, #edf5e8);
+	--fg-muted: light-dark(#667060, #aab7a5);
+	--ink: #15263a;
+	--border: light-dark(#dce5d6, #344351);
+	--border-strong: light-dark(#bccbb5, #536474);
+	--surface: light-dark(#edf3e8, #17242f);
+	--surface-raised: light-dark(#ffffff, #1d2c38);
+	--brand: light-dark(#8edb3f, #9ce653);
+	--brand-strong: light-dark(#427d0e, #b4ee79);
+	--brand-soft: light-dark(#e4f6d0, #29441f);
+	--brand-shadow: light-dark(#4f8d17, #315c12);
+	--accent: light-dark(#f7b928, #ffc83d);
+	--accent-soft: light-dark(#fff1bf, #4a3c18);
+	--error: light-dark(#b42318, #ff928a);
+	--ok: light-dark(#16723a, #65d58b);
+	--radius-sm: 0.65rem;
+	--radius-md: 0.9rem;
+	--radius-lg: 1.25rem;
+	--shadow-card: 0 10px 30px light-dark(rgb(32 65 22 / 0.08), rgb(0 0 0 / 0.2));
+	--shadow-card-hover: 0 16px 40px light-dark(rgb(32 65 22 / 0.14), rgb(0 0 0 / 0.3));
 }
 
 :root[data-theme='light'] {
@@ -22,7 +38,156 @@
 	color-scheme: dark;
 }
 
+*,
+*::before,
+*::after {
+	box-sizing: border-box;
+}
+
+html {
+	scroll-behavior: smooth;
+}
+
 body {
-	background: var(--bg);
+	min-width: 20rem;
+	min-height: 100vh;
+	margin: 0;
+	background:
+		radial-gradient(circle at 8% 6%, color-mix(in srgb, var(--brand) 11%, transparent), transparent 24rem),
+		var(--bg);
 	color: var(--fg);
+}
+
+button,
+input,
+select,
+textarea {
+	font: inherit;
+}
+
+button,
+select {
+	cursor: pointer;
+}
+
+a {
+	color: var(--brand-strong);
+	text-underline-offset: 0.18em;
+}
+
+:focus-visible {
+	outline: 3px solid var(--accent);
+	outline-offset: 3px;
+}
+
+::selection {
+	background: var(--brand);
+	color: var(--ink);
+}
+
+.page-shell {
+	width: min(100% - 2rem, 72rem);
+	margin-inline: auto;
+}
+
+.button {
+	display: inline-flex;
+	min-height: 2.75rem;
+	align-items: center;
+	justify-content: center;
+	gap: 0.45rem;
+	padding: 0.65rem 1rem;
+	border: 1px solid var(--brand-shadow);
+	border-radius: var(--radius-sm);
+	background: var(--brand);
+	color: var(--ink);
+	font-weight: 850;
+	text-decoration: none;
+	box-shadow: 0 3px 0 var(--brand-shadow);
+	cursor: pointer;
+}
+
+.button:hover {
+	transform: translateY(-1px);
+}
+
+.button.secondary {
+	border-color: var(--border-strong);
+	background: var(--surface-raised);
+	color: var(--fg);
+	box-shadow: 0 3px 0 var(--border-strong);
+}
+
+.section-heading {
+	display: flex;
+	align-items: end;
+	justify-content: space-between;
+	gap: 1rem;
+	margin-bottom: 1.25rem;
+}
+
+.section-heading h2 {
+	margin: 0;
+	font-size: clamp(1.65rem, 4vw, 2.35rem);
+	letter-spacing: -0.045em;
+}
+
+.section-heading p {
+	max-width: 38rem;
+	margin: 0.35rem 0 0;
+	color: var(--fg-muted);
+}
+
+.section-heading > a {
+	flex: none;
+	font-weight: 800;
+}
+
+.strategy-grid,
+.hero-grid {
+	display: grid;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	gap: 1rem;
+}
+
+.hero-grid {
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+@media (max-width: 48rem) {
+	.strategy-grid,
+	.hero-grid {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+}
+
+@media (max-width: 34rem) {
+	.page-shell {
+		width: min(100% - 1.25rem, 72rem);
+	}
+
+	.strategy-grid,
+	.hero-grid {
+		grid-template-columns: 1fr;
+	}
+
+	.section-heading {
+		align-items: start;
+		flex-direction: column;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	html {
+		scroll-behavior: auto;
+	}
+
+	*,
+	*::before,
+	*::after {
+		scroll-behavior: auto !important;
+		transition-duration: 0.01ms !important;
+		animation-duration: 0.01ms !important;
+		animation-iteration-count: 1 !important;
+	}
 }

@@ -1,12 +1,12 @@
 <script lang="ts">
-	import type { PlacementRow } from '$lib/types/db';
-	import type { TowerWithIcon } from '$lib/tower-icons';
+	import type { StrategyMapPlacement, StrategyMapTower } from '$lib/types/public';
 
 	type Point = { x: number; y: number };
 	type Props = {
 		imageUrl: string | null;
-		placements: PlacementRow[];
-		towers: TowerWithIcon[];
+		imageAlt?: string;
+		placements: StrategyMapPlacement[];
+		towers: StrategyMapTower[];
 		mode?: 'edit' | 'view';
 		selectedId?: number | null;
 		/** edit mode: whether a palette tower is armed, so map clicks place it */
@@ -18,6 +18,7 @@
 
 	let {
 		imageUrl,
+		imageAlt = 'Strategy map',
 		placements,
 		towers,
 		mode = 'view',
@@ -46,20 +47,20 @@
 		};
 	}
 
-	function markerPos(placement: PlacementRow): Point {
-		return drag?.id === placement.id ? drag.pos : { x: placement.pos_x, y: placement.pos_y };
+	function markerPos(placement: StrategyMapPlacement): Point {
+		return drag?.id === placement.id ? drag.pos : { x: placement.x, y: placement.y };
 	}
 
-	function requireTower(towerId: number): TowerWithIcon {
+	function requireTower(towerId: number): StrategyMapTower {
 		const tower = towerById.get(towerId);
 		if (!tower) throw new Error(`Missing tower ${towerId}`);
 		return tower;
 	}
 
-	function markerTitle(placement: PlacementRow): string {
-		const tower = requireTower(placement.tower_id);
+	function markerTitle(placement: StrategyMapPlacement): string {
+		const tower = requireTower(placement.towerId);
 		const parts = [tower.name];
-		if (placement.final_path) parts.push(placement.final_path);
+		if (placement.finalPath) parts.push(placement.finalPath);
 		if (placement.label) parts.push(`“${placement.label}”`);
 		return parts.join(' · ');
 	}
@@ -74,7 +75,7 @@
 		}
 	}
 
-	function onMarkerDown(event: PointerEvent, placement: PlacementRow) {
+	function onMarkerDown(event: PointerEvent, placement: StrategyMapPlacement) {
 		if (mode !== 'edit') return;
 		event.stopPropagation();
 		(event.currentTarget as HTMLElement).setPointerCapture(event.pointerId);
@@ -82,7 +83,7 @@
 			id: placement.id,
 			startX: event.clientX,
 			startY: event.clientY,
-			pos: { x: placement.pos_x, y: placement.pos_y },
+			pos: { x: placement.x, y: placement.y },
 			moved: false
 		};
 	}
@@ -94,7 +95,7 @@
 		drag = { ...drag, pos: toNormalized(event), moved };
 	}
 
-	function onMarkerUp(placement: PlacementRow) {
+	function onMarkerUp(placement: StrategyMapPlacement) {
 		if (!drag) return;
 		if (drag.moved) {
 			onmove?.(placement.id, drag.pos);
@@ -114,13 +115,13 @@
 	onclick={onMapClick}
 >
 	{#if imageUrl}
-		<img class="map-image" src={imageUrl} alt="Map" draggable="false" />
+		<img class="map-image" src={imageUrl} alt={imageAlt} draggable="false" />
 	{:else}
 		<div class="no-image">No map image</div>
 	{/if}
 
 	{#each placements as placement (placement.id)}
-		{@const tower = requireTower(placement.tower_id)}
+		{@const tower = requireTower(placement.towerId)}
 		{@const pos = markerPos(placement)}
 		<button
 			type="button"
@@ -129,21 +130,32 @@
 			style="left: {pos.x * 100}%; top: {pos.y * 100}%;"
 			title={markerTitle(placement)}
 			aria-label={markerTitle(placement)}
-			tabindex={mode === 'edit' ? 0 : -1}
-			onclick={(e) => e.stopPropagation()}
+			tabindex={mode === 'edit' || onselect ? 0 : -1}
+			onclick={(event) => {
+				event.stopPropagation();
+				if (mode === 'view') onselect?.(placement.id);
+			}}
 			onpointerdown={(e) => onMarkerDown(e, placement)}
 			onpointermove={onMarkerMove}
 			onpointerup={() => onMarkerUp(placement)}
 		>
-			<img class="marker-icon" src={tower.icon_url} alt={tower.name} draggable="false" />
+			<img class="marker-icon" src={tower.iconUrl} alt="" draggable="false" />
 		</button>
 	{/each}
 </div>
 
 <style>
+	/* The container must take its aspect from the image itself: normalized
+	   placement coordinates map onto the full image, so cropping or
+	   letterboxing (object-fit cover/contain) would misalign every marker
+	   once map art is not square. */
 	.map {
 		position: relative;
-		max-width: 40rem;
+		width: 100%;
+		max-width: 48rem;
+		overflow: hidden;
+		border-radius: var(--radius-lg, 0.75rem);
+		background: var(--surface);
 		user-select: none;
 	}
 
@@ -154,7 +166,6 @@
 	.map-image {
 		display: block;
 		width: 100%;
-		border-radius: 0.5rem;
 	}
 
 	.no-image {
@@ -163,7 +174,6 @@
 		place-items: center;
 		background: var(--surface);
 		color: var(--fg-muted);
-		border-radius: 0.5rem;
 	}
 
 	.marker {

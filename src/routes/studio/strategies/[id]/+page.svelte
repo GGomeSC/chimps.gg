@@ -1,5 +1,6 @@
 <script lang="ts">
 	import StrategyMap from '$lib/components/StrategyMap.svelte';
+	import { toStrategyMapPlacement, toStrategyMapTower } from '$lib/strategy-map';
 	import type { PlacementRow } from '$lib/types/db';
 
 	let { data, form } = $props();
@@ -7,6 +8,7 @@
 	const map = $derived(data.maps.find((m) => m.id === data.strategy.map_id));
 	const heroes = $derived(data.towers.filter((t) => t.category === 'Hero'));
 	const strategyHero = $derived(data.towers.find((t) => t.id === data.strategy.hero_id) ?? null);
+	const mapTowers = $derived(data.towers.map((t) => toStrategyMapTower(t, t.icon_url)));
 
 	const CATEGORY_ORDER = ['Hero', 'Primary', 'Military', 'Magic', 'Support'] as const;
 	// The Hero palette group offers only the strategy's own hero.
@@ -28,6 +30,7 @@
 	$effect(() => {
 		placements = [...data.placements];
 	});
+	const mapPlacements = $derived(placements.map(toStrategyMapPlacement));
 
 	let activeTowerId = $state<number | null>(null);
 	let selectedId = $state<number | null>(null);
@@ -250,8 +253,9 @@
 
 		<StrategyMap
 			imageUrl={map?.image_url ?? map?.nk_image_url ?? null}
-			{placements}
-			towers={data.towers}
+			imageAlt={map ? `${map.name} map` : 'Strategy map'}
+			placements={mapPlacements}
+			towers={mapTowers}
 			mode={preview ? 'view' : 'edit'}
 			selectedId={preview ? null : selectedId}
 			canPlace={!preview && activeTowerId !== null}

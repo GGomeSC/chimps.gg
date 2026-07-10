@@ -19,10 +19,10 @@ Cada estratégia é feita para um mapa e modo de jogo específico e registra o l
 
 </div>
 
-> **Status: Fase 1 — internal content-authoring foundation.**
-> Schema, database types e um sync de maps da Ninja Kiwi. Ainda não há site público nem
-> editor visual. O `/studio` é uma ferramenta interna protegida por Supabase magic link
-> e allowlist de emails.
+> **Status: public MVP + internal authoring Studio.**
+> O site público oferece descoberta de estratégias e heróis, layouts aproximados e build
+> orders versionadas. O `/studio` continua separado e protegido por Supabase magic link e
+> allowlist de emails.
 
 ## Stack
 
@@ -31,10 +31,20 @@ SvelteKit · TypeScript · Supabase (PostgreSQL) · Sem ORM.
 ## Getting started
 
 ```sh
-npm install
+pnpm install
 cp .env.example .env   # depois preencha suas chaves do Supabase
-npm run dev            # studio em http://localhost:5173/studio/maps
+pnpm run dev           # studio em http://localhost:5173/studio/maps
 ```
+
+Rotas públicas principais:
+
+- `/` — homepage e estratégias recentes;
+- `/strategies` — descoberta com filtros de mapa, modo, herói, dificuldade e versão;
+- `/strategies/[id]` — placements aproximados e build order;
+- `/heroes` e `/heroes/[id]` — cobertura factual derivada de estratégias `ready`.
+
+Somente estratégias com `status = 'ready'` são expostas. Defina `PUBLIC_SITE_URL` com a
+origem canônica de produção (por padrão, `https://chimps.gg`) para metadata e sitemap.
 
 Para acessar o Studio localmente sem solicitar magic link, defina apenas no `.env`
 local:
@@ -76,28 +86,40 @@ As migrations em SQL puro ficam em [`supabase/migrations/`](supabase/migrations)
 aplicadas com a Supabase CLI:
 
 ```sh
-npx supabase link --project-ref <seu-ref>
-npx supabase db push
+pnpm exec supabase link --project-ref <seu-ref>
+pnpm exec supabase db push
 ```
+
+A migration do MVP público exige `verified_version` em estratégias `ready` e adiciona um
+índice parcial para discovery. `exec_difficulty` continua opcional; estratégias sem nota
+aparecem como “Not rated”.
 
 ## Maps sync
 
 Os maps oficiais do BTD6 vêm da [Ninja Kiwi Open Data API](https://data.ninjakiwi.com/) (os nomes e as artes oficiais são extraídos dos metadados de challenges/races — não existe um endpoint de listagem de maps oficiais):
 
 ```sh
-npm run discover:nk        # inspeciona o formato bruto das respostas da API
-npm run sync:maps          # faz upsert dos maps (idempotente; -- --pages N para ampliar)
+pnpm run discover:nk       # inspeciona o formato bruto das respostas da API
+pnpm run sync:maps         # faz upsert dos maps (idempotente; -- --pages N para ampliar)
 ```
 
 ## Scripts
 
 | Comando | Descrição |
 | --- | --- |
-| `npm run dev` | Servidor de desenvolvimento |
-| `npm run check` | Type / Svelte check |
-| `npm run discover:nk` | Imprime respostas de exemplo da NK API |
-| `npm run sync:maps` | Sincroniza os maps oficiais no banco |
+| `pnpm run dev` | Servidor de desenvolvimento |
+| `pnpm run check` | Type / Svelte check |
+| `pnpm run discover:nk` | Imprime respostas de exemplo da NK API |
+| `pnpm run sync:maps` | Sincroniza os maps oficiais no banco |
 
 ## Notas do projeto
 
 As principais decisões e convenções estão no [`CLAUDE.md`](CLAUDE.md).
+
+## Proveniência dos dados
+
+- Map IDs e artes disponíveis vêm de metadata oficial da Ninja Kiwi.
+- Estratégias, placements, dificuldade de execução e build orders são conteúdo curado no Studio.
+- Contagens nas páginas de herói são derivadas apenas de estratégias `ready`.
+- Win rates, matchups, popularidade e performance por mapa ainda não estão disponíveis; nenhum
+  dado analítico mockado é salvo nas tabelas de produção.

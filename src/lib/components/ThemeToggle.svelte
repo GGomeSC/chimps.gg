@@ -15,17 +15,27 @@
 </script>
 
 <button type="button" onclick={toggle} aria-pressed={dark} aria-label="Toggle dark mode">
-	{dark ? '☀️' : '🌙'}
+	<span aria-hidden="true">{dark ? '☀' : '☾'}</span>
 </button>
 
 <style>
 	button {
-		font: inherit;
-		line-height: 1;
-		padding: 0.2rem 0.45rem;
-		background: none;
+		display: grid;
+		width: 2.75rem;
+		height: 2.75rem;
+		place-items: center;
+		padding: 0;
+		background: var(--surface-raised);
+		color: var(--fg);
 		border: 1px solid var(--border);
-		border-radius: 0.4rem;
+		border-radius: var(--radius-sm);
+		font: inherit;
+		font-size: 1.15rem;
+		line-height: 1;
 		cursor: pointer;
+	}
+
+	button:hover {
+		border-color: var(--brand);
 	}
 </style>

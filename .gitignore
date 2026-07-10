@@ -8,7 +8,6 @@ node_modules
 /build
 .npmrc
 CLAUDE.md
-package-lock.json
 skills-lock.json
 .env
 .env.*
