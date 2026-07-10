@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { m } from '$lib/paraglide/messages.js';
 	import type { StrategyMapPlacement, StrategyMapTower } from '$lib/types/public';
 
 	type Point = { x: number; y: number };
@@ -117,7 +118,7 @@
 	{#if imageUrl}
 		<img class="map-image" src={imageUrl} alt={imageAlt} draggable="false" />
 	{:else}
-		<div class="no-image">No map image</div>
+		<div class="no-image">{m.no_map_image()}</div>
 	{/if}
 
 	{#each placements as placement (placement.id)}

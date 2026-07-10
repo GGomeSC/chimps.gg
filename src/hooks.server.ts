@@ -1,10 +1,18 @@
+import { AsyncLocalStorage } from 'node:async_hooks';
 import { createServerClient } from '@supabase/ssr';
 import { dev } from '$app/environment';
 import { env } from '$env/dynamic/private';
 import { error, redirect, type Handle } from '@sveltejs/kit';
 import { PUBLIC_SUPABASE_PUBLISHABLE_KEY, PUBLIC_SUPABASE_URL } from '$env/static/public';
+import { DEFAULT_LOCALE, pathnameLocale, type Locale } from '$lib/i18n';
+import { overwriteGetLocale } from '$lib/paraglide/runtime';
 import { isStudioEmailAllowed, sanitizeStudioRedirect } from '$lib/server/studio-auth';
 import type { Database } from '$lib/types/db';
+
+// The URL is the only source of truth for the rendering locale (ISR caches one
+// response per URL). AsyncLocalStorage keeps concurrent requests isolated.
+const localeStorage = new AsyncLocalStorage<Locale>();
+overwriteGetLocale(() => localeStorage.getStore() ?? DEFAULT_LOCALE);
 
 type StudioClaims = {
 	sub?: string;
@@ -63,11 +71,15 @@ export const handle: Handle = async ({ event, resolve }) => {
 		}
 	}
 
-	return resolve(event, {
-		filterSerializedResponseHeaders(name) {
-			return name === 'content-range' || name === 'x-supabase-api-version';
-		}
-	});
+	const locale = pathnameLocale(pathname);
+	return localeStorage.run(locale, () =>
+		resolve(event, {
+			transformPageChunk: ({ html }) => html.replace('%lang%', locale),
+			filterSerializedResponseHeaders(name) {
+				return name === 'content-range' || name === 'x-supabase-api-version';
+			}
+		})
+	);
 };
 
 async function verifiedClaims(

@@ -1,6 +1,8 @@
 <script lang="ts">
+	import { m } from '$lib/paraglide/messages.js';
+
 	type Props = { value: number | null; label?: string };
-	let { value, label = 'Execution difficulty' }: Props = $props();
+	let { value, label = m.execution_difficulty() }: Props = $props();
 
 	// The game's own bloon progression: red → blue → green → yellow → pink.
 	const BLOONS = [
@@ -15,8 +17,8 @@
 <span
 	class="bloon-scale"
 	role="img"
-	aria-label={value === null ? `${label}: not rated` : `${label}: ${value} out of 5`}
-	title={value === null ? 'Execution not rated' : `Execution ${value} / 5`}
+	aria-label={value === null ? m.pips_not_rated({ label }) : m.pips_value({ label, value })}
+	title={value === null ? m.execution_not_rated_title() : m.execution_value_title({ value })}
 >
 	{#each BLOONS as color, index}
 		<span
@@ -25,7 +27,7 @@
 			style:background={color}
 		></span>
 	{/each}
-	<small>{value === null ? 'unrated' : `${value}/5`}</small>
+	<small>{value === null ? m.unrated() : `${value}/5`}</small>
 </span>
 
 <style>

@@ -1,6 +1,8 @@
 <script lang="ts">
 	import EntityIcon from './EntityIcon.svelte';
 	import { heroAccent } from '$lib/hero-accents';
+	import { href } from '$lib/link';
+	import { m } from '$lib/paraglide/messages.js';
 	import type { HeroSummary } from '$lib/types/public';
 
 	let { hero }: { hero: HeroSummary } = $props();
@@ -9,7 +11,7 @@
 	const hasGuides = $derived(hero.guideCount > 0);
 </script>
 
-<a class="hero-card" href={`/heroes/${hero.id}`} style:--hc={accent}>
+<a class="hero-card" href={href(`/heroes/${hero.id}`)} style:--hc={accent}>
 	<span class="art" aria-hidden="true"></span>
 	<span class="portrait">
 		<EntityIcon src={hero.iconUrl} name={hero.name} compact />
@@ -18,9 +20,11 @@
 		<strong>{hero.name}</strong>
 		<small>
 			{#if hasGuides}
-				{hero.guideCount} {hero.guideCount === 1 ? 'ready guide' : 'ready guides'}
+				{hero.guideCount === 1
+					? m.ready_guides_one({ count: hero.guideCount })
+					: m.ready_guides_other({ count: hero.guideCount })}
 			{:else}
-				No guides yet
+				{m.no_guides_yet()}
 			{/if}
 		</small>
 	</span>

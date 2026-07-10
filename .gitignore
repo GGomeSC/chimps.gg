@@ -6,6 +6,8 @@ node_modules
 /.svelte-kit
 /.vercel
 /build
+/src/lib/paraglide
+/project.inlang/cache
 .npmrc
 CLAUDE.md
 skills-lock.json

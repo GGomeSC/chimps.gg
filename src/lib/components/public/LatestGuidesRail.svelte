@@ -1,5 +1,7 @@
 <script lang="ts">
 	import CompactStrategyCard from './CompactStrategyCard.svelte';
+	import { href } from '$lib/link';
+	import { m } from '$lib/paraglide/messages.js';
 	import type { PublicStrategySummary } from '$lib/types/public';
 
 	let { strategies }: { strategies: PublicStrategySummary[] } = $props();
@@ -12,21 +14,21 @@
 
 <section class="latest page-shell" aria-labelledby="latest-guides-title">
 	<header>
-		<h2 id="latest-guides-title">Latest guides</h2>
+		<h2 id="latest-guides-title">{m.latest_guides()}</h2>
 		<div class="actions">
-			<a href="/strategies">View all →</a>
+			<a href={href('/strategies')}>{m.view_all()}</a>
 			{#if strategies.length > 1}
-				<button type="button" aria-label="Previous guides" onclick={() => scroll(-1)}>←</button>
-				<button type="button" aria-label="Next guides" onclick={() => scroll(1)}>→</button>
+				<button type="button" aria-label={m.prev_guides()} onclick={() => scroll(-1)}>←</button>
+				<button type="button" aria-label={m.next_guides()} onclick={() => scroll(1)}>→</button>
 			{/if}
 		</div>
 	</header>
 	{#if strategies.length > 0}
-		<div class="rail" bind:this={rail} aria-label="Recent strategy guides">
+		<div class="rail" bind:this={rail} aria-label={m.recent_rail_label()}>
 			{#each strategies as strategy (strategy.id)}<CompactStrategyCard {strategy} />{/each}
 		</div>
 	{:else}
-		<p class="quiet">The first guides are being prepared in Studio.</p>
+		<p class="quiet">{m.first_guides_pending()}</p>
 	{/if}
 </section>
 

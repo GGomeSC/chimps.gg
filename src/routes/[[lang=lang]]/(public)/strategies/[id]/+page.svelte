@@ -3,6 +3,9 @@
 	import DifficultyPips from '$lib/components/public/DifficultyPips.svelte';
 	import EntityIcon from '$lib/components/public/EntityIcon.svelte';
 	import StrategyMap from '$lib/components/StrategyMap.svelte';
+	import { mapDifficultyLabel } from '$lib/labels';
+	import { href } from '$lib/link';
+	import { m } from '$lib/paraglide/messages.js';
 
 	let { data } = $props();
 	// Writable $derived: user clicks override it, and it resets to the first
@@ -15,13 +18,17 @@
 	<meta
 		name="description"
 		content={data.strategy.description ??
-			`${data.strategy.map.name} ${data.strategy.mode.name} strategy verified for BTD6 ${data.strategy.verifiedVersion}.`}
+			m.detail_meta_description({
+				map: data.strategy.map.name,
+				mode: data.strategy.mode.name,
+				version: data.strategy.verifiedVersion
+			})}
 	/>
 	<link rel="canonical" href={data.canonical} />
 	<meta property="og:title" content={`${data.strategy.title} · chimps.gg`} />
 	<meta
 		property="og:description"
-		content={`Visual placements and build order verified on BTD6 ${data.strategy.verifiedVersion}.`}
+		content={m.detail_og_description({ version: data.strategy.verifiedVersion })}
 	/>
 	<meta property="og:type" content="article" />
 	<meta property="og:url" content={data.canonical} />
@@ -30,35 +37,35 @@
 
 <article class="strategy-detail">
 	<header class="detail-header page-shell">
-		<a class="back" href="/strategies">← All strategies</a>
+		<a class="back" href={href('/strategies')}>{m.all_strategies_back()}</a>
 		<div class="badges">
 			<span>v{data.strategy.verifiedVersion}</span>
 			<span>{data.strategy.mode.name}</span>
-			{#if data.strategy.map.difficulty}<span>{data.strategy.map.difficulty} map</span>{/if}
+			{#if data.strategy.map.difficulty}<span>{m.map_badge({ difficulty: mapDifficultyLabel(data.strategy.map.difficulty) })}</span>{/if}
 		</div>
 		<h1>{data.strategy.title}</h1>
 		<div class="summary-row">
 			<div>
 				<strong>{data.strategy.map.name}</strong>
-				<small>Map</small>
+				<small>{m.label_map()}</small>
 			</div>
 			<div class="hero-summary">
 				{#if data.strategy.hero}
 					<EntityIcon src={data.strategy.hero.iconUrl} name={data.strategy.hero.name} compact />
-					<span><strong>{data.strategy.hero.name}</strong><small>Hero</small></span>
+					<span><strong>{data.strategy.hero.name}</strong><small>{m.label_hero()}</small></span>
 				{:else}
-					<span><strong>No hero</strong><small>Hero</small></span>
+					<span><strong>{m.no_hero()}</strong><small>{m.label_hero()}</small></span>
 				{/if}
 			</div>
 			<div>
 				<DifficultyPips value={data.strategy.executionDifficulty} />
-				<small>Execution difficulty</small>
+				<small>{m.execution_difficulty()}</small>
 			</div>
 		</div>
 		{#if data.strategy.description}<p class="description">{data.strategy.description}</p>{/if}
 		{#if data.strategy.sourceUrl}
 			<a class="source" href={data.strategy.sourceUrl} target="_blank" rel="noopener noreferrer">
-				View original source ↗
+				{m.view_source()}
 			</a>
 		{/if}
 	</header>
@@ -68,29 +75,29 @@
 			<div class="section-heading">
 				<div>
 					<div class="heading-title">
-						<h2 id="placement-heading">Tower placements</h2>
-						<span class="guide">Guide</span>
+						<h2 id="placement-heading">{m.tower_placements()}</h2>
+						<span class="guide">{m.guide_badge()}</span>
 					</div>
 				</div>
 			</div>
 			{#if data.strategy.placements.length > 0}
 				<StrategyMap
 					imageUrl={data.strategy.map.imageUrl}
-					imageAlt={`${data.strategy.map.name} map with approximate tower placements`}
+					imageAlt={m.map_alt_placements({ map: data.strategy.map.name })}
 					placements={data.strategy.placements}
 					towers={data.strategy.towers}
 					{selectedId}
 					onselect={(id) => (selectedId = id)}
 				/>
 			{:else}
-				<p class="notice">This guide does not have a visual layout yet.</p>
+				<p class="notice">{m.no_layout_notice()}</p>
 			{/if}
 		</div>
 
 		<div class="build-column" aria-labelledby="build-heading">
 			<div class="section-heading">
 				<div>
-					<h2 id="build-heading">Build order</h2>
+					<h2 id="build-heading">{m.build_order()}</h2>
 				</div>
 			</div>
 			{#if data.strategy.steps.length > 0}
@@ -100,7 +107,7 @@
 					towers={data.strategy.towers}
 				/>
 			{:else}
-				<p class="notice">The build order is still being documented.</p>
+				<p class="notice">{m.build_order_pending()}</p>
 			{/if}
 		</div>
 	</section>

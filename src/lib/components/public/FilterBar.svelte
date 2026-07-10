@@ -1,5 +1,11 @@
 <script lang="ts">
+	import { mapDifficultyLabel } from '$lib/labels';
+	import { href } from '$lib/link';
+	import { m } from '$lib/paraglide/messages.js';
+	import type { MapDifficulty } from '$lib/types/db';
 	import type { StrategyFilterOptions, StrategyFilters } from '$lib/types/public';
+
+	const tierOptions: MapDifficulty[] = ['Beginner', 'Intermediate', 'Advanced', 'Expert'];
 
 	type Props = {
 		filters: StrategyFilters;
@@ -32,25 +38,29 @@
 		if (filters.mapId) {
 			active.push({
 				key: 'mapId',
-				label: options.maps.find((map) => map.id === filters.mapId)?.name ?? 'Map'
+				label: options.maps.find((map) => map.id === filters.mapId)?.name ?? m.filter_map()
 			});
 		}
 		if (filters.modeId) {
 			active.push({
 				key: 'modeId',
-				label: options.modes.find((mode) => mode.id === filters.modeId)?.name ?? 'Mode'
+				label: options.modes.find((mode) => mode.id === filters.modeId)?.name ?? m.filter_mode()
 			});
 		}
 		if (filters.heroId) {
 			active.push({
 				key: 'heroId',
-				label: options.heroes.find((hero) => hero.id === filters.heroId)?.name ?? 'Hero'
+				label: options.heroes.find((hero) => hero.id === filters.heroId)?.name ?? m.filter_hero()
 			});
 		}
 		if (filters.executionDifficulty) {
-			active.push({ key: 'executionDifficulty', label: `Execution ${filters.executionDifficulty}/5` });
+			active.push({
+				key: 'executionDifficulty',
+				label: m.chip_execution({ value: filters.executionDifficulty })
+			});
 		}
-		if (filters.mapDifficulty) active.push({ key: 'mapDifficulty', label: filters.mapDifficulty });
+		if (filters.mapDifficulty)
+			active.push({ key: 'mapDifficulty', label: mapDifficultyLabel(filters.mapDifficulty) });
 		if (filters.version) active.push({ key: 'version', label: `v${filters.version}` });
 		return active;
 	});
@@ -66,13 +76,13 @@
 			params.set('mapDifficulty', filters.mapDifficulty);
 		if (filters.version && removed !== 'version') params.set('version', filters.version);
 		const search = params.toString();
-		return search ? `/strategies?${search}` : '/strategies';
+		return href(search ? `/strategies?${search}` : '/strategies');
 	}
 </script>
 
 <svelte:window onkeydown={focusSearch} />
 
-<form class="filter-bar" method="GET" action="/strategies" onchange={submit} data-sveltekit-keepfocus data-sveltekit-noscroll>
+<form class="filter-bar" method="GET" action={href('/strategies')} onchange={submit} data-sveltekit-keepfocus data-sveltekit-noscroll>
 	<div class="controls">
 		<label class="search">
 			<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
@@ -83,16 +93,16 @@
 				bind:this={searchInput}
 				bind:value={query}
 				type="search"
-				placeholder="Search title, map, hero…"
-				aria-label="Search loaded strategies"
+				placeholder={m.search_placeholder()}
+				aria-label={m.search_label()}
 			/>
 			<kbd aria-hidden="true">/</kbd>
 		</label>
 
 		<label>
-			<span>Map</span>
+			<span>{m.filter_map()}</span>
 			<select name="map" value={filters.mapId ?? ''}>
-				<option value="">All</option>
+				<option value="">{m.filter_all()}</option>
 				{#each options.maps as map (map.id)}
 					<option value={map.id}>{map.name}</option>
 				{/each}
@@ -100,9 +110,9 @@
 		</label>
 
 		<label>
-			<span>Mode</span>
+			<span>{m.filter_mode()}</span>
 			<select name="mode" value={filters.modeId ?? ''}>
-				<option value="">All</option>
+				<option value="">{m.filter_all()}</option>
 				{#each options.modes as mode (mode.id)}
 					<option value={mode.id}>{mode.name}</option>
 				{/each}
@@ -110,9 +120,9 @@
 		</label>
 
 		<label>
-			<span>Hero</span>
+			<span>{m.filter_hero()}</span>
 			<select name="hero" value={filters.heroId ?? ''}>
-				<option value="">All</option>
+				<option value="">{m.filter_all()}</option>
 				{#each options.heroes as hero (hero.id)}
 					<option value={hero.id}>{hero.name}</option>
 				{/each}
@@ -120,9 +130,9 @@
 		</label>
 
 		<label>
-			<span>Execution</span>
+			<span>{m.filter_execution()}</span>
 			<select name="difficulty" value={filters.executionDifficulty ?? ''}>
-				<option value="">Any</option>
+				<option value="">{m.filter_any()}</option>
 				{#each [1, 2, 3, 4, 5] as difficulty (difficulty)}
 					<option value={difficulty}>{difficulty} / 5</option>
 				{/each}
@@ -130,37 +140,37 @@
 		</label>
 
 		<label>
-			<span>Tier</span>
+			<span>{m.filter_tier()}</span>
 			<select name="mapDifficulty" value={filters.mapDifficulty ?? ''}>
-				<option value="">All</option>
-				{#each ['Beginner', 'Intermediate', 'Advanced', 'Expert'] as difficulty (difficulty)}
-					<option value={difficulty}>{difficulty}</option>
+				<option value="">{m.filter_all()}</option>
+				{#each tierOptions as difficulty (difficulty)}
+					<option value={difficulty}>{mapDifficultyLabel(difficulty)}</option>
 				{/each}
 			</select>
 		</label>
 
 		<label>
-			<span>Version</span>
+			<span>{m.filter_version()}</span>
 			<select name="version" value={filters.version ?? ''}>
-				<option value="">All</option>
+				<option value="">{m.filter_all()}</option>
 				{#each options.versions as version (version)}
 					<option value={version}>v{version}</option>
 				{/each}
 			</select>
 		</label>
 
-		<noscript><button class="button" type="submit">Apply</button></noscript>
+		<noscript><button class="button" type="submit">{m.apply()}</button></noscript>
 	</div>
 
 	{#if chips.length > 0}
-		<div class="chips" aria-label="Active filters">
+		<div class="chips" aria-label={m.active_filters()}>
 			{#each chips as chip (chip.key)}
 				<a class="chip" href={hrefWithout(chip.key)} data-sveltekit-noscroll>
 					{chip.label} <span aria-hidden="true">×</span>
-					<span class="sr-only">— remove filter</span>
+					<span class="sr-only">{m.remove_filter()}</span>
 				</a>
 			{/each}
-			<a class="clear" href="/strategies" data-sveltekit-noscroll>Clear all</a>
+			<a class="clear" href={href('/strategies')} data-sveltekit-noscroll>{m.clear_all()}</a>
 		</div>
 	{/if}
 </form>

@@ -4,6 +4,8 @@
 	import PageIntro from '$lib/components/public/PageIntro.svelte';
 	import StrategyCard from '$lib/components/public/StrategyCard.svelte';
 	import { fuzzyMatch } from '$lib/fuzzy';
+	import { href } from '$lib/link';
+	import { m } from '$lib/paraglide/messages.js';
 
 	let { data } = $props();
 
@@ -23,25 +25,22 @@
 </script>
 
 <svelte:head>
-	<title>Browse Bloons TD 6 strategies · chimps.gg</title>
-	<meta
-		name="description"
-		content="Filter ready Bloons TD 6 strategy guides by map, mode, hero, execution difficulty, map difficulty, and verified version."
-	/>
+	<title>{m.strategies_title()}</title>
+	<meta name="description" content={m.strategies_meta_description()} />
 	<link rel="canonical" href={data.canonical} />
 	{#if data.filtered}<meta name="robots" content="noindex,follow" />{/if}
-	<meta property="og:title" content="Browse BTD6 strategies · chimps.gg" />
-	<meta property="og:description" content="Find a versioned, community-curated strategy for your next run." />
+	<meta property="og:title" content={m.strategies_og_title()} />
+	<meta property="og:description" content={m.strategies_og_description()} />
 	<meta property="og:url" content={data.canonical} />
 </svelte:head>
 
 <div class="page-shell discovery">
 	<PageIntro
-		title="Find your next run"
+		title={m.find_your_next_run()}
 	/>
 	<FilterBar filters={data.filters} options={data.options} bind:query />
 
-	<section class="results" aria-label="Strategy results">
+	<section class="results" aria-label={m.strategy_results()}>
 		{#if visible.length > 0}
 			<div class="strategy-grid">
 				{#each visible as strategy (strategy.id)}
@@ -50,15 +49,15 @@
 			</div>
 			{#if data.nextHref && !query.trim()}
 				<div class="pagination">
-					<a class="button secondary" href={data.nextHref}>Next strategies →</a>
+					<a class="button secondary" href={data.nextHref}>{m.next_strategies()}</a>
 				</div>
 			{/if}
 		{:else}
 			<EmptyState
-				title="No ready strategy matches that setup"
-				message="Try removing one filter or browse everything that has been verified for public use."
-				href="/strategies"
-				linkLabel="Clear filters"
+				title={m.empty_results_title()}
+				message={m.empty_results_message()}
+				href={href('/strategies')}
+				linkLabel={m.clear_filters()}
 			/>
 		{/if}
 	</section>

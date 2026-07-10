@@ -1,25 +1,23 @@
 <script lang="ts">
 	import HeroCard from '$lib/components/public/HeroCard.svelte';
 	import PageIntro from '$lib/components/public/PageIntro.svelte';
+	import { m } from '$lib/paraglide/messages.js';
 
 	let { data } = $props();
 </script>
 
 <svelte:head>
-	<title>Bloons TD 6 heroes · chimps.gg</title>
-	<meta
-		name="description"
-		content="Explore BTD6 heroes and the ready chimps.gg strategies, maps, modes, and verified versions associated with each one."
-	/>
+	<title>{m.heroes_title()}</title>
+	<meta name="description" content={m.heroes_meta_description()} />
 	<link rel="canonical" href={data.canonical} />
-	<meta property="og:title" content="BTD6 heroes · chimps.gg" />
-	<meta property="og:description" content="Browse heroes through real, curated strategy coverage." />
+	<meta property="og:title" content={m.heroes_og_title()} />
+	<meta property="og:description" content={m.heroes_og_description()} />
 	<meta property="og:url" content={data.canonical} />
 </svelte:head>
 
 <section class="page-shell hero-list" aria-labelledby="hero-list-heading">
 	<PageIntro
-		title="Choose your hero"
+		title={m.choose_your_hero()}
 		headingId="hero-list-heading"
 	/>
 	<div class="hero-grid">

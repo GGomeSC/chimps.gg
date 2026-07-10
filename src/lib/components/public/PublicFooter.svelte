@@ -1,16 +1,45 @@
+<script lang="ts">
+	import { page } from '$app/state';
+	import {
+		DEFAULT_LOCALE,
+		LOCALE_COOKIE,
+		LOCALE_COOKIE_MAX_AGE,
+		delocalizePath,
+		isLocale,
+		localizeHref,
+		type Locale
+	} from '$lib/i18n';
+	import { href } from '$lib/link';
+	import { m } from '$lib/paraglide/messages.js';
+
+	const locale = $derived<Locale>(isLocale(page.params.lang) ? page.params.lang : DEFAULT_LOCALE);
+	const otherLocale = $derived<Locale>(locale === 'pt' ? 'en' : 'pt');
+	const switchHref = $derived(
+		localizeHref(delocalizePath(page.url.pathname), otherLocale) + page.url.search
+	);
+
+	function rememberLocale(): void {
+		document.cookie = `${LOCALE_COOKIE}=${otherLocale}; path=/; max-age=${LOCALE_COOKIE_MAX_AGE}; samesite=lax`;
+	}
+</script>
+
 <footer class="site-footer">
 	<div class="page-shell footer-grid">
 		<div class="brand">
 			<strong>chimps.gg</strong>
-			<p class="legal">
-				Project not affiliated with or endorsed by Ninja Kiwi. Bloons TD 6 and its
-				assets belong to their respective owners.
-			</p>
+			<p class="legal">{m.footer_disclaimer()}</p>
 		</div>
-		<nav aria-label="Footer navigation">
-			<a href="/strategies">Strategies</a>
-			<a href="/heroes">Heroes</a>
+		<nav aria-label={m.footer_navigation()}>
+			<a href={href('/strategies')}>{m.nav_strategies()}</a>
+			<a href={href('/heroes')}>{m.nav_heroes()}</a>
 			<a href="https://data.ninjakiwi.com/" rel="external">Ninja Kiwi Open Data</a>
+			<a
+				href={switchHref}
+				data-sveltekit-reload
+				lang={otherLocale}
+				hreflang={otherLocale}
+				onclick={rememberLocale}>{m.language_switch_name()}</a
+			>
 		</nav>
 	</div>
 </footer>

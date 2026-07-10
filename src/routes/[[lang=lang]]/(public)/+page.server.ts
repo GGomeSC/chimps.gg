@@ -1,3 +1,4 @@
+import { localizeHref, pathnameLocale } from '$lib/i18n';
 import {
 	canonicalUrl,
 	getHomeMaps,
@@ -14,6 +15,6 @@ export const load: PageServerLoad = async ({ url, setHeaders }) => {
 	return {
 		strategies,
 		maps,
-		canonical: canonicalUrl(url, '/')
+		canonical: canonicalUrl(url, localizeHref('/', pathnameLocale(url.pathname)))
 	};
 };

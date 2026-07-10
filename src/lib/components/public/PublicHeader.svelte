@@ -1,6 +1,17 @@
 <script lang="ts">
 	import { navigating, page } from '$app/state';
 	import ThemeToggle from '$lib/components/ThemeToggle.svelte';
+	import {
+		DEFAULT_LOCALE,
+		LOCALE_COOKIE,
+		LOCALE_COOKIE_MAX_AGE,
+		delocalizePath,
+		isLocale,
+		localizeHref,
+		type Locale
+	} from '$lib/i18n';
+	import { href } from '$lib/link';
+	import { m } from '$lib/paraglide/messages.js';
 	import BrandMark from './BrandMark.svelte';
 
 	let menuOpen = $state(false);
@@ -10,15 +21,26 @@
 		menuOpen = false;
 	});
 
+	const locale = $derived<Locale>(isLocale(page.params.lang) ? page.params.lang : DEFAULT_LOCALE);
+	const otherLocale = $derived<Locale>(locale === 'pt' ? 'en' : 'pt');
+	const switchHref = $derived(
+		localizeHref(delocalizePath(page.url.pathname), otherLocale) + page.url.search
+	);
+
+	function rememberLocale(): void {
+		document.cookie = `${LOCALE_COOKIE}=${otherLocale}; path=/; max-age=${LOCALE_COOKIE_MAX_AGE}; samesite=lax`;
+	}
+
 	function isCurrent(path: string): boolean {
-		return path === '/' ? page.url.pathname === '/' : page.url.pathname.startsWith(path);
+		const current = delocalizePath(page.url.pathname);
+		return path === '/' ? current === '/' : current.startsWith(path);
 	}
 </script>
 
 <header class="site-header">
-	<a class="skip-link" href="#main-content">Skip to content</a>
+	<a class="skip-link" href="#main-content">{m.skip_to_content()}</a>
 	<div class="nav-shell page-shell">
-		<a class="brand" href="/" aria-label="chimps.gg home">
+		<a class="brand" href={href('/')} aria-label={m.brand_home_label()}>
 			<BrandMark />
 			<span>chimps<span>.gg</span></span>
 		</a>
@@ -26,7 +48,7 @@
 		<button
 			class="menu-button"
 			type="button"
-			aria-label="Toggle navigation"
+			aria-label={m.toggle_navigation()}
 			aria-expanded={menuOpen}
 			aria-controls="public-navigation"
 			onclick={() => (menuOpen = !menuOpen)}
@@ -34,12 +56,21 @@
 			<span></span><span></span><span></span>
 		</button>
 
-		<nav id="public-navigation" class:open={menuOpen} aria-label="Primary navigation">
-			<a href="/" aria-current={isCurrent('/') ? 'page' : undefined}>Home</a>
-			<a href="/strategies" aria-current={isCurrent('/strategies') ? 'page' : undefined}
-				>Strategies</a
+		<nav id="public-navigation" class:open={menuOpen} aria-label={m.primary_navigation()}>
+			<a href={href('/')} aria-current={isCurrent('/') ? 'page' : undefined}>{m.nav_home()}</a>
+			<a href={href('/strategies')} aria-current={isCurrent('/strategies') ? 'page' : undefined}
+				>{m.nav_strategies()}</a
 			>
-			<a href="/heroes" aria-current={isCurrent('/heroes') ? 'page' : undefined}>Heroes</a>
+			<a href={href('/heroes')} aria-current={isCurrent('/heroes') ? 'page' : undefined}>{m.nav_heroes()}</a>
+			<a
+				class="lang-switch"
+				href={switchHref}
+				data-sveltekit-reload
+				aria-label={m.language_switch_label()}
+				lang={otherLocale}
+				hreflang={otherLocale}
+				onclick={rememberLocale}>{otherLocale.toUpperCase()}</a
+			>
 			<ThemeToggle />
 		</nav>
 	</div>

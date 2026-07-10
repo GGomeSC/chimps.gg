@@ -1,3 +1,4 @@
+import { SUPPORTED_LOCALES, localizeHref } from '$lib/i18n';
 import { canonicalUrl, getSitemapEntries } from '$lib/server/public-content';
 import type { RequestHandler } from './$types';
 
@@ -10,9 +11,20 @@ export const GET: RequestHandler = async ({ url }) => {
 		...entries.strategyIds.map((id) => `/strategies/${id}`),
 		...entries.heroIds.map((id) => `/heroes/${id}`)
 	];
+	const alternates = (path: string) =>
+		SUPPORTED_LOCALES.map(
+			(locale) =>
+				`    <xhtml:link rel="alternate" hreflang="${locale}" href="${canonicalUrl(url, localizeHref(path, locale))}"/>`
+		).join('\n');
+	const urls = paths.flatMap((path) =>
+		SUPPORTED_LOCALES.map(
+			(locale) =>
+				`  <url>\n    <loc>${canonicalUrl(url, localizeHref(path, locale))}</loc>\n${alternates(path)}\n  </url>`
+		)
+	);
 	const body = `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${paths.map((path) => `  <url><loc>${canonicalUrl(url, path)}</loc></url>`).join('\n')}
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
+${urls.join('\n')}
 </urlset>`;
 
 	return new Response(body, {

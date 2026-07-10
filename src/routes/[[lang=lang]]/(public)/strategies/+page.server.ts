@@ -1,3 +1,4 @@
+import { localizeHref, pathnameLocale } from '$lib/i18n';
 import { canonicalUrl, discoverStrategies } from '$lib/server/public-content';
 import type { Config } from '@sveltejs/adapter-vercel';
 import type { PageServerLoad } from './$types';
@@ -23,7 +24,7 @@ export const load: PageServerLoad = async ({ url, setHeaders }) => {
 	return {
 		...discovery,
 		nextHref: discovery.nextCursor ? `${nextUrl.pathname}${nextUrl.search}` : null,
-		canonical: canonicalUrl(url, '/strategies'),
+		canonical: canonicalUrl(url, localizeHref('/strategies', pathnameLocale(url.pathname))),
 		filtered: Object.values(applied).some((value) => value !== null)
 	};
 };

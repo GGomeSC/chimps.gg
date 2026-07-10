@@ -2,6 +2,9 @@
 	import DifficultyPips from './DifficultyPips.svelte';
 	import EntityIcon from './EntityIcon.svelte';
 	import FallbackImage from './FallbackImage.svelte';
+	import { mapDifficultyLabel } from '$lib/labels';
+	import { href } from '$lib/link';
+	import { m } from '$lib/paraglide/messages.js';
 	import type { PublicStrategySummary } from '$lib/types/public';
 
 	let { strategy }: { strategy: PublicStrategySummary } = $props();
@@ -13,10 +16,10 @@
 </script>
 
 <article class="strategy-card">
-	<a class="media" href={`/strategies/${strategy.id}`} aria-label={`View ${strategy.title}`}>
-		<FallbackImage src={strategy.map.imageUrl} alt={`${strategy.map.name} map`}>
+	<a class="media" href={href(`/strategies/${strategy.id}`)} aria-label={m.card_view_label({ title: strategy.title })}>
+		<FallbackImage src={strategy.map.imageUrl} alt={m.card_map_alt({ name: strategy.map.name })}>
 			{#snippet fallback()}
-				<div class="map-fallback" aria-label={`${strategy.map.name} image unavailable`}>MAP</div>
+				<div class="map-fallback" aria-label={m.card_image_unavailable({ name: strategy.map.name })}>{m.map_fallback()}</div>
 			{/snippet}
 		</FallbackImage>
 		<span class="version"><span aria-hidden="true">✓</span> v{strategy.verifiedVersion}</span>
@@ -27,7 +30,7 @@
 				{/each}
 			</span>
 			<span class="hint" aria-hidden="true">
-				{towerCount} {towerCount === 1 ? 'tower' : 'towers'} · view layout →
+				{towerCount === 1 ? m.towers_hint_one({ count: towerCount }) : m.towers_hint_other({ count: towerCount })}
 			</span>
 		{/if}
 	</a>
@@ -35,12 +38,12 @@
 	<div class="body">
 		<div class="badges">
 			{#if strategy.map.difficulty && tierVar}
-				<span class="tier" style:--tc={tierVar}>{strategy.map.difficulty}</span>
+				<span class="tier" style:--tc={tierVar}>{mapDifficultyLabel(strategy.map.difficulty)}</span>
 			{/if}
 			<span class="mode">{strategy.mode.name}</span>
 			<span class="map-name">{strategy.map.name}</span>
 		</div>
-		<h3><a href={`/strategies/${strategy.id}`}>{strategy.title}</a></h3>
+		<h3><a href={href(`/strategies/${strategy.id}`)}>{strategy.title}</a></h3>
 		{#if strategy.description}
 			<p>{strategy.description}</p>
 		{/if}
@@ -50,7 +53,7 @@
 					<EntityIcon src={strategy.hero.iconUrl} name={strategy.hero.name} compact />
 					{strategy.hero.name}
 				{:else}
-					No hero
+					{m.no_hero()}
 				{/if}
 			</span>
 			<DifficultyPips value={strategy.executionDifficulty} />

@@ -1,23 +1,23 @@
 <script lang="ts">
 	import { page } from '$app/state';
+	import { href } from '$lib/link';
+	import { m } from '$lib/paraglide/messages.js';
 </script>
 
 <svelte:head>
-	<title>{page.status === 404 ? 'Page not found' : 'Something went wrong'} · chimps.gg</title>
+	<title>{page.status === 404 ? m.error_404_title() : m.error_500_title()} · chimps.gg</title>
 	<meta name="robots" content="noindex" />
 </svelte:head>
 
 <section class="error-page page-shell">
 	<span class="code">{page.status}</span>
-	<h1>{page.status === 404 ? 'This route popped early.' : 'We hit a rough round.'}</h1>
+	<h1>{page.status === 404 ? m.error_404_heading() : m.error_500_heading()}</h1>
 	<p>
-		{page.status === 404
-			? 'The guide or page you requested is not available.'
-			: 'Content is temporarily unavailable. Try the page again in a moment.'}
+		{page.status === 404 ? m.error_404_message() : m.error_500_message()}
 	</p>
 	<div class="actions">
-		<a class="button" href="/strategies">Browse strategies</a>
-		<a class="button secondary" href="/">Back home</a>
+		<a class="button" href={href('/strategies')}>{m.browse_strategies()}</a>
+		<a class="button secondary" href={href('/')}>{m.back_home()}</a>
 	</div>
 </section>
 

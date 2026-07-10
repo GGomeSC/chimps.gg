@@ -2,40 +2,45 @@
 	import EmptyState from '$lib/components/public/EmptyState.svelte';
 	import CompactStrategyCard from '$lib/components/public/CompactStrategyCard.svelte';
 	import EntityIcon from '$lib/components/public/EntityIcon.svelte';
+	import { href } from '$lib/link';
+	import { m } from '$lib/paraglide/messages.js';
 
 	let { data } = $props();
+
+	const readyGuides = $derived(
+		data.hero.guideCount === 1
+			? m.ready_guides_one({ count: data.hero.guideCount })
+			: m.ready_guides_other({ count: data.hero.guideCount })
+	);
 </script>
 
 <svelte:head>
-	<title>{data.hero.name} strategies · chimps.gg</title>
-	<meta
-		name="description"
-		content={`Explore ${data.hero.name} strategies, maps, modes, and verified game versions curated on chimps.gg.`}
-	/>
+	<title>{m.hero_title({ name: data.hero.name })}</title>
+	<meta name="description" content={m.hero_meta_description({ name: data.hero.name })} />
 	<link rel="canonical" href={data.canonical} />
-	<meta property="og:title" content={`${data.hero.name} strategies · chimps.gg`} />
+	<meta property="og:title" content={m.hero_title({ name: data.hero.name })} />
 	<meta
 		property="og:description"
-		content={`${data.hero.guideCount} ready ${data.hero.name} ${data.hero.guideCount === 1 ? 'guide' : 'guides'} with factual coverage data.`}
+		content={m.hero_og_description({ guides: readyGuides, name: data.hero.name })}
 	/>
 	<meta property="og:url" content={data.canonical} />
 	<meta property="og:image" content={data.hero.iconUrl} />
 </svelte:head>
 
 <section class="profile-header page-shell">
-	<a class="back" href="/heroes">← All heroes</a>
+	<a class="back" href={href('/heroes')}>{m.all_heroes_back()}</a>
 	<div class="profile-grid">
 		<EntityIcon src={data.hero.iconUrl} name={data.hero.name} />
 		<div>
-			<span>Hero profile</span>
+			<span>{m.hero_profile()}</span>
 			<h1>{data.hero.name}</h1>
-			<p>{data.hero.description ?? `${data.hero.name} is ready to lead your next Bloons TD 6 strategy.`}</p>
+			<p>{data.hero.description ?? m.hero_default_description({ name: data.hero.name })}</p>
 		</div>
-		<div class="facts" aria-label={`${data.hero.name} guide coverage`}>
-			<div><strong>{data.hero.guideCount}</strong><span>Guides</span></div>
-			<div><strong>{data.hero.maps.length}</strong><span>Maps</span></div>
-			<div><strong>{data.hero.modes.length}</strong><span>Modes</span></div>
-			<div><strong>{data.hero.versions.length}</strong><span>Versions</span></div>
+		<div class="facts" aria-label={m.hero_coverage_label({ name: data.hero.name })}>
+			<div><strong>{data.hero.guideCount}</strong><span>{m.facts_guides()}</span></div>
+			<div><strong>{data.hero.maps.length}</strong><span>{m.facts_maps()}</span></div>
+			<div><strong>{data.hero.modes.length}</strong><span>{m.facts_modes()}</span></div>
+			<div><strong>{data.hero.versions.length}</strong><span>{m.facts_versions()}</span></div>
 		</div>
 	</div>
 </section>
@@ -43,8 +48,8 @@
 <section class="page-shell related-section">
 	<div class="section-heading">
 		<div>
-			<h2>Ready strategies</h2>
-			<p>Curated build orders that explicitly use {data.hero.name}.</p>
+			<h2>{m.ready_strategies()}</h2>
+			<p>{m.hero_strategies_lead({ name: data.hero.name })}</p>
 		</div>
 	</div>
 	{#if data.hero.strategies.length > 0}
@@ -55,35 +60,35 @@
 		</div>
 	{:else}
 		<EmptyState
-			title="No ready guide yet"
-			message={`A ${data.hero.name} strategy has not been marked ready for public use yet.`}
-			href="/strategies"
-			linkLabel="Browse all strategies"
+			title={m.empty_hero_title()}
+			message={m.empty_hero_message({ name: data.hero.name })}
+			href={href('/strategies')}
+			linkLabel={m.browse_all_strategies()}
 		/>
 	{/if}
 </section>
 
 <section class="page-shell coverage-section">
 	<div class="coverage-panel">
-		<h2>Coverage snapshot</h2>
+		<h2>{m.coverage_snapshot()}</h2>
 		<div class="coverage-columns">
 			<div>
-				<h3>Maps</h3>
+				<h3>{m.facts_maps()}</h3>
 				{#if data.hero.maps.length}
 					<ul>{#each data.hero.maps as map}<li>{map.name}</li>{/each}</ul>
-				{:else}<p>None yet</p>{/if}
+				{:else}<p>{m.none_yet()}</p>{/if}
 			</div>
 			<div>
-				<h3>Modes</h3>
+				<h3>{m.facts_modes()}</h3>
 				{#if data.hero.modes.length}
 					<ul>{#each data.hero.modes as mode}<li>{mode.name}</li>{/each}</ul>
-				{:else}<p>None yet</p>{/if}
+				{:else}<p>{m.none_yet()}</p>{/if}
 			</div>
 			<div>
-				<h3>Versions</h3>
+				<h3>{m.facts_versions()}</h3>
 				{#if data.hero.versions.length}
 					<ul>{#each data.hero.versions as version}<li>v{version}</li>{/each}</ul>
-				{:else}<p>None yet</p>{/if}
+				{:else}<p>{m.none_yet()}</p>{/if}
 			</div>
 		</div>
 	</div>

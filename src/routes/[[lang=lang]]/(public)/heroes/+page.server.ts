@@ -1,3 +1,4 @@
+import { localizeHref, pathnameLocale } from '$lib/i18n';
 import { canonicalUrl, getHeroes } from '$lib/server/public-content';
 import type { PageServerLoad } from './$types';
 
@@ -9,6 +10,6 @@ export const load: PageServerLoad = async ({ url, setHeaders }) => {
 		heroes: [...heroes].sort(
 			(a, b) => b.guideCount - a.guideCount || a.name.localeCompare(b.name)
 		),
-		canonical: canonicalUrl(url, '/heroes')
+		canonical: canonicalUrl(url, localizeHref('/heroes', pathnameLocale(url.pathname)))
 	};
 };

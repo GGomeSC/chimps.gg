@@ -2,10 +2,17 @@
 	import { tick } from 'svelte';
 	import FallbackImage from './FallbackImage.svelte';
 	import PageIntro from './PageIntro.svelte';
+	import { mapDifficultyLabel } from '$lib/labels';
+	import { href } from '$lib/link';
+	import { m } from '$lib/paraglide/messages.js';
 	import type { HomeMap } from '$lib/types/public';
 	import type { MapDifficulty } from '$lib/types/db';
 
 	let { maps }: { maps: HomeMap[] } = $props();
+
+	function guidesCount(count: number): string {
+		return count === 1 ? m.guides_count_one({ count }) : m.guides_count_other({ count });
+	}
 
 	const difficulties: MapDifficulty[] = ['Beginner', 'Intermediate', 'Advanced', 'Expert'];
 	let selected = $state<MapDifficulty>('Beginner');
@@ -45,11 +52,11 @@
 
 <section class="map-selector page-shell" aria-labelledby="map-selector-title">
 	<PageIntro
-		title="Choose your map"
+		title={m.choose_your_map()}
 		headingId="map-selector-title"
 	/>
 
-	<div class="tier-tabs" role="tablist" aria-label="Map difficulty">
+	<div class="tier-tabs" role="tablist" aria-label={m.map_difficulty()}>
 		{#each difficulties as difficulty, index}
 			<button
 				id={`map-tier-${index}`}
@@ -65,7 +72,7 @@
 					if (event.key === 'ArrowLeft') { event.preventDefault(); selectRelative(index, -1); }
 				}}
 			>
-				{difficulty}
+				{mapDifficultyLabel(difficulty)}
 			</button>
 		{/each}
 	</div>
@@ -74,21 +81,21 @@
 		<div id="map-grid" class="map-viewport" role="tabpanel" aria-live="polite">
 			<div class="map-track" bind:this={track} onscroll={updateActivePage}>
 				{#each pages as page, pageIndex}
-					<div class="map-page" aria-label={`${selected} maps, page ${pageIndex + 1} of ${pages.length}`}>
+					<div class="map-page" aria-label={m.maps_page_label({ difficulty: mapDifficultyLabel(selected), page: pageIndex + 1, total: pages.length })}>
 						{#each page as map (map.id)}
 							{#if map.guideCount > 0}
-								<a class="map-tile" href={`/strategies?map=${map.id}`} aria-label={`${map.name}: ${map.guideCount} ready ${map.guideCount === 1 ? 'guide' : 'guides'}`}>
+								<a class="map-tile" href={href(`/strategies?map=${map.id}`)} aria-label={m.map_tile_ready_label({ name: map.name, guides: guidesCount(map.guideCount) })}>
 									<FallbackImage src={map.imageUrl} alt="">
-										{#snippet fallback()}<span class="map-fallback">MAP</span>{/snippet}
+										{#snippet fallback()}<span class="map-fallback">{m.map_fallback()}</span>{/snippet}
 									</FallbackImage>
-									<span class="map-copy"><strong>{map.name}</strong><small>{map.guideCount} {map.guideCount === 1 ? 'guide' : 'guides'} <b aria-hidden="true">→</b></small></span>
+									<span class="map-copy"><strong>{map.name}</strong><small>{guidesCount(map.guideCount)} <b aria-hidden="true">→</b></small></span>
 								</a>
 							{:else}
-								<div class="map-tile unavailable" aria-label={`${map.name}: no verified guides yet`}>
+								<div class="map-tile unavailable" aria-label={m.map_tile_none_label({ name: map.name })}>
 									<FallbackImage src={map.imageUrl} alt="">
-										{#snippet fallback()}<span class="map-fallback">MAP</span>{/snippet}
+										{#snippet fallback()}<span class="map-fallback">{m.map_fallback()}</span>{/snippet}
 									</FallbackImage>
-									<span class="map-copy"><strong>{map.name}</strong><small>No verified guides yet</small></span>
+									<span class="map-copy"><strong>{map.name}</strong><small>{m.map_no_guides()}</small></span>
 								</div>
 							{/if}
 						{/each}
@@ -98,12 +105,12 @@
 		</div>
 	{/key}
 	{#if pages.length > 1}
-		<nav class="map-pagination" aria-label={`${selected} map pages`}>
-			<button type="button" aria-label="Previous map page" disabled={activePage === 0} onclick={() => scrollToPage(activePage - 1)}>←</button>
-			<span class="page-dots" aria-label={`Page ${activePage + 1} of ${pages.length}`}>
-				{#each pages as _, index}<button class:active={activePage === index} type="button" aria-label={`Go to map page ${index + 1}`} onclick={() => scrollToPage(index)}></button>{/each}
+		<nav class="map-pagination" aria-label={m.map_pages_label({ difficulty: mapDifficultyLabel(selected) })}>
+			<button type="button" aria-label={m.map_page_prev()} disabled={activePage === 0} onclick={() => scrollToPage(activePage - 1)}>←</button>
+			<span class="page-dots" aria-label={m.page_of({ page: activePage + 1, total: pages.length })}>
+				{#each pages as _, index}<button class:active={activePage === index} type="button" aria-label={m.go_to_map_page({ page: index + 1 })} onclick={() => scrollToPage(index)}></button>{/each}
 			</span>
-			<button type="button" aria-label="Next map page" disabled={activePage === pages.length - 1} onclick={() => scrollToPage(activePage + 1)}>→</button>
+			<button type="button" aria-label={m.map_page_next()} disabled={activePage === pages.length - 1} onclick={() => scrollToPage(activePage + 1)}>→</button>
 		</nav>
 	{/if}
 </section>

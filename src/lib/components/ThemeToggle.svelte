@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { m } from '$lib/paraglide/messages.js';
+
 	let dark = $state(false);
 
 	$effect(() => {
@@ -14,7 +16,7 @@
 	}
 </script>
 
-<button class="theme-toggle" type="button" onclick={toggle} aria-pressed={dark} aria-label="Toggle dark mode">
+<button class="theme-toggle" type="button" onclick={toggle} aria-pressed={dark} aria-label={m.toggle_dark_mode()}>
 	<span aria-hidden="true">{dark ? '☀' : '☾'}</span>
 </button>
 

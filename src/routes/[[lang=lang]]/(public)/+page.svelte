@@ -1,16 +1,17 @@
 <script lang="ts">
 	import LatestGuidesRail from '$lib/components/public/LatestGuidesRail.svelte';
 	import MapSelector from '$lib/components/public/MapSelector.svelte';
+	import { m } from '$lib/paraglide/messages.js';
 
 	let { data } = $props();
 </script>
 
 <svelte:head>
-	<title>Bloons TD 6 strategy guides · chimps.gg</title>
-	<meta name="description" content="Choose a Bloons TD 6 map and open a verified, versioned strategy guide for your next run." />
+	<title>{m.home_title()}</title>
+	<meta name="description" content={m.home_meta_description()} />
 	<link rel="canonical" href={data.canonical} />
-	<meta property="og:title" content="Bloons TD 6 strategy guides · chimps.gg" />
-	<meta property="og:description" content="Choose your map and get straight to a verified strategy." />
+	<meta property="og:title" content={m.home_og_title()} />
+	<meta property="og:description" content={m.home_og_description()} />
 	<meta property="og:url" content={data.canonical} />
 </svelte:head>
 

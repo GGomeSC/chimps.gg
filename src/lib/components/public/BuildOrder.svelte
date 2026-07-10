@@ -1,5 +1,7 @@
 <script lang="ts">
 	import EntityIcon from './EntityIcon.svelte';
+	import { stepActionLabel } from '$lib/labels';
+	import { m } from '$lib/paraglide/messages.js';
 	import type {
 		PublicStep,
 		StrategyMapPlacement,
@@ -32,10 +34,6 @@
 		if (!placement) return null;
 		return placement.label ?? towerById.get(placement.towerId)?.name ?? null;
 	}
-
-	function actionLabel(action: PublicStep['action']): string {
-		return action.charAt(0).toUpperCase() + action.slice(1);
-	}
 </script>
 
 <ol class="build-order">
@@ -55,13 +53,13 @@
 				</div>
 				<div class="body">
 					<header>
-						<span class="round">Round {step.roundNumber}</span>
-						<span class="action">{actionLabel(step.action)}</span>
+						<span class="round">{m.round_n({ round: step.roundNumber })}</span>
+						<span class="action">{stepActionLabel(step.action)}</span>
 					</header>
 					{#if placementName(step.placementId)}
 						<strong>{placementName(step.placementId)}</strong>
 					{/if}
-					{#if step.targetPath}<span class="path">Target path {step.targetPath}</span>{/if}
+					{#if step.targetPath}<span class="path">{m.target_path_n({ path: step.targetPath })}</span>{/if}
 					{#if step.description}<p>{step.description}</p>{/if}
 				</div>
 			</article>

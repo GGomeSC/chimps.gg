@@ -2,15 +2,18 @@
 	import DifficultyPips from './DifficultyPips.svelte';
 	import EntityIcon from './EntityIcon.svelte';
 	import FallbackImage from './FallbackImage.svelte';
+	import { mapDifficultyLabel } from '$lib/labels';
+	import { href } from '$lib/link';
+	import { m } from '$lib/paraglide/messages.js';
 	import type { PublicStrategySummary } from '$lib/types/public';
 
 	let { strategy }: { strategy: PublicStrategySummary } = $props();
 </script>
 
 <article class="guide-card">
-	<a href={`/strategies/${strategy.id}`} aria-label={`View ${strategy.title}`}>
+	<a href={href(`/strategies/${strategy.id}`)} aria-label={m.card_view_label({ title: strategy.title })}>
 		<FallbackImage src={strategy.map.imageUrl} alt="">
-			{#snippet fallback()}<span class="map-fallback">MAP</span>{/snippet}
+			{#snippet fallback()}<span class="map-fallback">{m.map_fallback()}</span>{/snippet}
 		</FallbackImage>
 		<span class="version"><span aria-hidden="true">✓</span> v{strategy.verifiedVersion}</span>
 		{#if strategy.hero}
@@ -20,7 +23,7 @@
 			<strong>{strategy.title}</strong>
 			<small>{strategy.map.name} · {strategy.mode.name}</small>
 			<span class="meta">
-				{#if strategy.map.difficulty}<b>{strategy.map.difficulty}</b>{/if}
+				{#if strategy.map.difficulty}<b>{mapDifficultyLabel(strategy.map.difficulty)}</b>{/if}
 				<DifficultyPips value={strategy.executionDifficulty} />
 			</span>
 		</span>
