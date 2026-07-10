@@ -16,17 +16,15 @@
 	<meta property="og:url" content={data.canonical} />
 </svelte:head>
 
-<section class="hero-heading page-shell">
-
-</section>
-
 <section class="page-shell hero-list" aria-labelledby="hero-list-heading">
-	<div class="section-heading">
+	<header class="hero-heading">
 		<div>
-			<h2 id="hero-list-heading">All heroes</h2>
-			<p>Choose a hero to see related strategies for each maps and modes.</p>
+			<span>Hero strategy index</span>
+			<h1 id="hero-list-heading">Choose your hero</h1>
+			<p>Open their ready strategies across maps, modes, and verified versions.</p>
 		</div>
-	</div>
+		<strong>{data.heroes.length}<small> heroes</small></strong>
+	</header>
 	<div class="hero-grid">
 		{#each data.heroes as hero (hero.id)}
 			<HeroCard {hero} />
@@ -36,68 +34,73 @@
 
 <style>
 	.hero-heading {
-		display: grid;
-		grid-template-columns: minmax(0, 1fr) auto;
-		gap: 2rem;
+		display: flex;
 		align-items: end;
-		padding-block: clamp(3rem, 8vw, 6rem);
+		justify-content: space-between;
+		gap: 1rem;
+		padding-block: clamp(1.25rem, 3vw, 2rem) 1rem;
 	}
 
-	.hero-heading > div > span {
+	.hero-heading div > span {
 		color: var(--brand-strong);
-		font-size: 0.72rem;
-		font-weight: 700;
+		font-size: 0.7rem;
+		font-weight: 800;
 		letter-spacing: 0.14em;
 		text-transform: uppercase;
 	}
 
 	h1 {
-		margin: 0.35rem 0;
-		font-size: clamp(2.4rem, 6vw, 3.6rem);
+		margin: 0.15rem 0 0.25rem;
+		font-size: clamp(1.9rem, 4vw, 2.7rem);
 		font-weight: 800;
-		letter-spacing: -0.035em;
+		line-height: 1;
+		letter-spacing: -0.04em;
 	}
 
 	.hero-heading p {
 		max-width: 43rem;
 		margin: 0;
 		color: var(--fg-muted);
-		font-size: 1.05rem;
-		line-height: 1.6;
+		font-size: 0.88rem;
+		line-height: 1.45;
 	}
 
-	.coverage-card {
-		display: grid;
-		min-width: 13rem;
-		padding: 1.25rem;
-		border: 1px solid var(--border);
-		border-radius: var(--radius-lg);
-		background: var(--brand-soft);
+	.hero-heading > strong {
+		flex: none;
+		color: var(--fg);
+		font-family: var(--font-mono);
+		font-size: 1.25rem;
+		font-variant-numeric: tabular-nums;
 	}
 
-	.coverage-card strong {
-		color: var(--brand-strong);
-		font-size: 2.5rem;
-		line-height: 1;
-	}
-
-	.coverage-card span {
-		font-weight: 850;
-	}
-
-	.coverage-card small {
-		margin-top: 0.5rem;
+	.hero-heading > strong small {
+		margin-left: 0.2rem;
 		color: var(--fg-muted);
+		font-family: var(--font-body);
+		font-size: 0.72rem;
+		font-weight: 600;
 	}
 
 	.hero-list {
-		padding-bottom: 2rem;
+		padding-bottom: clamp(1.5rem, 4vw, 3rem);
+	}
+
+	.hero-grid {
+		grid-template-columns: repeat(4, minmax(0, 1fr));
+		gap: 0.7rem;
+	}
+
+	@media (max-width: 58rem) {
+		.hero-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 	}
 
 	@media (max-width: 42rem) {
-		.hero-heading {
-			grid-template-columns: 1fr;
-			align-items: start;
-		}
+		.hero-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+		.hero-heading p { max-width: 28rem; }
+	}
+
+	@media (max-width: 28rem) {
+		.hero-heading { align-items: start; flex-direction: column; }
+		.hero-grid { grid-template-columns: 1fr; }
 	}
 </style>

@@ -67,12 +67,14 @@
 		<div class="map-column" aria-labelledby="placement-heading">
 			<div class="section-heading">
 				<div>
-					<h2 id="placement-heading">Tower placements</h2>
+					<div class="heading-title">
+						<h2 id="placement-heading">Tower placements</h2>
+						<span class="guide">Guide</span>
+					</div>
 					<p>
 						Treat them as a visual reference, not pixel-perfect placement instructions.
 					</p>
 				</div>
-				<span class="guide">Guide</span>
 			</div>
 			{#if data.strategy.placements.length > 0}
 				<StrategyMap
@@ -92,6 +94,7 @@
 			<div class="section-heading">
 				<div>
 					<h2 id="build-heading">Build order</h2>
+					<p>Follow the rounds and actions in sequence during your run.</p>
 				</div>
 			</div>
 			{#if data.strategy.steps.length > 0}
@@ -201,6 +204,26 @@
 		min-width: 0;
 	}
 
+	.content-grid .section-heading {
+		align-items: start;
+		min-height: 4.25rem;
+		margin-bottom: 0;
+	}
+
+	.heading-title {
+		display: flex;
+		align-items: center;
+		gap: 0.65rem;
+	}
+
+	.heading-title h2 {
+		margin: 0;
+	}
+
+	.content-grid .section-heading p {
+		margin-top: 0.35rem;
+	}
+
 	.guide {
 		flex: none;
 		background: var(--accent-soft);
@@ -217,6 +240,10 @@
 	@media (max-width: 64rem) {
 		.content-grid {
 			grid-template-columns: 1fr;
+		}
+
+		.content-grid .section-heading {
+			min-height: 0;
 		}
 	}
 </style>

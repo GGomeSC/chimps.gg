@@ -2,7 +2,6 @@
 	<div class="page-shell footer-grid">
 		<div class="brand">
 			<strong>chimps.gg</strong>
-			<p>Community-curated Bloons TD 6 strategies, built for clear runs—not mystery metrics.</p>
 			<p class="legal">
 				Community project. Not affiliated with or endorsed by Ninja Kiwi. Bloons TD 6 and its
 				assets belong to their respective owners.

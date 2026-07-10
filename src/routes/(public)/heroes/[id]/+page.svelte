@@ -1,7 +1,7 @@
 <script lang="ts">
 	import EmptyState from '$lib/components/public/EmptyState.svelte';
+	import CompactStrategyCard from '$lib/components/public/CompactStrategyCard.svelte';
 	import EntityIcon from '$lib/components/public/EntityIcon.svelte';
-	import StrategyCard from '$lib/components/public/StrategyCard.svelte';
 
 	let { data } = $props();
 </script>
@@ -29,19 +29,15 @@
 		<div>
 			<span>Hero profile</span>
 			<h1>{data.hero.name}</h1>
-			<p>
-				Coverage below is derived only from ready, versioned chimps.gg strategies. It is not a
-				performance ranking.
-			</p>
+			<p>{data.hero.description ?? `${data.hero.name} is ready to lead your next Bloons TD 6 strategy.`}</p>
+		</div>
+		<div class="facts" aria-label={`${data.hero.name} guide coverage`}>
+			<div><strong>{data.hero.guideCount}</strong><span>Guides</span></div>
+			<div><strong>{data.hero.maps.length}</strong><span>Maps</span></div>
+			<div><strong>{data.hero.modes.length}</strong><span>Modes</span></div>
+			<div><strong>{data.hero.versions.length}</strong><span>Versions</span></div>
 		</div>
 	</div>
-</section>
-
-<section class="facts page-shell" aria-label={`${data.hero.name} guide coverage`}>
-	<div><strong>{data.hero.guideCount}</strong><span>Ready guides</span></div>
-	<div><strong>{data.hero.maps.length}</strong><span>Covered maps</span></div>
-	<div><strong>{data.hero.modes.length}</strong><span>Covered modes</span></div>
-	<div><strong>{data.hero.versions.length}</strong><span>Verified versions</span></div>
 </section>
 
 <section class="page-shell related-section">
@@ -52,9 +48,9 @@
 		</div>
 	</div>
 	{#if data.hero.strategies.length > 0}
-		<div class="strategy-grid">
+		<div class="strategy-rail">
 			{#each data.hero.strategies as strategy (strategy.id)}
-				<StrategyCard {strategy} />
+				<CompactStrategyCard {strategy} />
 			{/each}
 		</div>
 	{:else}
@@ -91,24 +87,16 @@
 			</div>
 		</div>
 	</div>
-	<div class="analytics-panel">
-		<span>Community data coming soon</span>
-		<h2>No pretend performance stats.</h2>
-		<p>
-			Win rates, bloon matchups, map performance, and popularity are unavailable until
-			chimps.gg has a trustworthy, consented community-data pipeline.
-		</p>
-	</div>
 </section>
 
 <style>
 	.profile-header {
-		padding-block: clamp(3rem, 8vw, 5rem) 2rem;
+		padding-block: clamp(1.25rem, 3vw, 2rem) 0;
 	}
 
 	.back {
 		display: inline-block;
-		margin-bottom: 1.5rem;
+		margin-bottom: 0.85rem;
 		color: var(--fg-muted);
 		font-weight: 750;
 	}
@@ -116,12 +104,16 @@
 	.profile-grid {
 		display: grid;
 		grid-template-columns: auto minmax(0, 1fr);
-		gap: 1.5rem;
+		gap: 1.25rem;
 		align-items: center;
+		padding: 1rem;
+		border: 1px solid var(--border);
+		border-radius: var(--radius-lg);
+		background: var(--surface-raised);
+		box-shadow: var(--shadow-card);
 	}
 
-	.profile-grid > div > span,
-	.analytics-panel > span {
+	.profile-grid > div > span {
 		color: var(--brand-strong);
 		font-size: 0.75rem;
 		font-weight: 900;
@@ -131,69 +123,83 @@
 
 	h1 {
 		margin: 0.2rem 0;
-		font-size: clamp(2.7rem, 8vw, 5rem);
+		font-size: clamp(2.35rem, 6vw, 4rem);
 		letter-spacing: -0.065em;
 	}
 
 	.profile-grid p {
-		max-width: 44rem;
+		max-width: 40rem;
 		margin: 0;
 		color: var(--fg-muted);
-		line-height: 1.6;
+		line-height: 1.5;
 	}
 
 	.facts {
 		display: grid;
+		grid-column: 1 / -1;
 		grid-template-columns: repeat(4, 1fr);
-		overflow: hidden;
-		border: 1px solid var(--border);
-		border-radius: var(--radius-lg);
-		background: var(--surface-raised);
-		box-shadow: var(--shadow-card);
+		margin: 0.15rem -1rem -1rem;
+		border-top: 1px solid var(--border);
+		background: color-mix(in srgb, var(--surface) 62%, transparent);
 	}
 
 	.facts div {
 		display: grid;
 		gap: 0.2rem;
-		padding: 1.25rem;
+		grid-template-columns: auto 1fr;
+		align-items: baseline;
+		gap: 0.55rem;
+		padding: 0.7rem 1rem;
 		border-right: 1px solid var(--border);
 	}
 
-	.facts div:last-child {
-		border: 0;
-	}
+	.facts div:last-child { border-right: 0; }
 
 	.facts strong {
-		font-size: 1.65rem;
+		font-family: var(--font-mono);
+		font-size: 1.25rem;
+		font-variant-numeric: tabular-nums;
 	}
 
 	.facts span {
 		color: var(--fg-muted);
 		font-size: 0.75rem;
+		font-weight: 650;
+		letter-spacing: 0.02em;
+		text-transform: uppercase;
 	}
 
 	.related-section,
 	.coverage-section {
-		padding-top: clamp(3rem, 8vw, 6rem);
+		padding-top: clamp(1.5rem, 3vw, 2.25rem);
+	}
+
+	.related-section .section-heading { margin-bottom: 0.75rem; }
+	.related-section .section-heading h2 { font-size: clamp(1.4rem, 3vw, 1.8rem); }
+	.related-section .section-heading p { font-size: 0.85rem; }
+
+	.strategy-rail {
+		display: flex;
+		gap: 0.7rem;
+		overflow-x: auto;
+		padding: 1px 1px 0.5rem;
+		scroll-snap-type: x mandatory;
 	}
 
 	.coverage-section {
-		display: grid;
-		grid-template-columns: minmax(0, 1.2fr) minmax(16rem, 0.8fr);
-		gap: 1rem;
+		padding-bottom: clamp(1.5rem, 4vw, 3rem);
 	}
 
-	.coverage-panel,
-	.analytics-panel {
-		padding: clamp(1.25rem, 4vw, 2rem);
+	.coverage-panel {
+		padding: 1rem 1.25rem;
 		border: 1px solid var(--border);
 		border-radius: var(--radius-lg);
 		background: var(--surface-raised);
 	}
 
-	.coverage-panel > h2,
-	.analytics-panel h2 {
-		margin-top: 0;
+	.coverage-panel > h2 {
+		margin: 0 0 0.75rem;
+		font-size: 1.15rem;
 	}
 
 	.coverage-columns {
@@ -203,46 +209,38 @@
 	}
 
 	.coverage-columns h3 {
+		margin: 0 0 0.35rem;
 		font-size: 0.8rem;
 		text-transform: uppercase;
 	}
 
 	.coverage-columns ul {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.35rem;
 		margin: 0;
-		padding-left: 1.1rem;
+		padding: 0;
 		color: var(--fg-muted);
+		list-style: none;
 	}
 
-	.coverage-columns p,
-	.analytics-panel p {
-		color: var(--fg-muted);
-		line-height: 1.6;
+	.coverage-columns li {
+		padding: 0.2rem 0.45rem;
+		border-radius: 999px;
+		background: var(--surface);
+		font-size: 0.72rem;
 	}
 
-	.analytics-panel {
-		background: linear-gradient(145deg, var(--surface-raised), var(--brand-soft));
-	}
+	.coverage-columns p { margin: 0; color: var(--fg-muted); }
 
-	.analytics-panel h2 {
-		margin: 0.5rem 0;
+	@media (max-width: 60rem) {
+		.profile-grid { grid-template-columns: auto minmax(0, 1fr); }
 	}
 
 	@media (max-width: 45rem) {
-		.facts {
-			grid-template-columns: repeat(2, 1fr);
-		}
-
-		.facts div:nth-child(2) {
-			border-right: 0;
-		}
-
-		.facts div:nth-child(-n + 2) {
-			border-bottom: 1px solid var(--border);
-		}
-
-		.coverage-section {
-			grid-template-columns: 1fr;
-		}
+		.facts { grid-template-columns: repeat(2, 1fr); }
+		.facts div:nth-child(2) { border-right: 0; }
+		.facts div:nth-child(-n + 2) { border-bottom: 1px solid var(--border); }
 	}
 
 	@media (max-width: 32rem) {
@@ -254,5 +252,7 @@
 		.coverage-columns {
 			grid-template-columns: 1fr;
 		}
+
+		.facts { grid-column: auto; }
 	}
 </style>

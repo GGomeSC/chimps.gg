@@ -15,6 +15,7 @@ import type {
 } from '$lib/types/db';
 import type {
 	HeroSummary,
+	HomeMap,
 	PublicHeroDetail,
 	PublicHeroReference,
 	PublicMap,
@@ -66,6 +67,7 @@ const HERO_DETAIL_SELECT = `
 	name,
 	category,
 	icon_path,
+	description,
 	strategies:strategies!strategies_hero_id_fkey(
 		id,
 		title,
@@ -85,6 +87,32 @@ const MAP_DIFFICULTIES: readonly MapDifficulty[] = [
 	'Advanced',
 	'Expert'
 ];
+const MAP_GAME_ORDER: Record<MapDifficulty, readonly string[]> = {
+	Beginner: [
+		'Monkey Meadow', 'In The Loop', 'Skull Tweak', "Three Mines 'Round", 'Spa Pits',
+		'Tinkerton', 'Tree Stump', 'Town Center', 'Middle of the Road', 'One Two Tree',
+		'Scrapyard', 'The Cabin', 'Resort', 'Skates', 'Lotus Island', 'Candy Falls',
+		'Winter Park', 'Carved', 'Park Path', 'Alpine Run', 'Frozen Over', 'Cubism',
+		'Four Circles', 'Hedge', 'End of the Road', 'Logs'
+	],
+	Intermediate: [
+		'Lost Crevasse', 'Luminous Cove', 'Ancient Portal', 'Sulfur Springs', 'Water Park',
+		'Polyphemus', 'Covered Garden', 'Quarry', 'Quiet Street', 'Bloonarius Prime',
+		'Balance', 'Encrypted', 'Bazaar', "Adora's Temple", 'Spring Spring', 'KartsNDarts',
+		'Moon Landing', 'Haunted', 'Downstream', 'Firing Range', 'Cracked', 'Streambed',
+		'Chutes', 'Rake', 'Spice Islands'
+	],
+	Advanced: [
+		'Mushroom Grotto', 'Party Parade', 'Sunset Gulch', 'Enchanted Glade', 'Last Resort',
+		'Castle Revenge', 'Dark Path', 'Erosion', 'Midnight Mansion', 'Sunken Columns',
+		'X Factor', 'Mesa', 'Geared', 'Spillway', 'Cargo', "Pat's Pond", 'Peninsula',
+		'High Finance', 'Another Brick', 'Off The Coast', 'Cornfield', 'Underground'
+	],
+	Expert: [
+		'Glacial Trail', 'Dark Dungeons', 'Sanctuary', 'Ravine', 'Flooded Valley', 'Infernal',
+		'Bloody Puddles', 'Workshop', 'Quad', 'Dark Castle', 'Muddy Puddles', '#Ouch', 'Blons'
+	]
+};
 
 type MapReference = Pick<MapRow, 'id' | 'name' | 'difficulty' | 'image_url' | 'nk_image_url'>;
 type ModeReference = Pick<GameModeRow, 'id' | 'name'>;
@@ -133,7 +161,7 @@ type StrategyDetailRecord = Omit<StrategySummaryRecord, 'placements'> &
 		>;
 	};
 
-type HeroDetailRecord = HeroReference & {
+type HeroDetailRecord = HeroReference & Pick<TowerRow, 'description'> & {
 	strategies: Array<Omit<StrategySummaryRecord, 'hero'>>;
 };
 
@@ -168,6 +196,36 @@ export async function getReadyStrategyCount(): Promise<number> {
 		.eq('status', 'ready');
 	if (result.error) throw publicDataError('strategy count', result.error.message);
 	return result.count ?? 0;
+}
+
+export async function getHomeMaps(): Promise<HomeMap[]> {
+	const [references, strategies] = await Promise.all([
+		loadReferenceData(),
+		supabase.from('strategies').select('map_id').eq('status', 'ready')
+	]);
+	if (strategies.error) throw publicDataError('map guide counts', strategies.error.message);
+
+	const guideCounts = new Map<number, number>();
+	for (const strategy of strategies.data) {
+		guideCounts.set(strategy.map_id, (guideCounts.get(strategy.map_id) ?? 0) + 1);
+	}
+
+	return references.maps
+		.filter((map) => map.difficulty !== null)
+		.map((map) => ({ ...toPublicMap(map), guideCount: guideCounts.get(map.id) ?? 0 }))
+		.sort((a, b) => {
+			if (a.difficulty !== b.difficulty) {
+				return MAP_DIFFICULTIES.indexOf(a.difficulty!) - MAP_DIFFICULTIES.indexOf(b.difficulty!);
+			}
+			const order = MAP_GAME_ORDER[a.difficulty!];
+			const aIndex = order.findIndex((name) => name.toLocaleLowerCase() === a.name.toLocaleLowerCase());
+			const bIndex = order.findIndex((name) => name.toLocaleLowerCase() === b.name.toLocaleLowerCase());
+			if (aIndex === -1 || bIndex === -1) {
+				if (aIndex === -1 && bIndex === -1) return a.name.localeCompare(b.name);
+				return aIndex === -1 ? 1 : -1;
+			}
+			return aIndex - bIndex;
+		});
 }
 
 export async function discoverStrategies(url: URL): Promise<StrategyDiscovery> {
@@ -286,6 +344,7 @@ export async function getHeroDetail(id: number): Promise<PublicHeroDetail | null
 	strategies.sort((a, b) => b.id - a.id);
 	return {
 		...toHeroReference(hero),
+		description: hero.description,
 		guideCount: strategies.length,
 		strategies,
 		maps: uniqueBy(strategies.map((strategy) => strategy.map), (map) => map.id),

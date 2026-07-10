@@ -74,7 +74,7 @@
 
 	.nav-shell {
 		display: flex;
-		min-height: 4.5rem;
+		min-height: 3.5rem;
 		align-items: center;
 		justify-content: space-between;
 		gap: 1rem;
@@ -83,9 +83,9 @@
 	.brand {
 		display: inline-flex;
 		align-items: center;
-		gap: 0.65rem;
+		gap: 0.5rem;
 		color: var(--fg);
-		font-size: 1.25rem;
+		font-size: 1.1rem;
 		font-weight: 950;
 		letter-spacing: -0.055em;
 		text-decoration: none;
@@ -103,7 +103,7 @@
 
 	nav > a {
 		position: relative;
-		padding: 0.65rem 0.8rem;
+		padding: 0.45rem 0.7rem;
 		border-radius: var(--radius-sm);
 		color: var(--fg-muted);
 		font-size: 0.9rem;

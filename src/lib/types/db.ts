@@ -40,6 +40,7 @@ export type TowerRow = {
 	category: TowerCategory;
 	base_cost: number | null;
 	icon_path: string;
+	description: string | null;
 }
 
 export type TowerInsert = {
@@ -47,6 +48,7 @@ export type TowerInsert = {
 	category: TowerCategory;
 	base_cost?: number | null;
 	icon_path: string;
+	description?: string | null;
 }
 
 export type GameModeRow = {

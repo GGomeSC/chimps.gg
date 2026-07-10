@@ -12,8 +12,8 @@
 	<h1>{page.status === 404 ? 'This route popped early.' : 'We hit a rough round.'}</h1>
 	<p>
 		{page.status === 404
-			? 'The guide or page you requested is not publicly available.'
-			: 'Public content is temporarily unavailable. Try the page again in a moment.'}
+			? 'The guide or page you requested is not available.'
+			: 'Content is temporarily unavailable. Try the page again in a moment.'}
 	</p>
 	<div class="actions">
 		<a class="button" href="/strategies">Browse strategies</a>

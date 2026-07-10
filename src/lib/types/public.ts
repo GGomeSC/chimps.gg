@@ -7,6 +7,10 @@ export type PublicMap = {
 	imageUrl: string | null;
 };
 
+export type HomeMap = PublicMap & {
+	guideCount: number;
+};
+
 export type PublicMode = {
 	id: number;
 	name: string;
@@ -78,6 +82,7 @@ export type HeroSummary = PublicHeroReference & {
 };
 
 export type PublicHeroDetail = HeroSummary & {
+	description: string | null;
 	strategies: PublicStrategySummary[];
 	maps: PublicMap[];
 	modes: PublicMode[];
