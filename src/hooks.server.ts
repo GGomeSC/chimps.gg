@@ -1,4 +1,6 @@
 import { createServerClient } from '@supabase/ssr';
+import { dev } from '$app/environment';
+import { env } from '$env/dynamic/private';
 import { error, redirect, type Handle } from '@sveltejs/kit';
 import { PUBLIC_SUPABASE_PUBLISHABLE_KEY, PUBLIC_SUPABASE_URL } from '$env/static/public';
 import { isStudioEmailAllowed, sanitizeStudioRedirect } from '$lib/server/studio-auth';
@@ -35,21 +37,26 @@ export const handle: Handle = async ({ event, resolve }) => {
 	const pathname = event.url.pathname;
 	const routePath = pageRoutePath(pathname);
 	if (isStudioPath(routePath)) {
-		const claims = await verifiedClaims(event.locals.supabase);
-		if (claims?.sub && claims.email && isStudioEmailAllowed(claims.email)) {
-			event.locals.studioUser = { id: claims.sub, email: claims.email };
+		let claims: StudioClaims | null = null;
+		if (isStudioAuthBypassed()) {
+			event.locals.studioUser = { id: 'local-development', email: 'dev@localhost' };
+		} else {
+			claims = await verifiedClaims(event.locals.supabase);
+			if (claims?.sub && claims.email && isStudioEmailAllowed(claims.email)) {
+				event.locals.studioUser = { id: claims.sub, email: claims.email };
+			}
 		}
 
 		if (!isPublicStudioPath(routePath, event.request.method) && !event.locals.studioUser) {
 			if (claims?.email && !isStudioEmailAllowed(claims.email)) {
-				if (isPageRequest(event.request)) {
+				if (isPageRequest(event.request, pathname)) {
 					await event.locals.supabase.auth.signOut();
 					redirect(303, '/studio/login?error=not_allowed');
 				}
 				error(403, 'Forbidden');
 			}
 
-			if (isPageRequest(event.request)) {
+			if (isPageRequest(event.request, pathname)) {
 				redirect(303, `/studio/login?redirectTo=${encodeURIComponent(sanitizeStudioRedirect(routePath))}`);
 			}
 			error(401, 'Unauthorized');
@@ -75,12 +82,21 @@ function isStudioPath(pathname: string): boolean {
 	return pathname === '/studio' || pathname.startsWith('/studio/');
 }
 
+function isStudioAuthBypassed(): boolean {
+	return dev && env.STUDIO_AUTH_BYPASS === 'true';
+}
+
 function isPublicStudioPath(pathname: string, method: string): boolean {
 	return pathname === '/studio/login' || (pathname === '/studio/logout' && method === 'POST');
 }
 
-function isPageRequest(request: Request): boolean {
-	return request.method === 'GET' && (request.headers.get('accept') ?? '').includes('text/html');
+function isPageRequest(request: Request, pathname: string): boolean {
+	return (
+		request.method === 'GET' &&
+		((request.headers.get('accept') ?? '').includes('text/html') ||
+			pathname.endsWith('/__data.json') ||
+			request.headers.has('x-sveltekit-invalidated'))
+	);
 }
 
 function pageRoutePath(pathname: string): string {

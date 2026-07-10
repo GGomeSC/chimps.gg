@@ -36,22 +36,36 @@ cp .env.example .env   # depois preencha suas chaves do Supabase
 npm run dev            # studio em http://localhost:5173/studio/maps
 ```
 
+Para acessar o Studio localmente sem solicitar magic link, defina apenas no `.env`
+local:
+
+```sh
+STUDIO_AUTH_BYPASS=true
+```
+
+O bypass também exige que o SvelteKit esteja em modo de desenvolvimento; portanto,
+ele é ignorado em builds de produção mesmo que a variável seja configurada por
+engano.
+
 ## Studio auth
 
 O `/studio` usa Supabase Auth com magic link e `STUDIO_ALLOWED_EMAILS`.
 Para produção:
 
-1. Crie/invite manualmente os usuários permitidos no Supabase Auth.
+1. Crie manualmente os usuários permitidos no Supabase Auth. O link de convite/criação
+   do dashboard não é o link de login do Studio; depois de criar o usuário, peça um novo
+   magic link em `/studio/login`.
 2. Desabilite "Allow new users to sign up" no dashboard do Supabase.
 3. Configure `STUDIO_ALLOWED_EMAILS` na Vercel.
-4. Na template "Magic link or OTP", use:
+4. Em **Authentication > URL Configuration**, configure o Site URL como
+   `https://chimpsgg.vercel.app`.
+6. Adicione redirect URLs como `http://localhost:5173/auth/confirm**` e
+   `https://chimpsgg.vercel.app/auth/confirm**` (além do domínio canônico, se houver).
 
-```html
-<a href="{{ .RedirectTo }}&token_hash={{ .TokenHash }}&type=email">Entrar no chimps.gg studio</a>
-```
-
-5. Adicione redirect URLs como `http://localhost:5173/auth/confirm**` e
-   `https://<dominio>/auth/confirm**`.
+Se um link terminar em `localhost:3000/#error=...`, ele não passou por
+`/auth/confirm`: corrija o Site URL/redirect URLs e a template acima, descarte o link
+antigo e solicite outro em `/studio/login`. Links OTP expirados ou já utilizados não
+podem ser reaproveitados.
 
 O SMTP padrão do Supabase é limitado e só envia para membros do projeto; use SMTP
 customizado antes de depender de vários emails na allowlist.
