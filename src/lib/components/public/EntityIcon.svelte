@@ -56,7 +56,7 @@
 		height: 100%;
 		place-items: center;
 		background: linear-gradient(145deg, var(--brand-soft), var(--accent-soft));
-		color: var(--ink);
+		color: var(--fg);
 		font-weight: 900;
 		letter-spacing: -0.04em;
 	}

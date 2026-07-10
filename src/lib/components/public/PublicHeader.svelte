@@ -64,7 +64,7 @@
 		transform: translateY(-150%);
 		padding: 0.65rem 0.9rem;
 		border-radius: var(--radius-sm);
-		background: var(--ink);
+		background: var(--fg);
 		color: var(--bg);
 	}
 
@@ -84,7 +84,7 @@
 		display: inline-flex;
 		align-items: center;
 		gap: 0.65rem;
-		color: var(--ink);
+		color: var(--fg);
 		font-size: 1.25rem;
 		font-weight: 950;
 		letter-spacing: -0.055em;
@@ -113,7 +113,7 @@
 	nav > a:hover,
 	nav > a[aria-current='page'] {
 		background: var(--brand-soft);
-		color: var(--ink);
+		color: var(--fg);
 	}
 
 	.menu-button {

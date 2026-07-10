@@ -76,7 +76,7 @@
 		height: 1.5rem;
 		place-items: center;
 		border-radius: 50%;
-		background: var(--ink);
+		background: var(--fg);
 		color: var(--bg);
 		font-size: 0.7rem;
 		font-weight: 900;
