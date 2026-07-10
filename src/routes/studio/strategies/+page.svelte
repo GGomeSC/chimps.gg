@@ -65,10 +65,10 @@
 	td {
 		text-align: left;
 		padding: 0.4rem 0.75rem;
-		border-bottom: 1px solid #eee;
+		border-bottom: 1px solid var(--border);
 	}
 
 	.error {
-		color: #b00020;
+		color: var(--error);
 	}
 </style>

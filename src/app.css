@@ -1,0 +1,28 @@
+/* Theme tokens. Follows the system preference by default; an explicit choice
+   from the theme toggle is stored in localStorage and applied as
+   <html data-theme="..."> before first paint (see app.html). */
+:root {
+	color-scheme: light dark;
+
+	--bg: light-dark(#ffffff, #16181d);
+	--fg: light-dark(#1a1a1a, #e4e6ea);
+	--fg-muted: light-dark(#666666, #9aa1ab);
+	--border: light-dark(#dddddd, #363b44);
+	--border-strong: light-dark(#bbbbbb, #4c525c);
+	--surface: light-dark(#f2f2f2, #23262d);
+	--error: light-dark(#b00020, #ff8080);
+	--ok: light-dark(#116329, #57c07d);
+}
+
+:root[data-theme='light'] {
+	color-scheme: light;
+}
+
+:root[data-theme='dark'] {
+	color-scheme: dark;
+}
+
+body {
+	background: var(--bg);
+	color: var(--fg);
+}

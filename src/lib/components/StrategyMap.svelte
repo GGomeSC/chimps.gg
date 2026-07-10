@@ -161,8 +161,8 @@
 		aspect-ratio: 1;
 		display: grid;
 		place-items: center;
-		background: #f2f2f2;
-		color: #888;
+		background: var(--surface);
+		color: var(--fg-muted);
 		border-radius: 0.5rem;
 	}
 
@@ -198,7 +198,7 @@
 	}
 
 	.marker.selected {
-		outline: 3px solid #111;
+		outline: 3px solid var(--fg);
 		outline-offset: 1px;
 	}
 

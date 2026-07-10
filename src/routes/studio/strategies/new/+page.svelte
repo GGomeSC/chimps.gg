@@ -108,6 +108,6 @@
 	}
 
 	.error {
-		color: #b00020;
+		color: var(--error);
 	}
 </style>

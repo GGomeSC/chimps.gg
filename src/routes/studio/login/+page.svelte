@@ -62,7 +62,7 @@
 	input {
 		font: inherit;
 		padding: 0.45rem 0.55rem;
-		border: 1px solid #bbb;
+		border: 1px solid var(--border-strong);
 		border-radius: 4px;
 	}
 
@@ -73,10 +73,10 @@
 	}
 
 	.error {
-		color: #a32020;
+		color: var(--error);
 	}
 
 	.ok {
-		color: #116329;
+		color: var(--ok);
 	}
 </style>

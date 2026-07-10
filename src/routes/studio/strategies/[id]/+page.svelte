@@ -456,7 +456,7 @@
 		margin: 0.4rem 0 0.2rem;
 		font-size: 0.7rem;
 		text-transform: uppercase;
-		color: #666;
+		color: var(--fg-muted);
 	}
 
 	.palette-group {
@@ -480,8 +480,8 @@
 	}
 
 	.palette-group button.active {
-		background: #111;
-		color: white;
+		background: var(--fg);
+		color: var(--bg);
 	}
 
 	.sr-only {
@@ -507,19 +507,19 @@
 	}
 
 	.danger {
-		color: #b00020;
+		color: var(--error);
 	}
 
 	.meta {
-		color: #666;
+		color: var(--fg-muted);
 	}
 
 	.error {
-		color: #b00020;
+		color: var(--error);
 	}
 
 	.ok {
-		color: #1b7f3b;
+		color: var(--ok);
 	}
 
 	.steps {
@@ -531,7 +531,7 @@
 	.steps td {
 		text-align: left;
 		padding: 0.25rem 0.4rem;
-		border-bottom: 1px solid #eee;
+		border-bottom: 1px solid var(--border);
 	}
 
 	.move {

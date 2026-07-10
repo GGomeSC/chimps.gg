@@ -1,4 +1,6 @@
 <script lang="ts">
+	import ThemeToggle from '$lib/components/ThemeToggle.svelte';
+
 	let { data, children } = $props();
 </script>
 
@@ -10,13 +12,16 @@
 				<a href="/studio/strategies">Strategies</a>
 				<a href="/studio/maps">Maps</a>
 			</nav>
-			{#if data.studioUser}
+		{/if}
+		<div class="right">
+			{#if !data.isLogin && data.studioUser}
 				<form method="POST" action="/studio/logout" class="session">
 					<span>{data.studioUser.email}</span>
 					<button type="submit">Logout</button>
 				</form>
 			{/if}
-		{/if}
+			<ThemeToggle />
+		</div>
 	</header>
 	{@render children()}
 </div>
@@ -35,7 +40,7 @@
 		gap: 1.5rem;
 		padding-bottom: 0.75rem;
 		margin-bottom: 1rem;
-		border-bottom: 1px solid #ddd;
+		border-bottom: 1px solid var(--border);
 	}
 
 	nav {
@@ -43,12 +48,18 @@
 		gap: 1rem;
 	}
 
-	.session {
+	.right {
 		margin-left: auto;
 		display: flex;
 		align-items: baseline;
 		gap: 0.75rem;
-		color: #555;
+	}
+
+	.session {
+		display: flex;
+		align-items: baseline;
+		gap: 0.75rem;
+		color: var(--fg-muted);
 		font-size: 0.9rem;
 	}
 
