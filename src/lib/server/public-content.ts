@@ -8,6 +8,8 @@ import type {
 	GameModeRow,
 	MapDifficulty,
 	MapRow,
+	PlacementRow,
+	StepRow,
 	StrategyRow,
 	TowerRow
 } from '$lib/types/db';
@@ -26,6 +28,50 @@ import type {
 const PAGE_SIZE = 24;
 const REFERENCE_CACHE_TTL = 60 * 60;
 const STRATEGY_METADATA_CACHE_TTL = 5 * 60;
+const STRATEGY_SUMMARY_SELECT = `
+	id,
+	title,
+	description,
+	hero_id,
+	verified_version,
+	exec_difficulty,
+	updated_at,
+	map:maps!strategies_map_id_fkey(id,name,difficulty,image_url,nk_image_url),
+	mode:game_modes!strategies_game_mode_id_fkey(id,name),
+	hero:towers!strategies_hero_id_fkey(id,name,category,icon_path)
+`;
+const STRATEGY_DETAIL_SELECT = `
+	${STRATEGY_SUMMARY_SELECT},
+	source_url,
+	placements(
+		id,
+		tower_id,
+		pos_x,
+		pos_y,
+		final_path,
+		label,
+		notes,
+		tower:towers!placements_tower_id_fkey(id,name,category,icon_path)
+	),
+	steps(id,placement_id,round_number,action,target_path,description,order_index)
+`;
+const HERO_DETAIL_SELECT = `
+	id,
+	name,
+	category,
+	icon_path,
+	strategies:strategies!strategies_hero_id_fkey(
+		id,
+		title,
+		description,
+		hero_id,
+		verified_version,
+		exec_difficulty,
+		updated_at,
+		map:maps!strategies_map_id_fkey(id,name,difficulty,image_url,nk_image_url),
+		mode:game_modes!strategies_game_mode_id_fkey(id,name)
+	)
+`;
 const MAP_DIFFICULTIES: readonly MapDifficulty[] = [
 	'Beginner',
 	'Intermediate',
@@ -33,10 +79,54 @@ const MAP_DIFFICULTIES: readonly MapDifficulty[] = [
 	'Expert'
 ];
 
+type MapReference = Pick<MapRow, 'id' | 'name' | 'difficulty' | 'image_url' | 'nk_image_url'>;
+type ModeReference = Pick<GameModeRow, 'id' | 'name'>;
+type HeroReference = Pick<TowerRow, 'id' | 'name' | 'category' | 'icon_path'>;
 type ReferenceData = {
-	maps: MapRow[];
-	modes: GameModeRow[];
-	heroes: TowerRow[];
+	maps: MapReference[];
+	modes: ModeReference[];
+	heroes: HeroReference[];
+};
+
+type StrategySummaryRecord = Pick<
+	StrategyRow,
+	| 'id'
+	| 'title'
+	| 'description'
+	| 'hero_id'
+	| 'verified_version'
+	| 'exec_difficulty'
+	| 'updated_at'
+> & {
+	map: MapReference | null;
+	mode: ModeReference | null;
+	hero: HeroReference | null;
+};
+
+type StrategyDetailRecord = StrategySummaryRecord &
+	Pick<StrategyRow, 'source_url'> & {
+		placements: Array<
+			Pick<
+				PlacementRow,
+				'id' | 'tower_id' | 'pos_x' | 'pos_y' | 'final_path' | 'label' | 'notes'
+			> & { tower: HeroReference | null }
+		>;
+		steps: Array<
+			Pick<
+				StepRow,
+				| 'id'
+				| 'placement_id'
+				| 'round_number'
+				| 'action'
+				| 'target_path'
+				| 'description'
+				| 'order_index'
+			>
+		>;
+	};
+
+type HeroDetailRecord = HeroReference & {
+	strategies: Array<Omit<StrategySummaryRecord, 'hero'>>;
 };
 
 export type StrategyDiscovery = {
@@ -53,19 +143,14 @@ export function canonicalUrl(requestUrl: URL, pathname: string): string {
 }
 
 export async function getLatestStrategies(limit = 6): Promise<PublicStrategySummary[]> {
-	const [strategies, references] = await Promise.all([
-		supabase
-			.from('strategies')
-			.select('*')
-			.eq('status', 'ready')
-			.order('id', { ascending: false })
-			.limit(limit),
-		loadReferenceData()
-	]);
+	const strategies = await supabase
+		.from('strategies')
+		.select(STRATEGY_SUMMARY_SELECT)
+		.eq('status', 'ready')
+		.order('id', { ascending: false })
+		.limit(limit);
 	if (strategies.error) throw publicDataError('latest strategies', strategies.error.message);
-	return strategies.data
-		.map((strategy) => toStrategySummary(strategy, references))
-		.filter((strategy) => strategy !== null);
+	return strategies.data.map(toStrategySummary).filter((strategy) => strategy !== null);
 }
 
 export async function discoverStrategies(url: URL): Promise<StrategyDiscovery> {
@@ -84,37 +169,35 @@ export async function discoverStrategies(url: URL): Promise<StrategyDiscovery> {
 				.map((map) => map.id)
 		: null;
 
-	// The count query deliberately omits the cursor so totalCount stays the full
-	// result-set size on every page, not the rows past the cursor.
-	let countQuery = supabase
-		.from('strategies')
-		.select('id', { count: 'exact', head: true })
-		.match(match);
+	// The first page gets rows and total count in one response. Cursor pages keep
+	// a separate count query that deliberately omits the cursor so totalCount
+	// remains the full result-set size, not only the rows after the cursor.
+	let countQuery = filters.cursor
+		? supabase.from('strategies').select('id', { count: 'exact', head: true }).match(match)
+		: null;
 	let pageQuery = supabase
 		.from('strategies')
-		.select('*')
+		.select(STRATEGY_SUMMARY_SELECT, { count: 'exact' })
 		.match(match)
 		.order('id', { ascending: false })
 		.limit(PAGE_SIZE + 1);
 	if (mapIds) {
-		countQuery = countQuery.in('map_id', mapIds);
+		if (countQuery) countQuery = countQuery.in('map_id', mapIds);
 		pageQuery = pageQuery.in('map_id', mapIds);
 	}
 	if (filters.cursor) pageQuery = pageQuery.lt('id', filters.cursor);
 
 	const [countResult, pageResult] = await Promise.all([countQuery, pageQuery]);
-	if (countResult.error) throw publicDataError('strategy count', countResult.error.message);
+	if (countResult?.error) throw publicDataError('strategy count', countResult.error.message);
 	if (pageResult.error) throw publicDataError('strategy discovery', pageResult.error.message);
 	const hasMore = pageResult.data.length > PAGE_SIZE;
 	const page = pageResult.data.slice(0, PAGE_SIZE);
 
 	return {
-		strategies: page
-			.map((strategy) => toStrategySummary(strategy, references))
-			.filter((strategy) => strategy !== null),
+		strategies: page.map(toStrategySummary).filter((strategy) => strategy !== null),
 		filters,
 		options: filterOptions(references, versions),
-		totalCount: countResult.count ?? page.length,
+		totalCount: countResult?.count ?? pageResult.count ?? page.length,
 		nextCursor: hasMore ? page.at(-1)?.id ?? null : null
 	};
 }
@@ -123,7 +206,7 @@ export async function getStrategyDetail(id: number): Promise<PublicStrategyDetai
 	if (!Number.isInteger(id) || id < 1) return null;
 	const strategyResult = await supabase
 		.from('strategies')
-		.select('*')
+		.select(STRATEGY_DETAIL_SELECT)
 		.eq('id', id)
 		.eq('status', 'ready')
 		.maybeSingle();
@@ -131,95 +214,61 @@ export async function getStrategyDetail(id: number): Promise<PublicStrategyDetai
 		throw publicDataError('strategy detail', strategyResult.error.message);
 	}
 	if (!strategyResult.data) return null;
-	const strategy = strategyResult.data;
-
-	const [mapResult, modeResult, heroResult, placementResult, stepResult] = await Promise.all([
-		supabase.from('maps').select('*').eq('id', strategy.map_id).single(),
-		supabase.from('game_modes').select('*').eq('id', strategy.game_mode_id).single(),
-		strategy.hero_id
-			? supabase
-					.from('towers')
-					.select('*')
-					.eq('id', strategy.hero_id)
-					.eq('category', 'Hero')
-					.maybeSingle()
-			: Promise.resolve({ data: null, error: null }),
-		supabase.from('placements').select('*').eq('strategy_id', strategy.id).order('id'),
-		supabase.from('steps').select('*').eq('strategy_id', strategy.id).order('order_index')
-	]);
-	const firstError = [mapResult, modeResult, heroResult, placementResult, stepResult].find(
-		(result) => result.error
-	);
-	if (firstError?.error) throw publicDataError('strategy relations', firstError.error.message);
-	if (!mapResult.data || !modeResult.data || !placementResult.data || !stepResult.data) {
-		throw publicDataError('strategy relations', `Incomplete strategy ${strategy.id}`);
-	}
-
-	const towerIds = [...new Set(placementResult.data.map((placement) => placement.tower_id))];
-	const towersResult = towerIds.length
-		? await supabase.from('towers').select('*').in('id', towerIds).order('name')
-		: { data: [] as TowerRow[], error: null };
-	if (towersResult.error) throw publicDataError('strategy towers', towersResult.error.message);
-
-	const references: ReferenceData = {
-		maps: [mapResult.data],
-		modes: [modeResult.data],
-		heroes: heroResult.data ? [heroResult.data] : []
-	};
+	const strategy = strategyResult.data as StrategyDetailRecord;
 
 	// A ready strategy with drifted references (e.g. its hero tower was
 	// recategorized) is not publicly renderable; treat it as not found.
-	const summary = toStrategySummary(strategy, references);
+	const summary = toStrategySummary(strategy);
 	if (!summary) return null;
+	const placements = [...strategy.placements].sort((a, b) => a.id - b.id);
+	const towers = uniqueBy(
+		placements.flatMap((placement) => (placement.tower ? [placement.tower] : [])),
+		(tower) => tower.id
+	).sort((a, b) => a.name.localeCompare(b.name));
 
 	return {
 		...summary,
 		sourceUrl: strategy.source_url,
-		placements: placementResult.data.map(toStrategyMapPlacement),
-		towers: (towersResult.data ?? []).map((tower) =>
+		placements: placements.map(toStrategyMapPlacement),
+		towers: towers.map((tower) =>
 			toStrategyMapTower(tower, towerIconUrl(tower.icon_path))
 		),
-		steps: stepResult.data.map((step) => ({
-			id: step.id,
-			placementId: step.placement_id,
-			roundNumber: step.round_number,
-			action: step.action,
-			targetPath: step.target_path,
-			description: step.description,
-			orderIndex: step.order_index
-		}))
+		steps: [...strategy.steps]
+			.sort((a, b) => a.order_index - b.order_index)
+			.map((step) => ({
+				id: step.id,
+				placementId: step.placement_id,
+				roundNumber: step.round_number,
+				action: step.action,
+				targetPath: step.target_path,
+				description: step.description,
+				orderIndex: step.order_index
+			}))
 	};
 }
 
 export async function getHeroes(): Promise<HeroSummary[]> {
-	const [references, counts] = await Promise.all([loadReferenceData(), loadHeroGuideCounts()]);
-	return references.heroes.map((hero) => ({
-		...toHeroReference(hero),
-		guideCount: counts[String(hero.id)] ?? 0
-	}));
+	return loadPublicHeroes();
 }
 
 export async function getHeroDetail(id: number): Promise<PublicHeroDetail | null> {
 	if (!Number.isInteger(id) || id < 1) return null;
-	const [heroResult, strategyResult, references] = await Promise.all([
-		supabase.from('towers').select('*').eq('id', id).eq('category', 'Hero').maybeSingle(),
-		supabase
-			.from('strategies')
-			.select('*')
-			.eq('hero_id', id)
-			.eq('status', 'ready')
-			.order('id', { ascending: false }),
-		loadReferenceData()
-	]);
+	const heroResult = await supabase
+		.from('towers')
+		.select(HERO_DETAIL_SELECT)
+		.eq('id', id)
+		.eq('category', 'Hero')
+		.eq('strategies.status', 'ready')
+		.maybeSingle();
 	if (heroResult.error) throw publicDataError('hero detail', heroResult.error.message);
-	if (strategyResult.error) throw publicDataError('hero strategies', strategyResult.error.message);
 	if (!heroResult.data) return null;
-
-	const strategies = strategyResult.data
-		.map((strategy) => toStrategySummary(strategy, references))
+	const hero = heroResult.data as HeroDetailRecord;
+	const strategies = hero.strategies
+		.map((strategy) => toStrategySummary({ ...strategy, hero }))
 		.filter((strategy) => strategy !== null);
+	strategies.sort((a, b) => b.id - a.id);
 	return {
-		...toHeroReference(heroResult.data),
+		...toHeroReference(hero),
 		guideCount: strategies.length,
 		strategies,
 		maps: uniqueBy(strategies.map((strategy) => strategy.map), (map) => map.id),
@@ -245,16 +294,11 @@ export async function getSitemapEntries(): Promise<{ strategyIds: number[]; hero
 
 async function loadReferenceData(): Promise<ReferenceData> {
 	return withRuntimeCache(
-		'reference-data-v1',
+		'reference-data-v2',
 		async () => {
-			const [maps, modes, heroes] = await Promise.all([
-				supabase.from('maps').select('*').order('name'),
-				supabase.from('game_modes').select('*').order('id'),
-				supabase.from('towers').select('*').eq('category', 'Hero').order('name')
-			]);
-			const firstError = [maps, modes, heroes].find((result) => result.error);
-			if (firstError?.error) throw publicDataError('reference data', firstError.error.message);
-			return { maps: maps.data ?? [], modes: modes.data ?? [], heroes: heroes.data ?? [] };
+			const result = await supabase.rpc('get_public_references');
+			if (result.error) throw publicDataError('reference data', result.error.message);
+			return result.data;
 		},
 		{
 			ttl: REFERENCE_CACHE_TTL,
@@ -268,11 +312,7 @@ async function loadStrategyVersions(): Promise<string[]> {
 	return withRuntimeCache(
 		'strategy-versions-v1',
 		async () => {
-			const result = await supabase
-				.from('strategies')
-				.select('verified_version')
-				.eq('status', 'ready')
-				.not('verified_version', 'is', null);
+			const result = await supabase.rpc('get_public_strategy_versions');
 			if (result.error) throw publicDataError('strategy versions', result.error.message);
 			return [...new Set(result.data.map((row) => row.verified_version).filter(isString))].sort(
 				compareVersionsDescending
@@ -286,25 +326,18 @@ async function loadStrategyVersions(): Promise<string[]> {
 	);
 }
 
-async function loadHeroGuideCounts(): Promise<Record<string, number>> {
+async function loadPublicHeroes(): Promise<HeroSummary[]> {
 	return withRuntimeCache(
-		'hero-guide-counts-v1',
+		'public-heroes-v1',
 		async () => {
-			const result = await supabase
-				.from('strategies')
-				.select('hero_id')
-				.eq('status', 'ready')
-				.not('hero_id', 'is', null);
-			if (result.error) throw publicDataError('hero guide counts', result.error.message);
-
-			const counts: Record<string, number> = {};
-			for (const strategy of result.data) {
-				if (strategy.hero_id) {
-					const heroId = String(strategy.hero_id);
-					counts[heroId] = (counts[heroId] ?? 0) + 1;
-				}
-			}
-			return counts;
+			const result = await supabase.rpc('get_public_heroes');
+			if (result.error) throw publicDataError('heroes', result.error.message);
+			return result.data.map((hero) => ({
+				id: hero.id,
+				name: hero.name,
+				iconUrl: towerIconUrl(hero.icon_path),
+				guideCount: hero.guide_count
+			}));
 		},
 		{
 			ttl: STRATEGY_METADATA_CACHE_TTL,
@@ -349,15 +382,15 @@ function filterOptions(references: ReferenceData, versions: string[]): StrategyF
 }
 
 function toStrategySummary(
-	strategy: StrategyRow,
-	references: ReferenceData
+	strategy: StrategySummaryRecord
 ): PublicStrategySummary | null {
-	const map = references.maps.find((item) => item.id === strategy.map_id);
-	const mode = references.modes.find((item) => item.id === strategy.game_mode_id);
-	const hero = strategy.hero_id
-		? references.heroes.find((item) => item.id === strategy.hero_id)
-		: null;
-	if (!map || !mode || (strategy.hero_id && !hero) || !strategy.verified_version) {
+	const { map, mode, hero } = strategy;
+	if (
+		!map ||
+		!mode ||
+		(strategy.hero_id && (!hero || hero.category !== 'Hero')) ||
+		!strategy.verified_version
+	) {
 		// One inconsistent row must not take down whole public pages; skip it.
 		console.error(`Skipping incomplete ready strategy ${strategy.id}`);
 		return null;
@@ -375,7 +408,7 @@ function toStrategySummary(
 	};
 }
 
-function toPublicMap(map: MapRow): PublicMap {
+function toPublicMap(map: MapReference): PublicMap {
 	return {
 		id: map.id,
 		name: map.name,
@@ -384,7 +417,9 @@ function toPublicMap(map: MapRow): PublicMap {
 	};
 }
 
-function toHeroReference(hero: TowerRow): PublicHeroReference {
+function toHeroReference(
+	hero: Pick<TowerRow, 'id' | 'name' | 'icon_path'>
+): PublicHeroReference {
 	return { id: hero.id, name: hero.name, iconUrl: towerIconUrl(hero.icon_path) };
 }
 

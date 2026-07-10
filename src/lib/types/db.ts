@@ -159,23 +159,98 @@ export type Database = {
 				Row: StrategyRow;
 				Insert: StrategyInsert;
 				Update: Partial<StrategyInsert>;
-				Relationships: [];
+				Relationships: [
+					{
+						foreignKeyName: 'strategies_map_id_fkey';
+						columns: ['map_id'];
+						isOneToOne: false;
+						referencedRelation: 'maps';
+						referencedColumns: ['id'];
+					},
+					{
+						foreignKeyName: 'strategies_game_mode_id_fkey';
+						columns: ['game_mode_id'];
+						isOneToOne: false;
+						referencedRelation: 'game_modes';
+						referencedColumns: ['id'];
+					},
+					{
+						foreignKeyName: 'strategies_hero_id_fkey';
+						columns: ['hero_id'];
+						isOneToOne: false;
+						referencedRelation: 'towers';
+						referencedColumns: ['id'];
+					}
+				];
 			};
 			placements: {
 				Row: PlacementRow;
 				Insert: PlacementInsert;
 				Update: Partial<PlacementInsert>;
-				Relationships: [];
+				Relationships: [
+					{
+						foreignKeyName: 'placements_strategy_id_fkey';
+						columns: ['strategy_id'];
+						isOneToOne: false;
+						referencedRelation: 'strategies';
+						referencedColumns: ['id'];
+					},
+					{
+						foreignKeyName: 'placements_tower_id_fkey';
+						columns: ['tower_id'];
+						isOneToOne: false;
+						referencedRelation: 'towers';
+						referencedColumns: ['id'];
+					}
+				];
 			};
 			steps: {
 				Row: StepRow;
 				Insert: StepInsert;
 				Update: Partial<StepInsert>;
-				Relationships: [];
+				Relationships: [
+					{
+						foreignKeyName: 'steps_strategy_id_fkey';
+						columns: ['strategy_id'];
+						isOneToOne: false;
+						referencedRelation: 'strategies';
+						referencedColumns: ['id'];
+					},
+					{
+						foreignKeyName: 'steps_placement_id_fkey';
+						columns: ['placement_id'];
+						isOneToOne: false;
+						referencedRelation: 'placements';
+						referencedColumns: ['id'];
+					}
+				];
 			};
 		};
 		Views: Record<string, never>;
 		Functions: {
+			get_public_heroes: {
+				Args: Record<PropertyKey, never>;
+				Returns: Array<{
+					id: number;
+					name: string;
+					icon_path: string;
+					guide_count: number;
+				}>;
+			};
+			get_public_references: {
+				Args: Record<PropertyKey, never>;
+				Returns: {
+					maps: Array<
+						Pick<MapRow, 'id' | 'name' | 'difficulty' | 'image_url' | 'nk_image_url'>
+					>;
+					modes: Array<Pick<GameModeRow, 'id' | 'name'>>;
+					heroes: Array<Pick<TowerRow, 'id' | 'name' | 'category' | 'icon_path'>>;
+				};
+			};
+			get_public_strategy_versions: {
+				Args: Record<PropertyKey, never>;
+				Returns: Array<{ verified_version: string }>;
+			};
 			reorder_steps: {
 				Args: { p_strategy_id: number; p_step_ids: number[] };
 				Returns: undefined;

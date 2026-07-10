@@ -53,6 +53,12 @@ uma estratégia publicada pode levar até 5 minutos para aparecer; contagens/op�
 derivadas podem atravessar mais um ciclo de cache, e alterações em mapas ou heróis podem
 levar pouco mais de 1 hora. O `/studio` não usa ISR.
 
+Os loaders públicos usam relações aninhadas do PostgREST para buscar estratégia, mapa,
+modo, herói, placements, torres e steps em uma única chamada. Contagens por herói e
+versões distintas são agregadas por funções SQL `ready`-only; os lookups dos filtros
+também são retornados juntos por `get_public_references`, evitando transferir linhas ou
+abrir round-trips apenas para agregá-las na Function.
+
 Para acessar o Studio localmente sem solicitar magic link, defina apenas no `.env`
 local:
 

@@ -1,7 +1,12 @@
 import type { PlacementRow, TowerRow } from '$lib/types/db';
 import type { StrategyMapPlacement, StrategyMapTower } from '$lib/types/public';
 
-export function toStrategyMapPlacement(placement: PlacementRow): StrategyMapPlacement {
+export function toStrategyMapPlacement(
+	placement: Pick<
+		PlacementRow,
+		'id' | 'tower_id' | 'pos_x' | 'pos_y' | 'final_path' | 'label' | 'notes'
+	>
+): StrategyMapPlacement {
 	return {
 		id: placement.id,
 		towerId: placement.tower_id,
