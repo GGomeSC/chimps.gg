@@ -34,8 +34,8 @@
 		grid-template-columns: auto minmax(0, 1fr) auto;
 		align-items: center;
 		gap: 0.85rem;
-		min-height: 6rem;
-		padding: 0.8rem 0.9rem;
+		min-height: 7rem;
+		padding: var(--space-3);
 		overflow: hidden;
 		border: 1px solid var(--border);
 		border-radius: var(--radius-md);
@@ -90,7 +90,7 @@
 
 	strong {
 		overflow: hidden;
-		font-size: 1.08rem;
+		font-size: 1.2rem;
 		font-weight: 800;
 		letter-spacing: -0.02em;
 		text-overflow: ellipsis;
@@ -99,7 +99,7 @@
 
 	small {
 		color: var(--fg-muted);
-		font-size: 0.75rem;
+		font-size: var(--text-meta);
 		font-variant-numeric: tabular-nums;
 	}
 
@@ -107,7 +107,7 @@
 		position: relative;
 		z-index: 1;
 		color: var(--brand-strong);
-		font-size: 1rem;
+		font-size: 1.25rem;
 		font-weight: 700;
 		transition: translate 200ms ease;
 	}

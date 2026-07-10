@@ -91,12 +91,6 @@ body {
 	color: var(--fg);
 }
 
-/* Sticky footer: main grows so the footer sits at the bottom on short pages
-   instead of leaving the body background exposed beneath it. */
-#main-content {
-	flex: 1 0 auto;
-}
-
 h1,
 h2,
 h3 {
@@ -131,8 +125,43 @@ a {
 	color: var(--ink);
 }
 
-.page-shell {
-	width: min(100% - 2rem, 72rem);
+.public-site {
+	display: flex;
+	width: 100%;
+	min-height: 100vh;
+	flex-direction: column;
+	font-size: 1.0625rem;
+	line-height: 1.55;
+
+	/* Public-only sizing system. Studio remains on the root defaults. */
+	--public-content-max: 80rem;
+	--public-gutter: clamp(1rem, 3vw, 2rem);
+	--space-1: 0.5rem;
+	--space-2: 0.75rem;
+	--space-3: 1rem;
+	--space-4: 1.5rem;
+	--space-5: 2rem;
+	--space-6: 3rem;
+	--text-meta: 0.875rem;
+	--text-body: 1.0625rem;
+	--text-lead: 1.125rem;
+	--control-height: 3rem;
+	--icon-control: 2.75rem;
+	--map-border: 1px solid var(--border);
+	--map-shadow: var(--shadow-card);
+	--map-marker-size: 2.75rem;
+	--radius-sm: 0.75rem;
+	--radius-md: 1rem;
+	--radius-lg: 1.25rem;
+}
+
+/* Sticky footer: public main grows on short pages. */
+.public-site #main-content {
+	flex: 1 0 auto;
+}
+
+.public-site .page-shell {
+	width: min(calc(100% - (var(--public-gutter) * 2)), var(--public-content-max));
 	margin-inline: auto;
 }
 
@@ -141,13 +170,13 @@ a {
 	font-variant-numeric: tabular-nums;
 }
 
-.button {
+.public-site .button {
 	display: inline-flex;
-	min-height: 2.75rem;
+	min-height: var(--control-height);
 	align-items: center;
 	justify-content: center;
 	gap: 0.45rem;
-	padding: 0.65rem 1.1rem;
+	padding: 0.7rem 1.15rem;
 	border: 1px solid transparent;
 	border-radius: var(--radius-sm);
 	background: var(--brand);
@@ -161,77 +190,93 @@ a {
 		transform 150ms ease;
 }
 
-.button:hover {
+.public-site .button:hover {
 	background: var(--brand-strong);
 	transform: translateY(-1px);
 }
 
-.button.secondary {
+.public-site .button.secondary {
 	border-color: var(--border-strong);
 	background: var(--surface-raised);
 	color: var(--fg);
 }
 
-.button.secondary:hover {
+.public-site .button.secondary:hover {
 	background: var(--surface-raised);
 	border-color: var(--brand);
 	color: var(--fg);
 }
 
-.section-heading {
+.public-site .section-heading {
 	display: flex;
 	align-items: end;
 	justify-content: space-between;
-	gap: 1rem;
-	margin-bottom: 1.25rem;
+	gap: var(--space-3);
+	margin-bottom: var(--space-4);
 }
 
-.section-heading h2 {
+.public-site .section-heading h2 {
 	margin: 0;
-	font-size: clamp(1.65rem, 4vw, 2.1rem);
+	font-size: clamp(1.75rem, 3vw, 2.25rem);
 	font-weight: 750;
 	letter-spacing: -0.03em;
 }
 
-.section-heading p {
+.public-site .section-heading p {
 	max-width: 38rem;
-	margin: 0.35rem 0 0;
+	margin: var(--space-1) 0 0;
 	color: var(--fg-muted);
+	font-size: var(--text-body);
 }
 
-.section-heading > a {
+.public-site .section-heading > a {
 	flex: none;
 	font-weight: 700;
 }
 
-.strategy-grid,
-.hero-grid {
+.public-site .strategy-grid,
+.public-site .hero-grid {
 	display: grid;
 	grid-template-columns: repeat(3, minmax(0, 1fr));
-	gap: 1rem;
+	gap: var(--space-3);
 }
 
-.hero-grid {
+.public-site .hero-grid {
 	grid-template-columns: repeat(auto-fill, minmax(12.5rem, 1fr));
 }
 
+.public-site .dashboard-panel {
+	border: 1px solid var(--border);
+	border-radius: var(--radius-lg);
+	background: var(--surface);
+	box-shadow: var(--shadow-card);
+}
+
+.public-site .dashboard-badge {
+	display: inline-flex;
+	min-height: 2rem;
+	align-items: center;
+	padding: 0.3rem 0.7rem;
+	border: 1px solid var(--border);
+	border-radius: 999px;
+	background: var(--surface-raised);
+	font-size: var(--text-meta);
+	font-weight: 750;
+}
+
 @media (max-width: 48rem) {
-	.strategy-grid {
+	.public-site .strategy-grid {
 		grid-template-columns: repeat(2, minmax(0, 1fr));
 	}
 }
 
 @media (max-width: 34rem) {
-	.page-shell {
-		width: min(100% - 1.25rem, 72rem);
-	}
-
-	.strategy-grid,
-	.hero-grid {
+	.public-site .strategy-grid,
+	.public-site .hero-grid {
 		grid-template-columns: 1fr;
 	}
 
-	.section-heading {
+	.public-site .section-heading {
 		align-items: start;
 		flex-direction: column;
 	}

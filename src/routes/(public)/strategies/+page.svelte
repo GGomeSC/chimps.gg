@@ -1,6 +1,7 @@
 <script lang="ts">
 	import EmptyState from '$lib/components/public/EmptyState.svelte';
 	import FilterBar from '$lib/components/public/FilterBar.svelte';
+	import PageIntro from '$lib/components/public/PageIntro.svelte';
 	import StrategyCard from '$lib/components/public/StrategyCard.svelte';
 	import { fuzzyMatch } from '$lib/fuzzy';
 
@@ -35,6 +36,9 @@
 </svelte:head>
 
 <div class="page-shell discovery">
+	<PageIntro
+		title="Find your next run"
+	/>
 	<FilterBar filters={data.filters} options={data.options} bind:query />
 
 	<section class="results" aria-label="Strategy results">
@@ -63,13 +67,13 @@
 <style>
 	.discovery {
 		display: grid;
-		gap: 1.75rem;
-		padding-top: clamp(1.5rem, 4vw, 2.5rem);
+		gap: var(--space-4);
+		padding-block: var(--space-5) var(--space-4);
 	}
 
 	.pagination {
 		display: flex;
 		justify-content: center;
-		margin-top: 2rem;
+		margin-top: var(--space-5);
 	}
 </style>

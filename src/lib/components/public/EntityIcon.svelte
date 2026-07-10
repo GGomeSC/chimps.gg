@@ -34,7 +34,7 @@
 		place-items: center;
 		overflow: hidden;
 		border: 1px solid var(--border);
-		border-radius: 1.25rem;
+		border-radius: var(--radius-lg);
 		background: var(--surface-raised);
 	}
 

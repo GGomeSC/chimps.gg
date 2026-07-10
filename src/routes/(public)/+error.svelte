@@ -27,7 +27,12 @@
 		min-height: 60vh;
 		align-content: center;
 		justify-items: start;
-		padding-block: 4rem;
+		margin-block: var(--space-5);
+		padding: clamp(2rem, 6vw, 4rem);
+		border: 1px solid var(--border);
+		border-radius: var(--radius-lg);
+		background: var(--surface-raised);
+		box-shadow: var(--shadow-card);
 	}
 
 	.code {
@@ -46,13 +51,14 @@
 	p {
 		max-width: 34rem;
 		color: var(--fg-muted);
-		font-size: 1.05rem;
+		font-size: var(--text-lead);
+		line-height: 1.6;
 	}
 
 	.actions {
 		display: flex;
 		flex-wrap: wrap;
-		gap: 0.75rem;
-		margin-top: 1rem;
+		gap: var(--space-2);
+		margin-top: var(--space-3);
 	}
 </style>

@@ -60,6 +60,9 @@
 
 <style>
 	.strategy-card {
+		display: grid;
+		grid-template-rows: auto 1fr;
+		height: 100%;
 		overflow: hidden;
 		border: 1px solid var(--border);
 		border-radius: var(--radius-md);
@@ -126,11 +129,11 @@
 		gap: 0.3rem;
 		padding: 0.2rem 0.55rem;
 		border: 1px solid rgb(255 255 255 / 0.14);
-		border-radius: 7px;
+		border-radius: var(--radius-sm);
 		background: rgb(9 14 22 / 0.78);
 		color: #eaf1f8;
 		font-family: var(--font-mono);
-		font-size: 0.72rem;
+		font-size: var(--text-meta);
 		font-weight: 600;
 		font-variant-numeric: tabular-nums;
 		backdrop-filter: blur(6px);
@@ -191,7 +194,7 @@
 		border-radius: 999px;
 		background: rgb(9 14 22 / 0.6);
 		color: rgb(255 255 255 / 0.88);
-		font-size: 0.7rem;
+		font-size: var(--text-meta);
 		font-weight: 600;
 		letter-spacing: 0.03em;
 		backdrop-filter: blur(6px);
@@ -210,8 +213,9 @@
 
 	.body {
 		display: grid;
-		gap: 0.6rem;
-		padding: 0.95rem 1.05rem 1.05rem;
+		gap: var(--space-2);
+		align-content: start;
+		padding: var(--space-4);
 	}
 
 	.badges {
@@ -230,7 +234,7 @@
 		border-radius: 999px;
 		background: color-mix(in srgb, var(--tc) 13%, transparent);
 		color: color-mix(in srgb, var(--tc) 75%, var(--fg));
-		font-size: 0.72rem;
+		font-size: var(--text-meta);
 		font-weight: 700;
 	}
 
@@ -244,10 +248,10 @@
 
 	.mode {
 		padding: 0.18rem 0.55rem;
-		border-radius: 6px;
+		border-radius: var(--radius-sm);
 		background: var(--brand-soft);
 		color: var(--brand-strong);
-		font-size: 0.7rem;
+		font-size: var(--text-meta);
 		font-weight: 800;
 		letter-spacing: 0.08em;
 		text-transform: uppercase;
@@ -255,14 +259,14 @@
 
 	.map-name {
 		color: var(--fg-muted);
-		font-size: 0.75rem;
+		font-size: var(--text-meta);
 		font-weight: 600;
 	}
 
 	h3 {
 		margin: 0;
 		font-family: var(--font-body);
-		font-size: 1.05rem;
+		font-size: 1.2rem;
 		font-weight: 750;
 		letter-spacing: -0.015em;
 		line-height: 1.25;
@@ -278,7 +282,8 @@
 		overflow: hidden;
 		margin: 0;
 		color: var(--fg-muted);
-		font-size: 0.9rem;
+		font-size: var(--text-meta);
+		line-height: 1.55;
 		-webkit-box-orient: vertical;
 		-webkit-line-clamp: 2;
 		line-clamp: 2;
@@ -293,8 +298,9 @@
 	footer {
 		justify-content: space-between;
 		gap: 0.75rem;
+		margin-top: auto;
 		padding-top: 0.2rem;
-		font-size: 0.85rem;
+		font-size: var(--text-meta);
 	}
 
 	.hero {

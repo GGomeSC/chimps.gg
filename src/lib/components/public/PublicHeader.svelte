@@ -74,7 +74,7 @@
 
 	.nav-shell {
 		display: flex;
-		min-height: 3.5rem;
+		min-height: 4.25rem;
 		align-items: center;
 		justify-content: space-between;
 		gap: 1rem;
@@ -82,10 +82,11 @@
 
 	.brand {
 		display: inline-flex;
+		min-height: var(--icon-control);
 		align-items: center;
 		gap: 0.5rem;
 		color: var(--fg);
-		font-size: 1.1rem;
+		font-size: 1.25rem;
 		font-weight: 950;
 		letter-spacing: -0.055em;
 		text-decoration: none;
@@ -103,10 +104,11 @@
 
 	nav > a {
 		position: relative;
-		padding: 0.45rem 0.7rem;
+		min-height: var(--icon-control);
+		padding: 0.6rem 0.85rem;
 		border-radius: var(--radius-sm);
 		color: var(--fg-muted);
-		font-size: 0.9rem;
+		font-size: var(--text-meta);
 		font-weight: 650;
 		text-decoration: none;
 		transition: color 150ms ease;
@@ -133,8 +135,8 @@
 
 	.menu-button {
 		display: none;
-		width: 2.75rem;
-		height: 2.75rem;
+		width: var(--icon-control);
+		height: var(--icon-control);
 		padding: 0.65rem;
 		border: 1px solid var(--border);
 		border-radius: var(--radius-sm);
@@ -173,11 +175,11 @@
 		nav {
 			position: absolute;
 			top: calc(100% + 0.5rem);
-			right: 1rem;
-			left: 1rem;
+			right: var(--public-gutter);
+			left: var(--public-gutter);
 			display: none;
 			align-items: stretch;
-			padding: 0.75rem;
+			padding: var(--space-2);
 			border: 1px solid var(--border);
 			border-radius: var(--radius-lg);
 			background: var(--surface-raised);
@@ -189,7 +191,9 @@
 		}
 
 		nav > a {
-			min-height: 2.75rem;
+			display: flex;
+			min-height: var(--control-height);
+			align-items: center;
 		}
 	}
 

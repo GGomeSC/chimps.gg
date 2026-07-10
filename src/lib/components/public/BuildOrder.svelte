@@ -81,7 +81,7 @@
 	li {
 		display: grid;
 		grid-template-columns: 2.5rem minmax(0, 1fr);
-		gap: 0.8rem;
+		gap: var(--space-2);
 	}
 
 	.rail {
@@ -114,17 +114,17 @@
 		border-radius: 50%;
 		background: var(--brand);
 		color: var(--ink);
-		font-size: 0.75rem;
+		font-size: var(--text-meta);
 		font-weight: 950;
 	}
 
 	article {
 		display: grid;
 		grid-template-columns: auto minmax(0, 1fr);
-		gap: 0.8rem;
+		gap: var(--space-3);
 		align-items: start;
-		margin-bottom: 1rem;
-		padding: 0.9rem 1rem;
+		margin-bottom: var(--space-3);
+		padding: var(--space-3);
 		border: 1px solid var(--border);
 		border-radius: var(--radius-md);
 		background: var(--surface-raised);
@@ -151,7 +151,7 @@
 
 	.body {
 		display: grid;
-		gap: 0.45rem;
+		gap: var(--space-1);
 		min-width: 0;
 	}
 
@@ -168,7 +168,7 @@
 		width: fit-content;
 		padding: 0.2rem 0.5rem;
 		border-radius: 999px;
-		font-size: 0.72rem;
+		font-size: var(--text-meta);
 		font-weight: 850;
 	}
 
@@ -187,5 +187,6 @@
 		margin: 0;
 		color: var(--fg-muted);
 		line-height: 1.55;
+		font-size: var(--text-body);
 	}
 </style>

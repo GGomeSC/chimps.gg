@@ -31,15 +31,15 @@
 </section>
 
 <style>
-	.latest { padding-block: clamp(1.5rem, 3vw, 2.25rem); }
-	header { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: .7rem; }
-	h2 { margin: 0; font-size: clamp(1.35rem, 3vw, 1.75rem); letter-spacing: -.03em; }
-	.actions { display: flex; align-items: center; gap: .4rem; }
-	.actions a { margin-right: .25rem; font-size: .78rem; font-weight: 700; text-decoration: none; }
-	button { display: grid; width: 2rem; height: 2rem; place-items: center; border: 1px solid var(--border); border-radius: .55rem; background: var(--surface-raised); color: var(--fg); }
+	.latest { padding-block: var(--space-5) var(--space-4); }
+	header { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); margin-bottom: var(--space-3); }
+	h2 { margin: 0; font-size: clamp(1.75rem, 3vw, 2.25rem); letter-spacing: -.03em; }
+	.actions { display: flex; align-items: center; gap: var(--space-1); }
+	.actions a { display: inline-flex; min-height: var(--icon-control); align-items: center; margin-right: var(--space-1); font-size: var(--text-meta); font-weight: 700; text-decoration: none; }
+	button { display: grid; width: var(--icon-control); height: var(--icon-control); place-items: center; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface-raised); color: var(--fg); }
 	button:hover { border-color: var(--brand); }
-	.rail { display: flex; gap: .7rem; overflow-x: auto; padding: 1px 1px .55rem; scroll-behavior: smooth; scroll-snap-type: x mandatory; scrollbar-color: var(--border-strong) transparent; }
-	.quiet { padding: 1.25rem; border: 1px dashed var(--border-strong); border-radius: var(--radius-md); color: var(--fg-muted); text-align: center; }
+	.rail { display: flex; gap: var(--space-3); overflow-x: auto; padding: 1px 1px var(--space-2); scroll-behavior: smooth; scroll-snap-type: x mandatory; scrollbar-color: var(--border-strong) transparent; }
+	.quiet { padding: var(--space-4); border: 1px dashed var(--border-strong); border-radius: var(--radius-md); color: var(--fg-muted); text-align: center; }
 	@media (max-width: 36rem) { .actions button { display: none; } }
 	@media (prefers-reduced-motion: reduce) { .rail { scroll-behavior: auto; } }
 </style>

@@ -5,8 +5,10 @@
 	let { children } = $props();
 </script>
 
-<PublicHeader />
-<main id="main-content">
-	{@render children()}
-</main>
-<PublicFooter />
+<div class="public-site">
+	<PublicHeader />
+	<main id="main-content">
+		{@render children()}
+	</main>
+	<PublicFooter />
+</div>

@@ -32,12 +32,12 @@
 	.bloon-scale {
 		display: inline-flex;
 		align-items: center;
-		gap: 0.2rem;
+		gap: 0.25rem;
 	}
 
 	.bloon {
-		width: 0.55rem;
-		height: 0.7rem;
+		width: 0.65rem;
+		height: 0.8rem;
 		border-radius: 50% 50% 50% 50% / 44% 44% 56% 56%;
 		box-shadow:
 			inset -1px -2px 2px rgb(0 0 0 / 0.25),
@@ -53,7 +53,7 @@
 		margin-left: 0.3rem;
 		color: var(--fg-muted);
 		font-family: var(--font-mono);
-		font-size: 0.7rem;
+		font-size: var(--text-meta, 0.7rem);
 		font-variant-numeric: tabular-nums;
 	}
 </style>

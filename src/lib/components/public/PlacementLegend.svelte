@@ -44,17 +44,17 @@
 <style>
 	.legend {
 		display: grid;
-		gap: 0.5rem;
+		gap: var(--space-2);
 	}
 
 	button {
 		display: grid;
 		grid-template-columns: auto auto 1fr;
-		gap: 0.6rem;
+		gap: var(--space-2);
 		align-items: center;
 		width: 100%;
-		min-height: 3.5rem;
-		padding: 0.55rem;
+		min-height: var(--control-height);
+		padding: var(--space-2);
 		border: 1px solid var(--border);
 		border-radius: var(--radius-sm);
 		background: var(--surface-raised);
@@ -78,7 +78,7 @@
 		border-radius: 50%;
 		background: var(--fg);
 		color: var(--bg);
-		font-size: 0.7rem;
+		font-size: var(--text-meta);
 		font-weight: 900;
 	}
 
@@ -97,6 +97,6 @@
 
 	small {
 		color: var(--fg-muted);
-		font-size: 0.73rem;
+		font-size: var(--text-meta);
 	}
 </style>

@@ -28,22 +28,22 @@
 </article>
 
 <style>
-	.guide-card { flex: 0 0 clamp(16rem, 26vw, 18.5rem); scroll-snap-align: start; overflow: hidden; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--surface-raised); box-shadow: var(--shadow-card); }
-	a { position: relative; display: block; height: 10.25rem; overflow: hidden; color: white; text-decoration: none; }
+	.guide-card { flex: 0 0 clamp(18rem, 28vw, 21rem); scroll-snap-align: start; overflow: hidden; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--surface-raised); box-shadow: var(--shadow-card); }
+	a { position: relative; display: block; height: 12rem; overflow: hidden; color: white; text-decoration: none; }
 	a::after { position: absolute; inset: 25% 0 0; background: linear-gradient(transparent, rgb(5 10 17 / .94)); content: ''; }
 	a :global(> img) { width: 100%; height: 100%; object-fit: cover; transition: transform 180ms ease; }
 	.guide-card:hover, .guide-card:focus-within { border-color: var(--brand); box-shadow: var(--glow-brand), var(--shadow-card-hover); }
 	.guide-card:hover a :global(> img), .guide-card:focus-within a :global(> img) { transform: scale(1.025); }
-	.version { position: absolute; top: .55rem; right: .55rem; z-index: 2; padding: .18rem .45rem; border: 1px solid rgb(255 255 255 / .14); border-radius: .45rem; background: rgb(5 10 17 / .74); font-family: var(--font-mono); font-size: .67rem; backdrop-filter: blur(5px); }
+	.version { position: absolute; top: .65rem; right: .65rem; z-index: 2; padding: .25rem .55rem; border: 1px solid rgb(255 255 255 / .14); border-radius: var(--radius-sm); background: rgb(5 10 17 / .74); font-family: var(--font-mono); font-size: var(--text-meta); backdrop-filter: blur(5px); }
 	.version span { color: var(--bloon-green); }
-	.hero { position: absolute; right: .55rem; bottom: 2.9rem; z-index: 2; filter: drop-shadow(0 2px 5px rgb(0 0 0 / .6)); }
+	.hero { position: absolute; right: .7rem; bottom: 3.6rem; z-index: 2; filter: drop-shadow(0 2px 5px rgb(0 0 0 / .6)); }
 	.hero :global(.icon-shell) { border-color: rgb(255 255 255 / .3); background: rgb(5 10 17 / .65); }
-	.copy { position: absolute; right: .65rem; bottom: .55rem; left: .65rem; z-index: 2; display: grid; gap: .06rem; min-width: 0; text-shadow: 0 1px 2px black; }
+	.copy { position: absolute; right: .8rem; bottom: .7rem; left: .8rem; z-index: 2; display: grid; gap: .1rem; min-width: 0; text-shadow: 0 1px 2px black; }
 	.copy strong, .copy small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-	.copy strong { padding-right: 2.5rem; font-family: var(--font-display); font-size: .95rem; }
-	.copy small { color: rgb(255 255 255 / .72); font-size: .68rem; }
+	.copy strong { padding-right: 2.5rem; font-family: var(--font-display); font-size: 1.15rem; }
+	.copy small { color: rgb(255 255 255 / .78); font-size: var(--text-meta); }
 	.meta { display: flex; min-width: 0; align-items: center; justify-content: space-between; gap: .5rem; margin-top: .18rem; }
-	.meta b { color: rgb(255 255 255 / .86); font-size: .65rem; font-weight: 650; }
+	.meta b { color: rgb(255 255 255 / .86); font-size: var(--text-meta); font-weight: 650; }
 	.meta :global(small) { color: rgb(255 255 255 / .7); }
 	.map-fallback { display: grid; width: 100%; height: 100%; place-items: center; background: linear-gradient(145deg, var(--brand-soft), var(--accent-soft)); color: var(--fg-muted); font-weight: 900; letter-spacing: .15em; }
 </style>

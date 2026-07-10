@@ -20,8 +20,8 @@
 	.empty-state {
 		display: grid;
 		justify-items: center;
-		gap: 0.6rem;
-		padding: clamp(2rem, 8vw, 4rem) 1rem;
+		gap: var(--space-2);
+		padding: clamp(2.5rem, 8vw, 4.5rem) var(--space-4);
 		border: 1px dashed var(--border-strong);
 		border-radius: var(--radius-lg);
 		background: var(--surface);
@@ -41,5 +41,7 @@
 	p {
 		max-width: 34rem;
 		color: var(--fg-muted);
+		font-size: var(--text-body);
+		line-height: 1.6;
 	}
 </style>

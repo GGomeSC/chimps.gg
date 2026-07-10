@@ -91,22 +91,26 @@
 
 <style>
 	.profile-header {
-		padding-block: clamp(1.25rem, 3vw, 2rem) 0;
+		padding-block: var(--space-5) 0;
 	}
 
 	.back {
-		display: inline-block;
-		margin-bottom: 0.85rem;
+		display: inline-flex;
+		min-height: var(--icon-control);
+		align-items: center;
+		margin-bottom: var(--space-3);
 		color: var(--fg-muted);
+		font-size: var(--text-meta);
 		font-weight: 750;
 	}
 
 	.profile-grid {
 		display: grid;
 		grid-template-columns: auto minmax(0, 1fr);
-		gap: 1.25rem;
+		gap: var(--space-4);
 		align-items: center;
-		padding: 1rem;
+		padding: var(--space-4);
+		overflow: hidden;
 		border: 1px solid var(--border);
 		border-radius: var(--radius-lg);
 		background: var(--surface-raised);
@@ -115,7 +119,7 @@
 
 	.profile-grid > div > span {
 		color: var(--brand-strong);
-		font-size: 0.75rem;
+		font-size: var(--text-meta);
 		font-weight: 900;
 		letter-spacing: 0.1em;
 		text-transform: uppercase;
@@ -123,7 +127,7 @@
 
 	h1 {
 		margin: 0.2rem 0;
-		font-size: clamp(2.35rem, 6vw, 4rem);
+		font-size: clamp(2.5rem, 6vw, 4.25rem);
 		letter-spacing: -0.065em;
 	}
 
@@ -131,25 +135,25 @@
 		max-width: 40rem;
 		margin: 0;
 		color: var(--fg-muted);
-		line-height: 1.5;
+		font-size: var(--text-lead);
+		line-height: 1.6;
 	}
 
 	.facts {
 		display: grid;
 		grid-column: 1 / -1;
 		grid-template-columns: repeat(4, 1fr);
-		margin: 0.15rem -1rem -1rem;
+		margin: 0 -1.5rem -1.5rem;
 		border-top: 1px solid var(--border);
 		background: color-mix(in srgb, var(--surface) 62%, transparent);
 	}
 
 	.facts div {
 		display: grid;
-		gap: 0.2rem;
 		grid-template-columns: auto 1fr;
 		align-items: baseline;
-		gap: 0.55rem;
-		padding: 0.7rem 1rem;
+		gap: var(--space-2);
+		padding: var(--space-3) var(--space-4);
 		border-right: 1px solid var(--border);
 	}
 
@@ -157,13 +161,13 @@
 
 	.facts strong {
 		font-family: var(--font-mono);
-		font-size: 1.25rem;
+		font-size: 1.4rem;
 		font-variant-numeric: tabular-nums;
 	}
 
 	.facts span {
 		color: var(--fg-muted);
-		font-size: 0.75rem;
+		font-size: var(--text-meta);
 		font-weight: 650;
 		letter-spacing: 0.02em;
 		text-transform: uppercase;
@@ -171,53 +175,51 @@
 
 	.related-section,
 	.coverage-section {
-		padding-top: clamp(1.5rem, 3vw, 2.25rem);
+		padding-top: var(--space-5);
 	}
 
-	.related-section .section-heading { margin-bottom: 0.75rem; }
-	.related-section .section-heading h2 { font-size: clamp(1.4rem, 3vw, 1.8rem); }
-	.related-section .section-heading p { font-size: 0.85rem; }
+	.related-section .section-heading { margin-bottom: var(--space-3); }
 
 	.strategy-rail {
 		display: flex;
-		gap: 0.7rem;
+		gap: var(--space-3);
 		overflow-x: auto;
 		padding: 1px 1px 0.5rem;
 		scroll-snap-type: x mandatory;
 	}
 
 	.coverage-section {
-		padding-bottom: clamp(1.5rem, 4vw, 3rem);
+		padding-bottom: var(--space-4);
 	}
 
 	.coverage-panel {
-		padding: 1rem 1.25rem;
+		padding: var(--space-4);
 		border: 1px solid var(--border);
 		border-radius: var(--radius-lg);
 		background: var(--surface-raised);
 	}
 
 	.coverage-panel > h2 {
-		margin: 0 0 0.75rem;
-		font-size: 1.15rem;
+		margin: 0 0 var(--space-3);
+		font-size: 1.75rem;
 	}
 
 	.coverage-columns {
 		display: grid;
 		grid-template-columns: repeat(3, 1fr);
-		gap: 1rem;
+		gap: var(--space-4);
 	}
 
 	.coverage-columns h3 {
 		margin: 0 0 0.35rem;
-		font-size: 0.8rem;
+		font-size: var(--text-meta);
 		text-transform: uppercase;
 	}
 
 	.coverage-columns ul {
 		display: flex;
 		flex-wrap: wrap;
-		gap: 0.35rem;
+		gap: var(--space-1);
 		margin: 0;
 		padding: 0;
 		color: var(--fg-muted);
@@ -225,10 +227,11 @@
 	}
 
 	.coverage-columns li {
-		padding: 0.2rem 0.45rem;
+		padding: 0.35rem 0.65rem;
+		border: 1px solid var(--border);
 		border-radius: 999px;
 		background: var(--surface);
-		font-size: 0.72rem;
+		font-size: var(--text-meta);
 	}
 
 	.coverage-columns p { margin: 0; color: var(--fg-muted); }

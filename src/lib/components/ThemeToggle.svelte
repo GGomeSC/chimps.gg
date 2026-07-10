@@ -21,14 +21,14 @@
 <style>
 	button {
 		display: grid;
-		width: 2.75rem;
-		height: 2.75rem;
+		width: var(--icon-control, 2.75rem);
+		height: var(--icon-control, 2.75rem);
 		place-items: center;
 		padding: 0;
 		background: var(--surface-raised);
 		color: var(--fg);
 		border: 1px solid var(--border);
-		border-radius: var(--radius-sm);
+		border-radius: var(--radius-sm, 0.65rem);
 		font: inherit;
 		font-size: 1.15rem;
 		line-height: 1;

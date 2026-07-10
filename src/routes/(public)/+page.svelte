@@ -14,5 +14,5 @@
 	<meta property="og:url" content={data.canonical} />
 </svelte:head>
 
-<MapSelector maps={data.maps} guideCount={data.readyCount} />
+<MapSelector maps={data.maps} />
 <LatestGuidesRail strategies={data.strategies} />

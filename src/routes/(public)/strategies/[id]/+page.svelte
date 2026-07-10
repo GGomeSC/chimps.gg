@@ -71,9 +71,6 @@
 						<h2 id="placement-heading">Tower placements</h2>
 						<span class="guide">Guide</span>
 					</div>
-					<p>
-						Treat them as a visual reference, not pixel-perfect placement instructions.
-					</p>
 				</div>
 			</div>
 			{#if data.strategy.placements.length > 0}
@@ -94,7 +91,6 @@
 			<div class="section-heading">
 				<div>
 					<h2 id="build-heading">Build order</h2>
-					<p>Follow the rounds and actions in sequence during your run.</p>
 				</div>
 			</div>
 			{#if data.strategy.steps.length > 0}
@@ -113,46 +109,52 @@
 
 <style>
 	.detail-header {
-		padding-block: clamp(1.5rem, 4vw, 2.75rem);
+		padding-block: var(--space-5);
 	}
 
 	.back {
-		display: inline-block;
-		margin-bottom: 1.5rem;
+		display: inline-flex;
+		min-height: var(--icon-control);
+		align-items: center;
+		margin-bottom: var(--space-4);
 		color: var(--fg-muted);
+		font-size: var(--text-meta);
 		font-weight: 750;
 	}
 
 	.badges {
 		display: flex;
 		flex-wrap: wrap;
-		gap: 0.45rem;
+		gap: var(--space-1);
 	}
 
 	.badges span,
 	.guide {
-		padding: 0.3rem 0.6rem;
+		min-height: 2rem;
+		padding: 0.3rem 0.7rem;
 		border: 1px solid var(--border);
 		border-radius: 999px;
 		background: var(--surface-raised);
-		font-size: 0.75rem;
+		font-size: var(--text-meta);
 		font-weight: 800;
 	}
 
 	h1 {
 		max-width: 55rem;
 		margin: 0.8rem 0 1.5rem;
-		font-size: clamp(2.5rem, 8vw, 5rem);
+		font-size: clamp(2.5rem, 7vw, 4.5rem);
 		line-height: 0.98;
 		letter-spacing: -0.065em;
 	}
 
 	.summary-row {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 1rem 2.5rem;
-		padding-block: 1rem;
-		border-block: 1px solid var(--border);
+		display: grid;
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+		padding: var(--space-3);
+		border: 1px solid var(--border);
+		border-radius: var(--radius-lg);
+		background: var(--surface-raised);
+		box-shadow: var(--shadow-card);
 	}
 
 	.summary-row > div,
@@ -161,6 +163,14 @@
 		gap: 0.15rem;
 		align-content: center;
 	}
+
+	.summary-row > div {
+		min-height: 3.5rem;
+		padding-inline: var(--space-3);
+		border-right: 1px solid var(--border);
+	}
+
+	.summary-row > div:last-child { border-right: 0; }
 
 	.hero-summary {
 		display: flex !important;
@@ -171,19 +181,21 @@
 
 	.summary-row small {
 		color: var(--fg-muted);
-		font-size: 0.72rem;
+		font-size: var(--text-meta);
 	}
 
 	.description {
 		max-width: 48rem;
 		margin: 1.5rem 0 0;
 		color: var(--fg-muted);
-		font-size: 1.08rem;
+		font-size: var(--text-lead);
 		line-height: 1.7;
 	}
 
 	.source {
-		display: inline-block;
+		display: inline-flex;
+		min-height: var(--icon-control);
+		align-items: center;
 		margin-top: 1rem;
 		font-weight: 800;
 	}
@@ -191,22 +203,27 @@
 	.content-grid {
 		display: grid;
 		grid-template-columns: minmax(0, 48rem) minmax(0, 1fr);
-		gap: clamp(1.5rem, 4vw, 3rem);
+		gap: var(--space-4);
 		align-items: start;
-		padding-top: clamp(1.5rem, 4vw, 3rem);
+		padding-block: var(--space-5) var(--space-4);
 	}
 
 	.map-column,
 	.build-column {
 		display: grid;
-		gap: 1rem;
+		gap: var(--space-3);
 		align-content: start;
 		min-width: 0;
+		padding: var(--space-4);
+		border: 1px solid var(--border);
+		border-radius: var(--radius-lg);
+		background: var(--surface);
+		box-shadow: var(--shadow-card);
 	}
 
 	.content-grid .section-heading {
 		align-items: start;
-		min-height: 4.25rem;
+		min-height: 5rem;
 		margin-bottom: 0;
 	}
 
@@ -220,10 +237,6 @@
 		margin: 0;
 	}
 
-	.content-grid .section-heading p {
-		margin-top: 0.35rem;
-	}
-
 	.guide {
 		flex: none;
 		background: var(--accent-soft);
@@ -231,7 +244,7 @@
 	}
 
 	.notice {
-		padding: 1rem;
+		padding: var(--space-3);
 		border: 1px dashed var(--border-strong);
 		border-radius: var(--radius-md);
 		color: var(--fg-muted);
@@ -245,5 +258,12 @@
 		.content-grid .section-heading {
 			min-height: 0;
 		}
+	}
+
+	@media (max-width: 42rem) {
+		.summary-row { grid-template-columns: 1fr; }
+		.summary-row > div { border-right: 0; border-bottom: 1px solid var(--border); }
+		.summary-row > div:last-child { border-bottom: 0; }
+		.map-column, .build-column { padding: var(--space-3); }
 	}
 </style>

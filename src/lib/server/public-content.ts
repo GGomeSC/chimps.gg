@@ -189,15 +189,6 @@ export async function getLatestStrategies(limit = 6): Promise<PublicStrategySumm
 	return strategies.data.map(toStrategySummary).filter((strategy) => strategy !== null);
 }
 
-export async function getReadyStrategyCount(): Promise<number> {
-	const result = await supabase
-		.from('strategies')
-		.select('id', { count: 'exact', head: true })
-		.eq('status', 'ready');
-	if (result.error) throw publicDataError('strategy count', result.error.message);
-	return result.count ?? 0;
-}
-
 export async function getHomeMaps(): Promise<HomeMap[]> {
 	const [references, strategies] = await Promise.all([
 		loadReferenceData(),

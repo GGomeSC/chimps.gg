@@ -154,8 +154,10 @@
 		width: 100%;
 		max-width: 48rem;
 		overflow: hidden;
+		border: var(--map-border, 0);
 		border-radius: var(--radius-lg, 0.75rem);
 		background: var(--surface);
+		box-shadow: var(--map-shadow, none);
 		user-select: none;
 	}
 
@@ -179,8 +181,8 @@
 	.marker {
 		position: absolute;
 		transform: translate(-50%, -50%);
-		width: 2rem;
-		height: 2rem;
+		width: var(--map-marker-size, 2rem);
+		height: var(--map-marker-size, 2rem);
 		padding: 0.15rem;
 		border-radius: 999px;
 		border: 2px solid rgba(0, 0, 0, 0.4);

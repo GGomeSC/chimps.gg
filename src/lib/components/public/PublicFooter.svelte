@@ -3,7 +3,7 @@
 		<div class="brand">
 			<strong>chimps.gg</strong>
 			<p class="legal">
-				Community project. Not affiliated with or endorsed by Ninja Kiwi. Bloons TD 6 and its
+				Project not affiliated with or endorsed by Ninja Kiwi. Bloons TD 6 and its
 				assets belong to their respective owners.
 			</p>
 		</div>
@@ -17,47 +17,66 @@
 
 <style>
 	.site-footer {
-		margin-top: clamp(2.5rem, 5vw, 4rem);
-		padding: 1.75rem 0;
+		margin-top: 0;
+		padding: var(--space-2) 0;
 		border-top: 1px solid var(--border);
 		background: var(--surface);
 	}
 
 	.footer-grid {
-		display: grid;
-		grid-template-columns: minmax(0, 1.3fr) auto;
-		gap: 1.5rem 4rem;
-		align-items: start;
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: var(--space-3);
+	}
+
+	.brand {
+		display: flex;
+		min-width: 0;
+		align-items: baseline;
+		gap: var(--space-2);
 	}
 
 	strong {
-		font-size: 1.1rem;
-	}
-
-	p {
-		max-width: 36rem;
-		margin: 0.35rem 0 0;
-		color: var(--fg-muted);
-	}
-
-	nav {
-		display: grid;
-		gap: 0.5rem;
-	}
-
-	nav a {
-		color: inherit;
-		font-weight: 700;
+		flex: none;
+		font-size: 1rem;
 	}
 
 	.legal {
-		margin-top: 0.75rem;
-		font-size: 0.75rem;
+		max-width: 44rem;
+		margin: 0;
+		color: var(--fg-muted);
+		font-size: var(--text-meta);
+		line-height: 1.4;
 	}
 
-	@media (max-width: 40rem) {
+	nav {
+		display: flex;
+		flex: none;
+		flex-wrap: wrap;
+		gap: var(--space-3);
+	}
+
+	nav a {
+		display: inline-flex;
+		min-height: 2rem;
+		align-items: center;
+		color: inherit;
+		font-size: var(--text-meta);
+		font-weight: 700;
+	}
+
+	@media (max-width: 52rem) {
 		.footer-grid {
-			grid-template-columns: 1fr;
+			align-items: flex-start;
+			flex-direction: column;
+			gap: var(--space-1);
+		}
+
+		.brand {
+			align-items: flex-start;
+			flex-direction: column;
+			gap: 0.15rem;
 		}
 	}
 </style>
