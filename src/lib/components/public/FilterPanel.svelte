@@ -91,6 +91,7 @@
 		border-radius: var(--radius-lg);
 		background: var(--surface-raised);
 		box-shadow: var(--shadow-card);
+		container-type: inline-size;
 	}
 
 	.filter-heading {
@@ -120,7 +121,7 @@
 
 	.fields {
 		display: grid;
-		grid-template-columns: repeat(3, minmax(0, 1fr));
+		grid-template-columns: 1fr;
 		gap: 0.8rem;
 	}
 
@@ -135,28 +136,39 @@
 	select {
 		width: 100%;
 		min-height: 2.75rem;
-		padding: 0.5rem 2rem 0.5rem 0.7rem;
+		padding: 0.5rem 2.4rem 0.5rem 0.7rem;
 		border: 1px solid var(--border-strong);
 		border-radius: var(--radius-sm);
-		background: var(--bg);
+		background-color: var(--bg);
+		background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23889486' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+		background-repeat: no-repeat;
+		background-position: right 0.75rem center;
 		color: var(--fg);
 		font: inherit;
 		font-size: 0.9rem;
+		appearance: none;
+		-webkit-appearance: none;
+	}
+
+	select:hover {
+		border-color: var(--brand);
 	}
 
 	.filters > button {
 		width: fit-content;
 	}
 
-	@media (max-width: 46rem) {
+	/* Size columns by the panel's own width, not the viewport, so the narrow
+	   sidebar stacks cleanly while a full-width panel (mobile) can go wider. */
+	@container (min-width: 26rem) {
 		.fields {
 			grid-template-columns: repeat(2, minmax(0, 1fr));
 		}
 	}
 
-	@media (max-width: 30rem) {
+	@container (min-width: 40rem) {
 		.fields {
-			grid-template-columns: 1fr;
+			grid-template-columns: repeat(3, minmax(0, 1fr));
 		}
 	}
 </style>

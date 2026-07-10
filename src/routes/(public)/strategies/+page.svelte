@@ -37,7 +37,7 @@
 					{data.totalCount} {data.totalCount === 1 ? 'strategy' : 'strategies'}
 				</h2>
 			</div>
-			<small>Newest first</small>
+			<small class="sort-pill">Newest first</small>
 		</div>
 
 		{#if data.strategies.length > 0}
@@ -114,8 +114,15 @@
 		font-size: 1.5rem;
 	}
 
-	.result-heading small {
+	.sort-pill {
+		flex: none;
+		padding: 0.4rem 0.8rem;
+		border: 1px solid var(--border);
+		border-radius: 999px;
+		background: var(--surface);
 		color: var(--fg-muted);
+		font-size: 0.8rem;
+		font-weight: 700;
 	}
 
 	.result-grid {
