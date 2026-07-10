@@ -5,6 +5,11 @@
 	import type { PublicStrategySummary } from '$lib/types/public';
 
 	let { strategy }: { strategy: PublicStrategySummary } = $props();
+
+	const towerCount = $derived(strategy.placementDots.length);
+	const tierVar = $derived(
+		strategy.map.difficulty ? `var(--tier-${strategy.map.difficulty.toLowerCase()})` : null
+	);
 </script>
 
 <article class="strategy-card">
@@ -14,14 +19,26 @@
 				<div class="map-fallback" aria-label={`${strategy.map.name} image unavailable`}>MAP</div>
 			{/snippet}
 		</FallbackImage>
-		<span class="version">v{strategy.verifiedVersion}</span>
+		<span class="version"><span aria-hidden="true">✓</span> v{strategy.verifiedVersion}</span>
+		{#if towerCount > 0}
+			<span class="dots" aria-hidden="true">
+				{#each strategy.placementDots as dot (dot.id)}
+					<span class="dot" class:hero-dot={dot.isHero} style:left={`${dot.x * 100}%`} style:top={`${dot.y * 100}%`}></span>
+				{/each}
+			</span>
+			<span class="hint" aria-hidden="true">
+				{towerCount} {towerCount === 1 ? 'tower' : 'towers'} · view layout →
+			</span>
+		{/if}
 	</a>
 
 	<div class="body">
-		<div class="eyebrow">
-			<span>{strategy.map.name}</span>
-			<span aria-hidden="true">•</span>
-			<span>{strategy.mode.name}</span>
+		<div class="badges">
+			{#if strategy.map.difficulty && tierVar}
+				<span class="tier" style:--tc={tierVar}>{strategy.map.difficulty}</span>
+			{/if}
+			<span class="mode">{strategy.mode.name}</span>
+			<span class="map-name">{strategy.map.name}</span>
 		</div>
 		<h3><a href={`/strategies/${strategy.id}`}>{strategy.title}</a></h3>
 		{#if strategy.description}
@@ -45,25 +62,35 @@
 	.strategy-card {
 		overflow: hidden;
 		border: 1px solid var(--border);
-		border-radius: var(--radius-lg);
+		border-radius: var(--radius-md);
 		background: var(--surface-raised);
 		box-shadow: var(--shadow-card);
 		transition:
-			transform 160ms ease,
-			box-shadow 160ms ease;
+			transform 180ms cubic-bezier(0.2, 0.7, 0.3, 1),
+			border-color 180ms ease,
+			box-shadow 180ms ease;
 	}
 
-	.strategy-card:hover {
+	.strategy-card:hover,
+	.strategy-card:focus-within {
 		transform: translateY(-3px);
-		box-shadow: var(--shadow-card-hover);
+		border-color: color-mix(in srgb, var(--brand) 55%, var(--border));
+		box-shadow: var(--glow-brand), var(--shadow-card-hover);
 	}
 
 	.media {
 		position: relative;
 		display: block;
-		aspect-ratio: 1.65;
+		aspect-ratio: 16 / 9;
 		overflow: hidden;
 		background: var(--surface);
+	}
+
+	.media::after {
+		position: absolute;
+		inset: 0;
+		background: linear-gradient(180deg, transparent 55%, rgb(9 14 22 / 0.5));
+		content: '';
 	}
 
 	.media :global(img) {
@@ -74,8 +101,9 @@
 		transition: transform 240ms ease;
 	}
 
-	.strategy-card:hover .media :global(img) {
-		transform: scale(1.025);
+	.strategy-card:hover .media :global(img),
+	.strategy-card:focus-within .media :global(img) {
+		transform: scale(1.03);
 	}
 
 	.map-fallback {
@@ -90,38 +118,154 @@
 
 	.version {
 		position: absolute;
-		top: 0.75rem;
-		right: 0.75rem;
-		padding: 0.25rem 0.55rem;
-		border: 1px solid rgb(255 255 255 / 0.25);
-		border-radius: 999px;
-		background: rgb(16 28 45 / 0.82);
-		color: #fff;
-		font-size: 0.75rem;
+		top: 0.6rem;
+		right: 0.6rem;
+		z-index: 2;
+		display: inline-flex;
+		align-items: center;
+		gap: 0.3rem;
+		padding: 0.2rem 0.55rem;
+		border: 1px solid rgb(255 255 255 / 0.14);
+		border-radius: 7px;
+		background: rgb(9 14 22 / 0.78);
+		color: #eaf1f8;
+		font-family: var(--font-mono);
+		font-size: 0.72rem;
+		font-weight: 600;
+		font-variant-numeric: tabular-nums;
+		backdrop-filter: blur(6px);
+	}
+
+	.version span {
+		color: var(--bloon-green);
 		font-weight: 800;
-		backdrop-filter: blur(8px);
+	}
+
+	/* Placement X-ray: the final layout fades in over the map art on hover.
+	   Coordinates are approximate over the NK select art, hence soft rings. */
+	.dots {
+		position: absolute;
+		inset: 0;
+		z-index: 1;
+		pointer-events: none;
+	}
+
+	.dot {
+		position: absolute;
+		width: 11px;
+		height: 11px;
+		border: 2px solid rgb(255 255 255 / 0.85);
+		border-radius: 50%;
+		background: var(--brand);
+		box-shadow: 0 0 0 3px rgb(126 203 82 / 0.3);
+		opacity: 0;
+		scale: 0.4;
+		translate: -50% -50%;
+		transition:
+			opacity 200ms ease,
+			scale 260ms cubic-bezier(0.2, 0.7, 0.3, 1.4);
+	}
+
+	.dot.hero-dot {
+		background: var(--accent);
+		box-shadow: 0 0 0 3px rgb(239 185 62 / 0.35);
+	}
+
+	.strategy-card:hover .dot,
+	.strategy-card:focus-within .dot {
+		opacity: 1;
+		scale: 1;
+	}
+
+	.strategy-card:hover .dot:nth-child(odd) {
+		transition-delay: 60ms;
+	}
+
+	.hint {
+		position: absolute;
+		bottom: 0.6rem;
+		left: 0.6rem;
+		z-index: 2;
+		padding: 0.2rem 0.6rem;
+		border: 1px solid rgb(255 255 255 / 0.12);
+		border-radius: 999px;
+		background: rgb(9 14 22 / 0.6);
+		color: rgb(255 255 255 / 0.88);
+		font-size: 0.7rem;
+		font-weight: 600;
+		letter-spacing: 0.03em;
+		backdrop-filter: blur(6px);
+		opacity: 0;
+		translate: 0 4px;
+		transition:
+			opacity 200ms ease,
+			translate 200ms ease;
+	}
+
+	.strategy-card:hover .hint,
+	.strategy-card:focus-within .hint {
+		opacity: 1;
+		translate: 0 0;
 	}
 
 	.body {
 		display: grid;
-		gap: 0.7rem;
-		padding: 1rem;
+		gap: 0.6rem;
+		padding: 0.95rem 1.05rem 1.05rem;
 	}
 
-	.eyebrow {
+	.badges {
 		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 0.45rem;
+	}
+
+	.tier {
+		display: inline-flex;
+		align-items: center;
 		gap: 0.35rem;
+		padding: 0.18rem 0.6rem;
+		border: 1px solid color-mix(in srgb, var(--tc) 45%, transparent);
+		border-radius: 999px;
+		background: color-mix(in srgb, var(--tc) 13%, transparent);
+		color: color-mix(in srgb, var(--tc) 75%, var(--fg));
+		font-size: 0.72rem;
+		font-weight: 700;
+	}
+
+	.tier::before {
+		width: 6px;
+		height: 6px;
+		border-radius: 50%;
+		background: var(--tc);
+		content: '';
+	}
+
+	.mode {
+		padding: 0.18rem 0.55rem;
+		border-radius: 6px;
+		background: var(--brand-soft);
 		color: var(--brand-strong);
-		font-size: 0.75rem;
-		font-weight: 850;
-		letter-spacing: 0.06em;
+		font-size: 0.7rem;
+		font-weight: 800;
+		letter-spacing: 0.08em;
 		text-transform: uppercase;
+	}
+
+	.map-name {
+		color: var(--fg-muted);
+		font-size: 0.75rem;
+		font-weight: 600;
 	}
 
 	h3 {
 		margin: 0;
-		font-size: 1.15rem;
-		line-height: 1.2;
+		font-family: var(--font-body);
+		font-size: 1.05rem;
+		font-weight: 750;
+		letter-spacing: -0.015em;
+		line-height: 1.25;
 	}
 
 	h3 a {
@@ -156,12 +300,7 @@
 	.hero {
 		gap: 0.45rem;
 		min-width: 0;
-	}
-
-	@media (prefers-reduced-motion: reduce) {
-		.strategy-card,
-		.media :global(img) {
-			transition: none;
-		}
+		color: var(--fg-muted);
+		font-weight: 600;
 	}
 </style>

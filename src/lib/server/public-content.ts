@@ -28,7 +28,7 @@ import type {
 const PAGE_SIZE = 24;
 const REFERENCE_CACHE_TTL = 60 * 60;
 const STRATEGY_METADATA_CACHE_TTL = 5 * 60;
-const STRATEGY_SUMMARY_SELECT = `
+const STRATEGY_BASE_SELECT = `
 	id,
 	title,
 	description,
@@ -40,8 +40,14 @@ const STRATEGY_SUMMARY_SELECT = `
 	mode:game_modes!strategies_game_mode_id_fkey(id,name),
 	hero:towers!strategies_hero_id_fkey(id,name,category,icon_path)
 `;
+// Summaries carry lightweight placement dots (normalized floats) so cards can
+// overlay the final layout on the map art without a detail round-trip.
+const STRATEGY_SUMMARY_SELECT = `
+	${STRATEGY_BASE_SELECT},
+	placements(id,tower_id,pos_x,pos_y)
+`;
 const STRATEGY_DETAIL_SELECT = `
-	${STRATEGY_SUMMARY_SELECT},
+	${STRATEGY_BASE_SELECT},
 	source_url,
 	placements(
 		id,
@@ -69,7 +75,8 @@ const HERO_DETAIL_SELECT = `
 		exec_difficulty,
 		updated_at,
 		map:maps!strategies_map_id_fkey(id,name,difficulty,image_url,nk_image_url),
-		mode:game_modes!strategies_game_mode_id_fkey(id,name)
+		mode:game_modes!strategies_game_mode_id_fkey(id,name),
+		placements(id,tower_id,pos_x,pos_y)
 	)
 `;
 const MAP_DIFFICULTIES: readonly MapDifficulty[] = [
@@ -101,9 +108,10 @@ type StrategySummaryRecord = Pick<
 	map: MapReference | null;
 	mode: ModeReference | null;
 	hero: HeroReference | null;
+	placements: Array<Pick<PlacementRow, 'id' | 'tower_id' | 'pos_x' | 'pos_y'>>;
 };
 
-type StrategyDetailRecord = StrategySummaryRecord &
+type StrategyDetailRecord = Omit<StrategySummaryRecord, 'placements'> &
 	Pick<StrategyRow, 'source_url'> & {
 		placements: Array<
 			Pick<
@@ -151,6 +159,15 @@ export async function getLatestStrategies(limit = 6): Promise<PublicStrategySumm
 		.limit(limit);
 	if (strategies.error) throw publicDataError('latest strategies', strategies.error.message);
 	return strategies.data.map(toStrategySummary).filter((strategy) => strategy !== null);
+}
+
+export async function getReadyStrategyCount(): Promise<number> {
+	const result = await supabase
+		.from('strategies')
+		.select('id', { count: 'exact', head: true })
+		.eq('status', 'ready');
+	if (result.error) throw publicDataError('strategy count', result.error.message);
+	return result.count ?? 0;
 }
 
 export async function discoverStrategies(url: URL): Promise<StrategyDiscovery> {
@@ -404,7 +421,15 @@ function toStrategySummary(
 		hero: hero ? toHeroReference(hero) : null,
 		verifiedVersion: strategy.verified_version,
 		executionDifficulty: strategy.exec_difficulty,
-		updatedAt: strategy.updated_at
+		updatedAt: strategy.updated_at,
+		placementDots: [...strategy.placements]
+			.sort((a, b) => a.id - b.id)
+			.map((placement) => ({
+				id: placement.id,
+				x: placement.pos_x,
+				y: placement.pos_y,
+				isHero: strategy.hero_id !== null && placement.tower_id === strategy.hero_id
+			}))
 	};
 }
 

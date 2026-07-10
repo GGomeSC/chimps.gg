@@ -18,6 +18,14 @@ export type PublicHeroReference = {
 	iconUrl: string;
 };
 
+/** Lightweight final-layout marker for card overlays (normalized [0, 1] coords). */
+export type PlacementDot = {
+	id: number;
+	x: number;
+	y: number;
+	isHero: boolean;
+};
+
 export type PublicStrategySummary = {
 	id: number;
 	title: string;
@@ -28,6 +36,7 @@ export type PublicStrategySummary = {
 	verifiedVersion: string;
 	executionDifficulty: number | null;
 	updatedAt: string;
+	placementDots: PlacementDot[];
 };
 
 export type StrategyMapPlacement = {

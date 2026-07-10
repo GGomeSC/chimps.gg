@@ -1,4 +1,5 @@
 <script lang="ts">
+	import EntityIcon from './EntityIcon.svelte';
 	import type {
 		PublicStep,
 		StrategyMapPlacement,
@@ -18,6 +19,13 @@
 	const placementById = $derived(new Map(placements.map((placement) => [placement.id, placement])));
 	const towerById = $derived(new Map(towers.map((tower) => [tower.id, tower])));
 
+	function towerForStep(placementId: number | null): StrategyMapTower | null {
+		if (!placementId) return null;
+		const placement = placementById.get(placementId);
+		if (!placement) return null;
+		return towerById.get(placement.towerId) ?? null;
+	}
+
 	function placementName(placementId: number | null): string | null {
 		if (!placementId) return null;
 		const placement = placementById.get(placementId);
@@ -32,20 +40,30 @@
 
 <ol class="build-order">
 	{#each steps as step, index (step.id)}
+		{@const tower = towerForStep(step.placementId)}
 		<li>
 			<div class="rail" aria-hidden="true">
 				<span>{index + 1}</span>
 			</div>
 			<article>
-				<header>
-					<span class="round">Round {step.roundNumber}</span>
-					<span class="action">{actionLabel(step.action)}</span>
-				</header>
-				{#if placementName(step.placementId)}
-					<strong>{placementName(step.placementId)}</strong>
-				{/if}
-				{#if step.targetPath}<span class="path">Target path {step.targetPath}</span>{/if}
-				{#if step.description}<p>{step.description}</p>{/if}
+				<div class="icon">
+					{#if tower}
+						<EntityIcon src={tower.iconUrl} name={tower.name} compact />
+					{:else}
+						<span class="placeholder" aria-hidden="true">•</span>
+					{/if}
+				</div>
+				<div class="body">
+					<header>
+						<span class="round">Round {step.roundNumber}</span>
+						<span class="action">{actionLabel(step.action)}</span>
+					</header>
+					{#if placementName(step.placementId)}
+						<strong>{placementName(step.placementId)}</strong>
+					{/if}
+					{#if step.targetPath}<span class="path">Target path {step.targetPath}</span>{/if}
+					{#if step.description}<p>{step.description}</p>{/if}
+				</div>
 			</article>
 		</li>
 	{/each}
@@ -102,12 +120,39 @@
 
 	article {
 		display: grid;
-		gap: 0.45rem;
+		grid-template-columns: auto minmax(0, 1fr);
+		gap: 0.8rem;
+		align-items: start;
 		margin-bottom: 1rem;
 		padding: 0.9rem 1rem;
 		border: 1px solid var(--border);
 		border-radius: var(--radius-md);
 		background: var(--surface-raised);
+	}
+
+	.icon {
+		display: grid;
+		place-items: center;
+		padding-top: 0.1rem;
+	}
+
+	.placeholder {
+		display: grid;
+		width: 2rem;
+		height: 2rem;
+		place-items: center;
+		border: 1px solid var(--border);
+		border-radius: 50%;
+		background: var(--surface);
+		color: var(--fg-muted);
+		font-size: 1rem;
+		line-height: 1;
+	}
+
+	.body {
+		display: grid;
+		gap: 0.45rem;
+		min-width: 0;
 	}
 
 	header {

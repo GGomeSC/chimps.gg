@@ -17,26 +17,14 @@
 </svelte:head>
 
 <section class="hero-heading page-shell">
-	<div>
-		<span>Hero discovery</span>
-		<h1>Pick your centerpiece.</h1>
-		<p>
-			Explore factual guide coverage from the current chimps.gg database—without invented win
-			rates or popularity scores.
-		</p>
-	</div>
-	<div class="coverage-card">
-		<strong>{data.heroes.length}</strong>
-		<span>curated hero entries</span>
-		<small>Guide counts include ready strategies only.</small>
-	</div>
+
 </section>
 
 <section class="page-shell hero-list" aria-labelledby="hero-list-heading">
 	<div class="section-heading">
 		<div>
 			<h2 id="hero-list-heading">All heroes</h2>
-			<p>Open a hero to see related ready strategies, maps, modes, and verified versions.</p>
+			<p>Choose a hero to see related strategies for each maps and modes.</p>
 		</div>
 	</div>
 	<div class="hero-grid">
@@ -57,16 +45,17 @@
 
 	.hero-heading > div > span {
 		color: var(--brand-strong);
-		font-size: 0.75rem;
-		font-weight: 900;
-		letter-spacing: 0.1em;
+		font-size: 0.72rem;
+		font-weight: 700;
+		letter-spacing: 0.14em;
 		text-transform: uppercase;
 	}
 
 	h1 {
 		margin: 0.35rem 0;
-		font-size: clamp(2.7rem, 8vw, 5rem);
-		letter-spacing: -0.065em;
+		font-size: clamp(2.4rem, 6vw, 3.6rem);
+		font-weight: 800;
+		letter-spacing: -0.035em;
 	}
 
 	.hero-heading p {

@@ -1,9 +1,24 @@
 <script lang="ts">
 	import EmptyState from '$lib/components/public/EmptyState.svelte';
-	import FilterPanel from '$lib/components/public/FilterPanel.svelte';
+	import FilterBar from '$lib/components/public/FilterBar.svelte';
 	import StrategyCard from '$lib/components/public/StrategyCard.svelte';
+	import { fuzzyMatch } from '$lib/fuzzy';
 
 	let { data } = $props();
+
+	let query = $state('');
+
+	// Fuzzy search narrows the loaded page client-side; server filters own the URL.
+	const visible = $derived(
+		query.trim()
+			? data.strategies.filter((strategy) =>
+					fuzzyMatch(
+						query,
+						`${strategy.title} ${strategy.map.name} ${strategy.mode.name} ${strategy.hero?.name ?? ''}`
+					)
+				)
+			: data.strategies
+	);
 </script>
 
 <svelte:head>
@@ -19,34 +34,17 @@
 	<meta property="og:url" content={data.canonical} />
 </svelte:head>
 
-<section class="page-heading page-shell">
-	<span>Strategy library</span>
-	<h1>Find your next clear.</h1>
-	<p>Every result is marked ready by a curator and tied to a verified game version.</p>
-</section>
+<div class="page-shell discovery">
+	<FilterBar filters={data.filters} options={data.options} bind:query />
 
-<div class="page-shell discovery-layout">
-	<aside>
-		<FilterPanel filters={data.filters} options={data.options} />
-	</aside>
-	<section class="results" aria-labelledby="result-heading">
-		<div class="result-heading">
-			<div>
-				<span>Ready guides</span>
-				<h2 id="result-heading">
-					{data.totalCount} {data.totalCount === 1 ? 'strategy' : 'strategies'}
-				</h2>
-			</div>
-			<small class="sort-pill">Newest first</small>
-		</div>
-
-		{#if data.strategies.length > 0}
-			<div class="strategy-grid result-grid">
-				{#each data.strategies as strategy (strategy.id)}
+	<section class="results" aria-label="Strategy results">
+		{#if visible.length > 0}
+			<div class="strategy-grid">
+				{#each visible as strategy (strategy.id)}
 					<StrategyCard {strategy} />
 				{/each}
 			</div>
-			{#if data.nextHref}
+			{#if data.nextHref && !query.trim()}
 				<div class="pagination">
 					<a class="button secondary" href={data.nextHref}>Next strategies →</a>
 				</div>
@@ -63,91 +61,15 @@
 </div>
 
 <style>
-	.page-heading {
-		padding-block: clamp(3rem, 7vw, 5rem) 2rem;
-	}
-
-	.page-heading > span,
-	.result-heading span {
-		color: var(--brand-strong);
-		font-size: 0.75rem;
-		font-weight: 900;
-		letter-spacing: 0.1em;
-		text-transform: uppercase;
-	}
-
-	h1 {
-		margin: 0.35rem 0;
-		font-size: clamp(2.5rem, 7vw, 4.5rem);
-		letter-spacing: -0.065em;
-	}
-
-	.page-heading p {
-		max-width: 42rem;
-		margin: 0;
-		color: var(--fg-muted);
-		font-size: 1.05rem;
-	}
-
-	.discovery-layout {
+	.discovery {
 		display: grid;
-		grid-template-columns: minmax(16rem, 19rem) minmax(0, 1fr);
-		gap: 1.5rem;
-		align-items: start;
-	}
-
-	aside {
-		position: sticky;
-		top: 5.5rem;
-	}
-
-	.result-heading {
-		display: flex;
-		align-items: end;
-		justify-content: space-between;
-		gap: 1rem;
-		margin-bottom: 1rem;
-	}
-
-	.result-heading h2 {
-		margin: 0.1rem 0 0;
-		font-size: 1.5rem;
-	}
-
-	.sort-pill {
-		flex: none;
-		padding: 0.4rem 0.8rem;
-		border: 1px solid var(--border);
-		border-radius: 999px;
-		background: var(--surface);
-		color: var(--fg-muted);
-		font-size: 0.8rem;
-		font-weight: 700;
-	}
-
-	.result-grid {
-		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: 1.75rem;
+		padding-top: clamp(1.5rem, 4vw, 2.5rem);
 	}
 
 	.pagination {
 		display: flex;
 		justify-content: center;
 		margin-top: 2rem;
-	}
-
-	@media (max-width: 52rem) {
-		.discovery-layout {
-			grid-template-columns: 1fr;
-		}
-
-		aside {
-			position: static;
-		}
-	}
-
-	@media (max-width: 34rem) {
-		.result-grid {
-			grid-template-columns: 1fr;
-		}
 	}
 </style>

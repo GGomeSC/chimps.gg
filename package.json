@@ -29,6 +29,8 @@
 		"vite": "8.1.4"
 	},
 	"dependencies": {
+		"@fontsource-variable/bricolage-grotesque": "^5.2.10",
+		"@fontsource-variable/jetbrains-mono": "^5.2.8",
 		"@opentelemetry/api": "1.9.1",
 		"@supabase/ssr": "0.12.0",
 		"@supabase/supabase-js": "2.110.2",

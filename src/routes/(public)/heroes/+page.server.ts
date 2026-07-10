@@ -4,5 +4,11 @@ import type { PageServerLoad } from './$types';
 export const load: PageServerLoad = async ({ url, setHeaders }) => {
 	const heroes = await getHeroes();
 	setHeaders({ 'cache-control': 'public, max-age=0, s-maxage=300, stale-while-revalidate=1800' });
-	return { heroes, canonical: canonicalUrl(url, '/heroes') };
+	return {
+		// Heroes with real guide coverage lead; the rest stay alphabetical.
+		heroes: [...heroes].sort(
+			(a, b) => b.guideCount - a.guideCount || a.name.localeCompare(b.name)
+		),
+		canonical: canonicalUrl(url, '/heroes')
+	};
 };

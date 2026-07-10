@@ -102,18 +102,33 @@
 	}
 
 	nav > a {
+		position: relative;
 		padding: 0.65rem 0.8rem;
-		border-radius: 999px;
+		border-radius: var(--radius-sm);
 		color: var(--fg-muted);
 		font-size: 0.9rem;
-		font-weight: 750;
+		font-weight: 650;
 		text-decoration: none;
+		transition: color 150ms ease;
 	}
 
-	nav > a:hover,
-	nav > a[aria-current='page'] {
-		background: var(--brand-soft);
+	nav > a:hover {
 		color: var(--fg);
+	}
+
+	nav > a[aria-current='page'] {
+		color: var(--fg);
+	}
+
+	nav > a[aria-current='page']::after {
+		position: absolute;
+		right: 0.8rem;
+		bottom: 0.35rem;
+		left: 0.8rem;
+		height: 2px;
+		border-radius: 2px;
+		background: var(--brand);
+		content: '';
 	}
 
 	.menu-button {

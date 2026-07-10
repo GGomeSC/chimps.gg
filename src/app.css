@@ -1,33 +1,66 @@
 /* Public design tokens extend the existing light/dark theme. The Studio keeps
-   using the neutral aliases below, while public components use the richer set. */
+   using the neutral aliases below, while public components use the richer set.
+
+   Art direction: "MOAB-class" — deep desaturated navy ground (dark) and
+   "Meadow daylight" (light), with Monkey Meadow green as the single brand
+   accent and banana gold reserved for money/provenance/hero highlights. */
 :root {
 	color-scheme: light dark;
-	font-family:
-		Inter, ui-rounded, "SF Pro Rounded", "Segoe UI", system-ui, -apple-system, sans-serif;
+	font-family: var(--font-body);
 	font-synthesis: none;
 	text-rendering: optimizeLegibility;
 
-	--bg: light-dark(#f7faf2, #101820);
-	--fg: light-dark(#172130, #edf5e8);
-	--fg-muted: light-dark(#667060, #aab7a5);
-	--ink: #15263a;
-	--border: light-dark(#dce5d6, #344351);
-	--border-strong: light-dark(#bccbb5, #536474);
-	--surface: light-dark(#edf3e8, #17242f);
-	--surface-raised: light-dark(#ffffff, #1d2c38);
-	--brand: light-dark(#8edb3f, #9ce653);
-	--brand-strong: light-dark(#427d0e, #b4ee79);
-	--brand-soft: light-dark(#e4f6d0, #29441f);
+	--font-display: 'Bricolage Grotesque Variable', 'Segoe UI', system-ui, sans-serif;
+	--font-body:
+		Inter, 'Segoe UI', system-ui, -apple-system, sans-serif;
+	--font-mono: 'JetBrains Mono Variable', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+
+	--bg: light-dark(#f2f6ea, #0b1018);
+	--fg: light-dark(#1a2430, #eaf1f8);
+	--fg-muted: light-dark(#5c6a5e, #93a4b8);
+	--ink: #0f1a10;
+	--border: light-dark(#dae3cc, #223044);
+	--border-strong: light-dark(#b7c7a8, #33465f);
+	--surface: light-dark(#fafcf4, #101826);
+	--surface-raised: light-dark(#ffffff, #16202f);
+	--brand: light-dark(#6fbf3f, #7ecb52);
+	--brand-strong: light-dark(#3e7a1f, #9adf6e);
+	--brand-soft: light-dark(#e4f0d4, #1a2b1a);
 	--brand-shadow: light-dark(#4f8d17, #315c12);
-	--accent: light-dark(#f7b928, #ffc83d);
-	--accent-soft: light-dark(#fff1bf, #4a3c18);
+	--accent: light-dark(#d8a02a, #efb93e);
+	--accent-strong: light-dark(#a97a10, #efb93e);
+	--accent-soft: light-dark(#f8ecc9, #3a2f14);
 	--error: light-dark(#b42318, #ff928a);
 	--ok: light-dark(#16723a, #65d58b);
+
+	/* Bloon scale — execution difficulty in the progression every player knows. */
+	--bloon-red: light-dark(#cf3b32, #e8493f);
+	--bloon-blue: light-dark(#2a7fc2, #3e9fe8);
+	--bloon-green: light-dark(#4a9e2b, #62be3d);
+	--bloon-yellow: light-dark(#c99f14, #f5d33f);
+	--bloon-pink: light-dark(#d75a8e, #f286b0);
+
+	/* Map difficulty tiers — the game's own selection-screen colors. */
+	--tier-beginner: light-dark(#4a9e2b, #62be3d);
+	--tier-intermediate: light-dark(#c99f14, #f5d33f);
+	--tier-advanced: light-dark(#d0741f, #f09137);
+	--tier-expert: light-dark(#cf3b32, #e8493f);
+
 	--radius-sm: 0.65rem;
 	--radius-md: 0.9rem;
 	--radius-lg: 1.25rem;
-	--shadow-card: 0 10px 30px light-dark(rgb(32 65 22 / 0.08), rgb(0 0 0 / 0.2));
-	--shadow-card-hover: 0 16px 40px light-dark(rgb(32 65 22 / 0.14), rgb(0 0 0 / 0.3));
+	--shadow-card: light-dark(
+		0 1px 2px rgb(26 36 48 / 0.06),
+		0 1px 2px rgb(0 0 0 / 0.4)
+	);
+	--shadow-card-hover: light-dark(
+		0 2px 4px rgb(26 36 48 / 0.08),
+		0 2px 4px rgb(0 0 0 / 0.5)
+	);
+	--glow-brand: light-dark(
+		0 0 0 1px rgb(111 191 63 / 0.4),
+		0 0 0 1px rgb(126 203 82 / 0.4)
+	);
 }
 
 :root[data-theme='light'] {
@@ -49,13 +82,26 @@ html {
 }
 
 body {
+	display: flex;
+	flex-direction: column;
 	min-width: 20rem;
 	min-height: 100vh;
 	margin: 0;
-	background:
-		radial-gradient(circle at 8% 6%, color-mix(in srgb, var(--brand) 11%, transparent), transparent 24rem),
-		var(--bg);
+	background: var(--bg);
 	color: var(--fg);
+}
+
+/* Sticky footer: main grows so the footer sits at the bottom on short pages
+   instead of leaving the body background exposed beneath it. */
+#main-content {
+	flex: 1 0 auto;
+}
+
+h1,
+h2,
+h3 {
+	font-family: var(--font-display);
+	text-wrap: balance;
 }
 
 button,
@@ -76,8 +122,8 @@ a {
 }
 
 :focus-visible {
-	outline: 3px solid var(--accent);
-	outline-offset: 3px;
+	outline: 2px solid var(--accent);
+	outline-offset: 2px;
 }
 
 ::selection {
@@ -90,24 +136,33 @@ a {
 	margin-inline: auto;
 }
 
+.mono {
+	font-family: var(--font-mono);
+	font-variant-numeric: tabular-nums;
+}
+
 .button {
 	display: inline-flex;
 	min-height: 2.75rem;
 	align-items: center;
 	justify-content: center;
 	gap: 0.45rem;
-	padding: 0.65rem 1rem;
-	border: 1px solid var(--brand-shadow);
+	padding: 0.65rem 1.1rem;
+	border: 1px solid transparent;
 	border-radius: var(--radius-sm);
 	background: var(--brand);
 	color: var(--ink);
-	font-weight: 850;
+	font-weight: 700;
 	text-decoration: none;
-	box-shadow: 0 3px 0 var(--brand-shadow);
 	cursor: pointer;
+	transition:
+		background 150ms ease,
+		border-color 150ms ease,
+		transform 150ms ease;
 }
 
 .button:hover {
+	background: var(--brand-strong);
 	transform: translateY(-1px);
 }
 
@@ -115,7 +170,12 @@ a {
 	border-color: var(--border-strong);
 	background: var(--surface-raised);
 	color: var(--fg);
-	box-shadow: 0 3px 0 var(--border-strong);
+}
+
+.button.secondary:hover {
+	background: var(--surface-raised);
+	border-color: var(--brand);
+	color: var(--fg);
 }
 
 .section-heading {
@@ -128,8 +188,9 @@ a {
 
 .section-heading h2 {
 	margin: 0;
-	font-size: clamp(1.65rem, 4vw, 2.35rem);
-	letter-spacing: -0.045em;
+	font-size: clamp(1.65rem, 4vw, 2.1rem);
+	font-weight: 750;
+	letter-spacing: -0.03em;
 }
 
 .section-heading p {
@@ -140,7 +201,7 @@ a {
 
 .section-heading > a {
 	flex: none;
-	font-weight: 800;
+	font-weight: 700;
 }
 
 .strategy-grid,
@@ -151,12 +212,11 @@ a {
 }
 
 .hero-grid {
-	grid-template-columns: repeat(2, minmax(0, 1fr));
+	grid-template-columns: repeat(auto-fill, minmax(12.5rem, 1fr));
 }
 
 @media (max-width: 48rem) {
-	.strategy-grid,
-	.hero-grid {
+	.strategy-grid {
 		grid-template-columns: repeat(2, minmax(0, 1fr));
 	}
 }
