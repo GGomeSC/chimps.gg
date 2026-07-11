@@ -5,9 +5,10 @@
 		src: string | null;
 		name: string;
 		compact?: boolean;
+		profile?: boolean;
 	};
 
-	let { src, name, compact = false }: Props = $props();
+	let { src, name, compact = false, profile = false }: Props = $props();
 	const initials = $derived(
 		name
 			.split(/\s+/)
@@ -18,7 +19,7 @@
 	);
 </script>
 
-<span class:compact class="icon-shell">
+<span class:compact class:profile class="icon-shell">
 	<FallbackImage {src} alt={name}>
 		{#snippet fallback()}
 			<span class="fallback" aria-label={`${name} image unavailable`}>{initials}</span>
@@ -41,6 +42,18 @@
 	.icon-shell.compact {
 		width: 2rem;
 		border-radius: 50%;
+	}
+
+	.icon-shell.profile {
+		width: clamp(10rem, 18vw, 15rem);
+		overflow: visible;
+		border: 0;
+		border-radius: 0;
+		background: transparent;
+	}
+
+	.icon-shell.profile :global(img) {
+		filter: drop-shadow(0 1rem 1.5rem color-mix(in srgb, var(--hero-accent, var(--brand)) 38%, transparent));
 	}
 
 	.icon-shell :global(img) {

@@ -11,6 +11,7 @@
 			<nav>
 				<a href="/studio/strategies">Strategies</a>
 				<a href="/studio/maps">Maps</a>
+				<a href="/studio/heroes">Heroes</a>
 			</nav>
 		{/if}
 		<div class="right">

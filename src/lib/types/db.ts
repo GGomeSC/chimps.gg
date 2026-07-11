@@ -41,6 +41,10 @@ export type TowerRow = {
 	base_cost: number | null;
 	icon_path: string;
 	description: string | null;
+	attack_style: string | null;
+	xp_ratio: number | null;
+	technical_description: string | null;
+	profile_source_url: string | null;
 }
 
 type TowerInsert = {
@@ -49,7 +53,25 @@ type TowerInsert = {
 	base_cost?: number | null;
 	icon_path: string;
 	description?: string | null;
+	attack_style?: string | null;
+	xp_ratio?: number | null;
+	technical_description?: string | null;
+	profile_source_url?: string | null;
 }
+
+export type TowerSynergyRow = {
+	id: number;
+	tower_a_id: number;
+	tower_b_id: number;
+	description: string | null;
+	created_at: string;
+}
+
+type TowerSynergyInsert = {
+	tower_a_id: number;
+	tower_b_id: number;
+	description?: string | null;
+};
 
 export type GameModeRow = {
 	id: number;
@@ -150,6 +172,27 @@ export type Database = {
 				Insert: TowerInsert;
 				Update: Partial<TowerInsert>;
 				Relationships: [];
+			};
+			tower_synergies: {
+				Row: TowerSynergyRow;
+				Insert: TowerSynergyInsert;
+				Update: Partial<TowerSynergyInsert>;
+				Relationships: [
+					{
+						foreignKeyName: 'tower_synergies_tower_a_id_fkey';
+						columns: ['tower_a_id'];
+						isOneToOne: false;
+						referencedRelation: 'towers';
+						referencedColumns: ['id'];
+					},
+					{
+						foreignKeyName: 'tower_synergies_tower_b_id_fkey';
+						columns: ['tower_b_id'];
+						isOneToOne: false;
+						referencedRelation: 'towers';
+						referencedColumns: ['id'];
+					}
+				];
 			};
 			game_modes: {
 				Row: GameModeRow;
@@ -255,6 +298,20 @@ export type Database = {
 			};
 			reorder_steps: {
 				Args: { p_strategy_id: number; p_step_ids: number[] };
+				Returns: undefined;
+			};
+			update_hero_profile: {
+				Args: {
+					p_hero_id: number;
+					p_description: string | null;
+					p_base_cost: number | null;
+					p_attack_style: string | null;
+					p_xp_ratio: number | null;
+					p_technical_description: string | null;
+					p_profile_source_url: string | null;
+					p_synergy_tower_ids: number[];
+					p_synergy_descriptions: string[];
+				};
 				Returns: undefined;
 			};
 		};

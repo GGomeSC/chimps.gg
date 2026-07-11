@@ -2,10 +2,34 @@
 	import EmptyState from '$lib/components/public/EmptyState.svelte';
 	import CompactStrategyCard from '$lib/components/public/CompactStrategyCard.svelte';
 	import EntityIcon from '$lib/components/public/EntityIcon.svelte';
+	import { heroAccent } from '$lib/hero-accents';
 	import { href } from '$lib/link';
 	import { m } from '$lib/paraglide/messages.js';
 
 	let { data } = $props();
+	const accent = $derived(heroAccent(data.hero.name));
+	const hasQuickProfile = $derived(
+		data.hero.baseCost !== null ||
+			data.hero.attackStyle !== null ||
+			data.hero.xpRatio !== null ||
+			data.hero.synergies.length > 0
+	);
+	const levelingLabel = $derived.by(() => {
+		if (data.hero.xpRatio === null) return null;
+		if (data.hero.xpRatio <= 1) return m.hero_leveling_fast();
+		if (data.hero.xpRatio < 1.5) return m.hero_leveling_moderate();
+		return m.hero_leveling_slow();
+	});
+	const formattedBaseCost = $derived(
+		data.hero.baseCost === null
+			? null
+			: new Intl.NumberFormat(data.locale).format(data.hero.baseCost)
+	);
+	const formattedXpRatio = $derived(
+		data.hero.xpRatio === null
+			? null
+			: new Intl.NumberFormat(data.locale, { maximumFractionDigits: 3 }).format(data.hero.xpRatio)
+	);
 
 	const readyGuides = $derived(
 		data.hero.guideCount === 1
@@ -29,13 +53,61 @@
 
 <section class="profile-header page-shell">
 	<a class="back" href={href('/heroes')}>{m.all_heroes_back()}</a>
-	<div class="profile-grid">
-		<EntityIcon src={data.hero.iconUrl} name={data.hero.name} />
-		<div>
+	<div class:has-quick={hasQuickProfile} class="profile-grid" style:--hero-accent={accent}>
+		<div class="portrait">
+			<EntityIcon src={data.hero.iconUrl} name={data.hero.name} profile />
+		</div>
+		<div class="identity">
 			<span>{m.hero_profile()}</span>
 			<h1>{data.hero.name}</h1>
-			<p>{data.hero.description ?? m.hero_default_description({ name: data.hero.name })}</p>
+			<p class="summary">{data.hero.description ?? m.hero_default_description({ name: data.hero.name })}</p>
+			{#if data.hero.technicalDescription || data.hero.profileSourceUrl}
+				<div class="technical">
+					{#if data.hero.technicalDescription}<p>{data.hero.technicalDescription}</p>{/if}
+					{#if data.hero.profileSourceUrl}
+						<a href={data.hero.profileSourceUrl} target="_blank" rel="external noreferrer">
+							{m.hero_source_link()}
+						</a>
+					{/if}
+				</div>
+			{/if}
 		</div>
+		{#if hasQuickProfile}
+			<aside class="quick-profile">
+				{#if data.hero.baseCost !== null && formattedBaseCost}
+					<div class="quick-fact">
+						<span>{m.hero_base_cost()}</span>
+						<strong>${formattedBaseCost}</strong>
+					</div>
+				{/if}
+				{#if data.hero.attackStyle}
+					<div class="quick-fact">
+						<span>{m.hero_attack_style()}</span>
+						<strong>{data.hero.attackStyle}</strong>
+					</div>
+				{/if}
+				{#if data.hero.xpRatio !== null && levelingLabel && formattedXpRatio}
+					<div class="quick-fact">
+						<span>{m.hero_leveling()}</span>
+						<strong>{levelingLabel}</strong>
+						<small>{m.hero_xp_ratio({ ratio: formattedXpRatio })}</small>
+					</div>
+				{/if}
+				{#if data.hero.synergies.length > 0}
+					<div class="synergies">
+						<span>{m.hero_synergies()}</span>
+						<ul>
+							{#each data.hero.synergies as tower (tower.id)}
+								<li class:described={tower.description !== null}>
+									<strong>{tower.name}</strong>
+									{#if tower.description}<small>{tower.description}</small>{/if}
+								</li>
+							{/each}
+						</ul>
+					</div>
+				{/if}
+			</aside>
+		{/if}
 		<div class="facts" aria-label={m.hero_coverage_label({ name: data.hero.name })}>
 			<div><strong>{data.hero.guideCount}</strong><span>{m.facts_guides()}</span></div>
 			<div><strong>{data.hero.maps.length}</strong><span>{m.facts_maps()}</span></div>
@@ -110,19 +182,49 @@
 	}
 
 	.profile-grid {
+		isolation: isolate;
+		position: relative;
 		display: grid;
-		grid-template-columns: auto minmax(0, 1fr);
+		grid-template-columns: minmax(10rem, 15rem) minmax(0, 1fr);
 		gap: var(--space-4);
-		align-items: center;
+		align-items: start;
 		padding: var(--space-4);
-		overflow: hidden;
 		border: 1px solid var(--border);
 		border-radius: var(--radius-lg);
 		background: var(--surface-raised);
 		box-shadow: var(--shadow-card);
 	}
 
-	.profile-grid > div > span {
+	.profile-grid::before {
+		position: absolute;
+		z-index: 0;
+		inset: 0;
+		overflow: hidden;
+		border-radius: inherit;
+		background:
+			radial-gradient(circle at 8% 30%, color-mix(in srgb, var(--hero-accent) 25%, transparent), transparent 35%),
+			linear-gradient(115deg, color-mix(in srgb, var(--hero-accent) 8%, var(--surface-raised)), var(--surface-raised) 65%);
+		content: '';
+	}
+
+	.profile-grid > * {
+		position: relative;
+		z-index: 1;
+	}
+
+	.profile-grid.has-quick {
+		grid-template-columns: minmax(10rem, 15rem) minmax(0, 1fr) minmax(15rem, 19rem);
+	}
+
+	.portrait {
+		align-self: end;
+		margin-top: calc(var(--space-5) * -1);
+		margin-bottom: calc(var(--space-2) * -1);
+	}
+
+	.identity { align-self: center; }
+
+	.identity > span {
 		color: var(--brand-strong);
 		font-size: var(--text-meta);
 		font-weight: 900;
@@ -136,12 +238,90 @@
 		letter-spacing: -0.065em;
 	}
 
-	.profile-grid p {
+	.summary {
 		max-width: 40rem;
 		margin: 0;
 		color: var(--fg-muted);
 		font-size: var(--text-lead);
 		line-height: 1.6;
+	}
+
+	.technical {
+		max-width: 46rem;
+		padding-top: var(--space-3);
+		margin-top: var(--space-3);
+		border-top: 1px solid color-mix(in srgb, var(--hero-accent) 24%, var(--border));
+	}
+
+	.technical p {
+		margin: 0;
+		color: var(--fg-muted);
+		line-height: 1.65;
+		white-space: pre-line;
+	}
+
+	.technical a {
+		display: inline-flex;
+		margin-top: var(--space-2);
+		color: color-mix(in srgb, var(--hero-accent) 72%, var(--fg));
+		font-size: var(--text-meta);
+		font-weight: 750;
+	}
+
+	.quick-profile {
+		display: grid;
+		align-self: stretch;
+		gap: var(--space-3);
+		padding: var(--space-3);
+		border: 1px solid color-mix(in srgb, var(--hero-accent) 28%, var(--border));
+		border-radius: var(--radius-md);
+		background: color-mix(in srgb, var(--surface) 76%, transparent);
+	}
+
+	.quick-fact {
+		display: grid;
+		gap: 0.15rem;
+	}
+
+	.quick-fact span,
+	.synergies > span {
+		color: var(--fg-muted);
+		font-size: var(--text-meta);
+		font-weight: 750;
+		letter-spacing: 0.04em;
+		text-transform: uppercase;
+	}
+
+	.quick-fact strong { font-size: 1.05rem; }
+	.quick-fact small { color: var(--fg-muted); }
+
+	.synergies ul {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--space-1);
+		margin: var(--space-1) 0 0;
+		padding: 0;
+		list-style: none;
+	}
+
+	.synergies li {
+		padding: 0.3rem 0.55rem;
+		border: 1px solid color-mix(in srgb, var(--hero-accent) 28%, var(--border));
+		border-radius: 999px;
+		background: color-mix(in srgb, var(--hero-accent) 9%, var(--surface));
+		font-size: var(--text-meta);
+	}
+
+	.synergies li.described {
+		display: grid;
+		flex-basis: 100%;
+		gap: 0.15rem;
+		border-radius: var(--radius-sm);
+	}
+
+	.synergies li small {
+		color: var(--fg-muted);
+		line-height: 1.45;
 	}
 
 	.facts {
@@ -241,8 +421,15 @@
 
 	.coverage-columns p { margin: 0; color: var(--fg-muted); }
 
-	@media (max-width: 60rem) {
-		.profile-grid { grid-template-columns: auto minmax(0, 1fr); }
+	@media (max-width: 68rem) {
+		.profile-grid.has-quick {
+			grid-template-columns: minmax(10rem, 14rem) minmax(0, 1fr);
+		}
+
+		.quick-profile {
+			grid-column: 1 / -1;
+			grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+		}
 	}
 
 	@media (max-width: 45rem) {
@@ -256,6 +443,18 @@
 			grid-template-columns: 1fr;
 			align-items: start;
 		}
+
+		.profile-grid.has-quick { grid-template-columns: 1fr; }
+
+		.portrait {
+			justify-self: center;
+			margin-top: calc(var(--space-4) * -1);
+			margin-bottom: calc(var(--space-3) * -1);
+		}
+
+		.identity { text-align: center; }
+		.technical { text-align: left; }
+		.quick-profile { grid-column: auto; grid-template-columns: 1fr; }
 
 		.coverage-columns {
 			grid-template-columns: 1fr;

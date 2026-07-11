@@ -65,6 +65,21 @@ const HERO_DETAIL_SELECT = `
 	category,
 	icon_path,
 	description,
+	base_cost,
+	attack_style,
+	xp_ratio,
+	technical_description,
+	profile_source_url,
+	synergies_from_a:tower_synergies!tower_synergies_tower_a_id_fkey(
+		id,
+		description,
+		tower:towers!tower_synergies_tower_b_id_fkey(id,name,category,icon_path)
+	),
+	synergies_from_b:tower_synergies!tower_synergies_tower_b_id_fkey(
+		id,
+		description,
+		tower:towers!tower_synergies_tower_a_id_fkey(id,name,category,icon_path)
+	),
 	strategies:strategies!strategies_hero_id_fkey(
 		id,
 		title,
@@ -156,7 +171,26 @@ type StrategyDetailRecord = Omit<StrategySummaryRecord, 'placements'> &
 		>;
 	};
 
-type HeroDetailRecord = HeroReference & Pick<TowerRow, 'description'> & {
+type HeroDetailRecord = HeroReference &
+	Pick<
+		TowerRow,
+		| 'description'
+		| 'base_cost'
+		| 'attack_style'
+		| 'xp_ratio'
+		| 'technical_description'
+		| 'profile_source_url'
+	> & {
+	synergies_from_a: Array<{
+		id: number;
+		description: string | null;
+		tower: HeroReference | null;
+	}>;
+	synergies_from_b: Array<{
+		id: number;
+		description: string | null;
+		tower: HeroReference | null;
+	}>;
 	strategies: Array<Omit<StrategySummaryRecord, 'hero'>>;
 };
 
@@ -320,6 +354,21 @@ export async function getHeroDetail(id: number): Promise<PublicHeroDetail | null
 	return {
 		...toHeroReference(hero),
 		description: hero.description,
+		baseCost: hero.base_cost,
+		attackStyle: hero.attack_style,
+		xpRatio: hero.xp_ratio,
+		technicalDescription: hero.technical_description,
+		profileSourceUrl: hero.profile_source_url,
+		synergies: [...hero.synergies_from_a, ...hero.synergies_from_b]
+			.filter(
+				(synergy): synergy is typeof synergy & { tower: HeroReference } => synergy.tower !== null
+			)
+			.map((synergy) => ({
+				id: synergy.tower.id,
+				name: synergy.tower.name,
+				description: synergy.description
+			}))
+			.sort((a, b) => a.name.localeCompare(b.name)),
 		guideCount: strategies.length,
 		strategies,
 		maps: uniqueBy(strategies.map((strategy) => strategy.map), (map) => map.id),

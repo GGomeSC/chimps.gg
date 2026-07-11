@@ -80,6 +80,12 @@ export type HeroSummary = PublicHeroReference & {
 
 export type PublicHeroDetail = HeroSummary & {
 	description: string | null;
+	baseCost: number | null;
+	attackStyle: string | null;
+	xpRatio: number | null;
+	technicalDescription: string | null;
+	profileSourceUrl: string | null;
+	synergies: Array<{ id: number; name: string; description: string | null }>;
 	strategies: PublicStrategySummary[];
 	maps: PublicMap[];
 	modes: PublicMode[];
