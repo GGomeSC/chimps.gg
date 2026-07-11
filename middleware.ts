@@ -7,7 +7,7 @@ import {
 	LOCALE_COOKIE_MAX_AGE,
 	PT_COUNTRIES,
 	SUPPORTED_URL_LANGS
-} from './src/lib/i18n';
+} from './src/lib/i18n.js';
 
 export const config = {
 	// Skip /studio, /auth, SvelteKit assets, and anything with a file extension
