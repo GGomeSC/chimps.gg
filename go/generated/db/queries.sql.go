@@ -7,7 +7,290 @@ package db
 
 import (
 	"context"
+
+	"github.com/jackc/pgx/v5/pgtype"
 )
+
+const createStudioPlacement = `-- name: CreateStudioPlacement :one
+insert into public.placements (strategy_id, tower_id, pos_x, pos_y)
+values ($1, $2, $3, $4)
+returning id, strategy_id, tower_id, pos_x, pos_y, final_path, label, notes
+`
+
+type CreateStudioPlacementParams struct {
+	StrategyID int64   `json:"strategy_id"`
+	TowerID    int64   `json:"tower_id"`
+	PosX       float64 `json:"pos_x"`
+	PosY       float64 `json:"pos_y"`
+}
+
+func (q *Queries) CreateStudioPlacement(ctx context.Context, arg CreateStudioPlacementParams) (*Placement, error) {
+	row := q.db.QueryRow(ctx, createStudioPlacement,
+		arg.StrategyID,
+		arg.TowerID,
+		arg.PosX,
+		arg.PosY,
+	)
+	var i Placement
+	err := row.Scan(
+		&i.ID,
+		&i.StrategyID,
+		&i.TowerID,
+		&i.PosX,
+		&i.PosY,
+		&i.FinalPath,
+		&i.Label,
+		&i.Notes,
+	)
+	return &i, err
+}
+
+const createStudioStep = `-- name: CreateStudioStep :exec
+insert into public.steps (
+  strategy_id, placement_id, round_number, action, target_path, description, order_index
+) values (
+  $1,
+  $2,
+  $3,
+  $4,
+  $5,
+  $6,
+  $7
+)
+`
+
+type CreateStudioStepParams struct {
+	StrategyID  int64   `json:"strategy_id"`
+	PlacementID *int64  `json:"placement_id"`
+	RoundNumber int16   `json:"round_number"`
+	Action      string  `json:"action"`
+	TargetPath  *string `json:"target_path"`
+	Description *string `json:"description"`
+	OrderIndex  int32   `json:"order_index"`
+}
+
+func (q *Queries) CreateStudioStep(ctx context.Context, arg CreateStudioStepParams) error {
+	_, err := q.db.Exec(ctx, createStudioStep,
+		arg.StrategyID,
+		arg.PlacementID,
+		arg.RoundNumber,
+		arg.Action,
+		arg.TargetPath,
+		arg.Description,
+		arg.OrderIndex,
+	)
+	return err
+}
+
+const createStudioStrategy = `-- name: CreateStudioStrategy :one
+insert into public.strategies (
+  map_id, game_mode_id, title, description, hero_id, source_url,
+  verified_version, exec_difficulty, status
+) values (
+  $1,
+  $2,
+  $3,
+  $4,
+  $5,
+  $6,
+  $7,
+  $8,
+  $9
+)
+returning id
+`
+
+type CreateStudioStrategyParams struct {
+	MapID           int64   `json:"map_id"`
+	GameModeID      int64   `json:"game_mode_id"`
+	Title           string  `json:"title"`
+	Description     *string `json:"description"`
+	HeroID          *int64  `json:"hero_id"`
+	SourceUrl       *string `json:"source_url"`
+	VerifiedVersion *string `json:"verified_version"`
+	ExecDifficulty  *int16  `json:"exec_difficulty"`
+	Status          string  `json:"status"`
+}
+
+func (q *Queries) CreateStudioStrategy(ctx context.Context, arg CreateStudioStrategyParams) (int64, error) {
+	row := q.db.QueryRow(ctx, createStudioStrategy,
+		arg.MapID,
+		arg.GameModeID,
+		arg.Title,
+		arg.Description,
+		arg.HeroID,
+		arg.SourceUrl,
+		arg.VerifiedVersion,
+		arg.ExecDifficulty,
+		arg.Status,
+	)
+	var id int64
+	err := row.Scan(&id)
+	return id, err
+}
+
+const deleteStudioPlacement = `-- name: DeleteStudioPlacement :exec
+delete from public.placements
+where id = $1
+`
+
+func (q *Queries) DeleteStudioPlacement(ctx context.Context, placementID int64) error {
+	_, err := q.db.Exec(ctx, deleteStudioPlacement, placementID)
+	return err
+}
+
+const deleteStudioStep = `-- name: DeleteStudioStep :exec
+delete from public.steps
+where id = $1
+  and strategy_id = $2
+`
+
+type DeleteStudioStepParams struct {
+	StepID     int64 `json:"step_id"`
+	StrategyID int64 `json:"strategy_id"`
+}
+
+func (q *Queries) DeleteStudioStep(ctx context.Context, arg DeleteStudioStepParams) error {
+	_, err := q.db.Exec(ctx, deleteStudioStep, arg.StepID, arg.StrategyID)
+	return err
+}
+
+const deleteStudioStrategy = `-- name: DeleteStudioStrategy :exec
+delete from public.strategies
+where id = $1
+`
+
+func (q *Queries) DeleteStudioStrategy(ctx context.Context, strategyID int64) error {
+	_, err := q.db.Exec(ctx, deleteStudioStrategy, strategyID)
+	return err
+}
+
+const getPlacementTowerForStrategy = `-- name: GetPlacementTowerForStrategy :one
+select tower_id
+from public.placements
+where id = $1
+  and strategy_id = $2
+`
+
+type GetPlacementTowerForStrategyParams struct {
+	PlacementID int64 `json:"placement_id"`
+	StrategyID  int64 `json:"strategy_id"`
+}
+
+func (q *Queries) GetPlacementTowerForStrategy(ctx context.Context, arg GetPlacementTowerForStrategyParams) (int64, error) {
+	row := q.db.QueryRow(ctx, getPlacementTowerForStrategy, arg.PlacementID, arg.StrategyID)
+	var tower_id int64
+	err := row.Scan(&tower_id)
+	return tower_id, err
+}
+
+const getStudioHero = `-- name: GetStudioHero :one
+select
+  id, name, icon_path, description, base_cost, attack_style,
+  xp_ratio, technical_description, profile_source_url
+from public.towers
+where id = $1
+  and category = 'Hero'
+`
+
+type GetStudioHeroRow struct {
+	ID                   int64          `json:"id"`
+	Name                 string         `json:"name"`
+	IconPath             string         `json:"icon_path"`
+	Description          *string        `json:"description"`
+	BaseCost             *int32         `json:"base_cost"`
+	AttackStyle          *string        `json:"attack_style"`
+	XpRatio              pgtype.Numeric `json:"xp_ratio"`
+	TechnicalDescription *string        `json:"technical_description"`
+	ProfileSourceUrl     *string        `json:"profile_source_url"`
+}
+
+func (q *Queries) GetStudioHero(ctx context.Context, heroID int64) (*GetStudioHeroRow, error) {
+	row := q.db.QueryRow(ctx, getStudioHero, heroID)
+	var i GetStudioHeroRow
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.IconPath,
+		&i.Description,
+		&i.BaseCost,
+		&i.AttackStyle,
+		&i.XpRatio,
+		&i.TechnicalDescription,
+		&i.ProfileSourceUrl,
+	)
+	return &i, err
+}
+
+const getStudioPlacement = `-- name: GetStudioPlacement :one
+select id, strategy_id, tower_id, pos_x, pos_y, final_path, label, notes
+from public.placements
+where id = $1
+  and strategy_id = $2
+`
+
+type GetStudioPlacementParams struct {
+	PlacementID int64 `json:"placement_id"`
+	StrategyID  int64 `json:"strategy_id"`
+}
+
+func (q *Queries) GetStudioPlacement(ctx context.Context, arg GetStudioPlacementParams) (*Placement, error) {
+	row := q.db.QueryRow(ctx, getStudioPlacement, arg.PlacementID, arg.StrategyID)
+	var i Placement
+	err := row.Scan(
+		&i.ID,
+		&i.StrategyID,
+		&i.TowerID,
+		&i.PosX,
+		&i.PosY,
+		&i.FinalPath,
+		&i.Label,
+		&i.Notes,
+	)
+	return &i, err
+}
+
+const getStudioStrategy = `-- name: GetStudioStrategy :one
+select
+  id, map_id, game_mode_id, title, description, hero_id, source_url,
+  verified_version, exec_difficulty, status, score, created_at, updated_at
+from public.strategies
+where id = $1
+`
+
+func (q *Queries) GetStudioStrategy(ctx context.Context, strategyID int64) (*Strategy, error) {
+	row := q.db.QueryRow(ctx, getStudioStrategy, strategyID)
+	var i Strategy
+	err := row.Scan(
+		&i.ID,
+		&i.MapID,
+		&i.GameModeID,
+		&i.Title,
+		&i.Description,
+		&i.HeroID,
+		&i.SourceUrl,
+		&i.VerifiedVersion,
+		&i.ExecDifficulty,
+		&i.Status,
+		&i.Score,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return &i, err
+}
+
+const getTowerCategory = `-- name: GetTowerCategory :one
+select category
+from public.towers
+where id = $1
+`
+
+func (q *Queries) GetTowerCategory(ctx context.Context, towerID int64) (string, error) {
+	row := q.db.QueryRow(ctx, getTowerCategory, towerID)
+	var category string
+	err := row.Scan(&category)
+	return category, err
+}
 
 const health = `-- name: Health :one
 select 1::integer as ok
@@ -18,4 +301,743 @@ func (q *Queries) Health(ctx context.Context) (int32, error) {
 	var ok int32
 	err := row.Scan(&ok)
 	return ok, err
+}
+
+const listGameModes = `-- name: ListGameModes :many
+select id, name
+from public.game_modes
+order by id asc
+`
+
+func (q *Queries) ListGameModes(ctx context.Context) ([]*GameMode, error) {
+	rows, err := q.db.Query(ctx, listGameModes)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []*GameMode{}
+	for rows.Next() {
+		var i GameMode
+		if err := rows.Scan(&i.ID, &i.Name); err != nil {
+			return nil, err
+		}
+		items = append(items, &i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listStrategyPlacements = `-- name: ListStrategyPlacements :many
+select id, strategy_id, tower_id, pos_x, pos_y, final_path, label, notes
+from public.placements
+where strategy_id = $1
+order by id asc
+`
+
+func (q *Queries) ListStrategyPlacements(ctx context.Context, strategyID int64) ([]*Placement, error) {
+	rows, err := q.db.Query(ctx, listStrategyPlacements, strategyID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []*Placement{}
+	for rows.Next() {
+		var i Placement
+		if err := rows.Scan(
+			&i.ID,
+			&i.StrategyID,
+			&i.TowerID,
+			&i.PosX,
+			&i.PosY,
+			&i.FinalPath,
+			&i.Label,
+			&i.Notes,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, &i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listStrategyStepIds = `-- name: ListStrategyStepIds :many
+select id
+from public.steps
+where strategy_id = $1
+order by order_index asc
+`
+
+func (q *Queries) ListStrategyStepIds(ctx context.Context, strategyID int64) ([]int64, error) {
+	rows, err := q.db.Query(ctx, listStrategyStepIds, strategyID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []int64{}
+	for rows.Next() {
+		var id int64
+		if err := rows.Scan(&id); err != nil {
+			return nil, err
+		}
+		items = append(items, id)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listStrategySteps = `-- name: ListStrategySteps :many
+select
+  id, strategy_id, placement_id, round_number, action, target_path,
+  description, order_index
+from public.steps
+where strategy_id = $1
+order by order_index asc
+`
+
+func (q *Queries) ListStrategySteps(ctx context.Context, strategyID int64) ([]*Step, error) {
+	rows, err := q.db.Query(ctx, listStrategySteps, strategyID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []*Step{}
+	for rows.Next() {
+		var i Step
+		if err := rows.Scan(
+			&i.ID,
+			&i.StrategyID,
+			&i.PlacementID,
+			&i.RoundNumber,
+			&i.Action,
+			&i.TargetPath,
+			&i.Description,
+			&i.OrderIndex,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, &i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listStudioEditorMaps = `-- name: ListStudioEditorMaps :many
+select id, name, difficulty, image_url, nk_image_url
+from public.maps
+order by name asc
+`
+
+type ListStudioEditorMapsRow struct {
+	ID         int64   `json:"id"`
+	Name       string  `json:"name"`
+	Difficulty *string `json:"difficulty"`
+	ImageUrl   *string `json:"image_url"`
+	NkImageUrl *string `json:"nk_image_url"`
+}
+
+func (q *Queries) ListStudioEditorMaps(ctx context.Context) ([]*ListStudioEditorMapsRow, error) {
+	rows, err := q.db.Query(ctx, listStudioEditorMaps)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []*ListStudioEditorMapsRow{}
+	for rows.Next() {
+		var i ListStudioEditorMapsRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.Difficulty,
+			&i.ImageUrl,
+			&i.NkImageUrl,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, &i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listStudioHeroReferences = `-- name: ListStudioHeroReferences :many
+select id, name
+from public.towers
+where category = 'Hero'
+order by name asc
+`
+
+type ListStudioHeroReferencesRow struct {
+	ID   int64  `json:"id"`
+	Name string `json:"name"`
+}
+
+func (q *Queries) ListStudioHeroReferences(ctx context.Context) ([]*ListStudioHeroReferencesRow, error) {
+	rows, err := q.db.Query(ctx, listStudioHeroReferences)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []*ListStudioHeroReferencesRow{}
+	for rows.Next() {
+		var i ListStudioHeroReferencesRow
+		if err := rows.Scan(&i.ID, &i.Name); err != nil {
+			return nil, err
+		}
+		items = append(items, &i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listStudioHeroSynergies = `-- name: ListStudioHeroSynergies :many
+select
+  case
+    when tower_a_id = $1 then tower_b_id
+    else tower_a_id
+  end::bigint as tower_id,
+  description
+from public.tower_synergies
+where tower_a_id = $1
+   or tower_b_id = $1
+order by tower_id asc
+`
+
+type ListStudioHeroSynergiesRow struct {
+	TowerID     int64   `json:"tower_id"`
+	Description *string `json:"description"`
+}
+
+func (q *Queries) ListStudioHeroSynergies(ctx context.Context, heroID int64) ([]*ListStudioHeroSynergiesRow, error) {
+	rows, err := q.db.Query(ctx, listStudioHeroSynergies, heroID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []*ListStudioHeroSynergiesRow{}
+	for rows.Next() {
+		var i ListStudioHeroSynergiesRow
+		if err := rows.Scan(&i.TowerID, &i.Description); err != nil {
+			return nil, err
+		}
+		items = append(items, &i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listStudioHeroes = `-- name: ListStudioHeroes :many
+select
+  hero.id,
+  hero.name,
+  hero.icon_path,
+  num_nonnulls(
+    hero.description,
+    hero.base_cost,
+    hero.attack_style,
+    hero.xp_ratio,
+    hero.technical_description,
+    hero.profile_source_url
+  )::integer as completed_fields,
+  count(synergy.id)::integer as synergy_count
+from public.towers as hero
+left join public.tower_synergies as synergy
+  on synergy.tower_a_id = hero.id or synergy.tower_b_id = hero.id
+where hero.category = 'Hero'
+group by hero.id
+order by hero.name asc
+`
+
+type ListStudioHeroesRow struct {
+	ID              int64  `json:"id"`
+	Name            string `json:"name"`
+	IconPath        string `json:"icon_path"`
+	CompletedFields int32  `json:"completed_fields"`
+	SynergyCount    int32  `json:"synergy_count"`
+}
+
+func (q *Queries) ListStudioHeroes(ctx context.Context) ([]*ListStudioHeroesRow, error) {
+	rows, err := q.db.Query(ctx, listStudioHeroes)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []*ListStudioHeroesRow{}
+	for rows.Next() {
+		var i ListStudioHeroesRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.IconPath,
+			&i.CompletedFields,
+			&i.SynergyCount,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, &i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listStudioMaps = `-- name: ListStudioMaps :many
+select
+  id, name, difficulty, image_url, nk_map_id, nk_image_url,
+  plays, wins, upvotes, last_synced_at, created_at, updated_at
+from public.maps
+order by difficulty asc nulls last, name asc
+`
+
+func (q *Queries) ListStudioMaps(ctx context.Context) ([]*Map, error) {
+	rows, err := q.db.Query(ctx, listStudioMaps)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []*Map{}
+	for rows.Next() {
+		var i Map
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.Difficulty,
+			&i.ImageUrl,
+			&i.NkMapID,
+			&i.NkImageUrl,
+			&i.Plays,
+			&i.Wins,
+			&i.Upvotes,
+			&i.LastSyncedAt,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, &i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listStudioNonHeroTowers = `-- name: ListStudioNonHeroTowers :many
+select id, name, category
+from public.towers
+where category <> 'Hero'
+order by name asc
+`
+
+type ListStudioNonHeroTowersRow struct {
+	ID       int64  `json:"id"`
+	Name     string `json:"name"`
+	Category string `json:"category"`
+}
+
+func (q *Queries) ListStudioNonHeroTowers(ctx context.Context) ([]*ListStudioNonHeroTowersRow, error) {
+	rows, err := q.db.Query(ctx, listStudioNonHeroTowers)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []*ListStudioNonHeroTowersRow{}
+	for rows.Next() {
+		var i ListStudioNonHeroTowersRow
+		if err := rows.Scan(&i.ID, &i.Name, &i.Category); err != nil {
+			return nil, err
+		}
+		items = append(items, &i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listStudioReferenceMaps = `-- name: ListStudioReferenceMaps :many
+select id, name, difficulty
+from public.maps
+order by name asc
+`
+
+type ListStudioReferenceMapsRow struct {
+	ID         int64   `json:"id"`
+	Name       string  `json:"name"`
+	Difficulty *string `json:"difficulty"`
+}
+
+func (q *Queries) ListStudioReferenceMaps(ctx context.Context) ([]*ListStudioReferenceMapsRow, error) {
+	rows, err := q.db.Query(ctx, listStudioReferenceMaps)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []*ListStudioReferenceMapsRow{}
+	for rows.Next() {
+		var i ListStudioReferenceMapsRow
+		if err := rows.Scan(&i.ID, &i.Name, &i.Difficulty); err != nil {
+			return nil, err
+		}
+		items = append(items, &i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listStudioStrategies = `-- name: ListStudioStrategies :many
+select
+  strategy.id,
+  strategy.map_id,
+  strategy.game_mode_id,
+  strategy.title,
+  strategy.description,
+  strategy.hero_id,
+  strategy.source_url,
+  strategy.verified_version,
+  strategy.exec_difficulty,
+  strategy.status,
+  strategy.score,
+  strategy.created_at,
+  strategy.updated_at,
+  map.name as map_name,
+  mode.name as mode_name,
+  hero.name as hero_name,
+  count(placement.id)::integer as placement_count
+from public.strategies as strategy
+join public.maps as map on map.id = strategy.map_id
+join public.game_modes as mode on mode.id = strategy.game_mode_id
+left join public.towers as hero on hero.id = strategy.hero_id
+left join public.placements as placement on placement.strategy_id = strategy.id
+group by strategy.id, map.name, mode.name, hero.name
+order by strategy.updated_at desc
+`
+
+type ListStudioStrategiesRow struct {
+	ID              int64              `json:"id"`
+	MapID           int64              `json:"map_id"`
+	GameModeID      int64              `json:"game_mode_id"`
+	Title           string             `json:"title"`
+	Description     *string            `json:"description"`
+	HeroID          *int64             `json:"hero_id"`
+	SourceUrl       *string            `json:"source_url"`
+	VerifiedVersion *string            `json:"verified_version"`
+	ExecDifficulty  *int16             `json:"exec_difficulty"`
+	Status          string             `json:"status"`
+	Score           *int32             `json:"score"`
+	CreatedAt       pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt       pgtype.Timestamptz `json:"updated_at"`
+	MapName         string             `json:"map_name"`
+	ModeName        string             `json:"mode_name"`
+	HeroName        *string            `json:"hero_name"`
+	PlacementCount  int32              `json:"placement_count"`
+}
+
+func (q *Queries) ListStudioStrategies(ctx context.Context) ([]*ListStudioStrategiesRow, error) {
+	rows, err := q.db.Query(ctx, listStudioStrategies)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []*ListStudioStrategiesRow{}
+	for rows.Next() {
+		var i ListStudioStrategiesRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.MapID,
+			&i.GameModeID,
+			&i.Title,
+			&i.Description,
+			&i.HeroID,
+			&i.SourceUrl,
+			&i.VerifiedVersion,
+			&i.ExecDifficulty,
+			&i.Status,
+			&i.Score,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.MapName,
+			&i.ModeName,
+			&i.HeroName,
+			&i.PlacementCount,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, &i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listStudioTowers = `-- name: ListStudioTowers :many
+select
+  id, name, category, base_cost, icon_path, description, attack_style,
+  xp_ratio, technical_description, profile_source_url
+from public.towers
+order by name asc
+`
+
+func (q *Queries) ListStudioTowers(ctx context.Context) ([]*Tower, error) {
+	rows, err := q.db.Query(ctx, listStudioTowers)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []*Tower{}
+	for rows.Next() {
+		var i Tower
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.Category,
+			&i.BaseCost,
+			&i.IconPath,
+			&i.Description,
+			&i.AttackStyle,
+			&i.XpRatio,
+			&i.TechnicalDescription,
+			&i.ProfileSourceUrl,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, &i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const nextStrategyStepOrder = `-- name: NextStrategyStepOrder :one
+select (coalesce(max(order_index), 0) + 1)::integer
+from public.steps
+where strategy_id = $1
+`
+
+func (q *Queries) NextStrategyStepOrder(ctx context.Context, strategyID int64) (int32, error) {
+	row := q.db.QueryRow(ctx, nextStrategyStepOrder, strategyID)
+	var column_1 int32
+	err := row.Scan(&column_1)
+	return column_1, err
+}
+
+const reorderStudioSteps = `-- name: ReorderStudioSteps :exec
+select public.reorder_steps($1, $2::bigint[])
+`
+
+type ReorderStudioStepsParams struct {
+	StrategyID int64   `json:"strategy_id"`
+	StepIds    []int64 `json:"step_ids"`
+}
+
+func (q *Queries) ReorderStudioSteps(ctx context.Context, arg ReorderStudioStepsParams) error {
+	_, err := q.db.Exec(ctx, reorderStudioSteps, arg.StrategyID, arg.StepIds)
+	return err
+}
+
+const strategyHasHeroPlacement = `-- name: StrategyHasHeroPlacement :one
+select exists (
+  select 1
+  from public.placements as placement
+  join public.towers as tower on tower.id = placement.tower_id
+  where placement.strategy_id = $1
+    and tower.category = 'Hero'
+    and ($2::bigint is null
+      or placement.id <> $2)
+)
+`
+
+type StrategyHasHeroPlacementParams struct {
+	StrategyID          int64  `json:"strategy_id"`
+	ExcludedPlacementID *int64 `json:"excluded_placement_id"`
+}
+
+func (q *Queries) StrategyHasHeroPlacement(ctx context.Context, arg StrategyHasHeroPlacementParams) (bool, error) {
+	row := q.db.QueryRow(ctx, strategyHasHeroPlacement, arg.StrategyID, arg.ExcludedPlacementID)
+	var exists bool
+	err := row.Scan(&exists)
+	return exists, err
+}
+
+const updateStudioHeroProfile = `-- name: UpdateStudioHeroProfile :exec
+select public.update_hero_profile(
+  $1,
+  $2,
+  $3,
+  $4,
+  $5::double precision::numeric,
+  $6,
+  $7,
+  $8::bigint[],
+  $9::text[]
+)
+`
+
+type UpdateStudioHeroProfileParams struct {
+	HeroID               int64    `json:"hero_id"`
+	Description          *string  `json:"description"`
+	BaseCost             *int32   `json:"base_cost"`
+	AttackStyle          *string  `json:"attack_style"`
+	XpRatio              *float64 `json:"xp_ratio"`
+	TechnicalDescription *string  `json:"technical_description"`
+	ProfileSourceUrl     *string  `json:"profile_source_url"`
+	SynergyTowerIds      []int64  `json:"synergy_tower_ids"`
+	SynergyDescriptions  []string `json:"synergy_descriptions"`
+}
+
+func (q *Queries) UpdateStudioHeroProfile(ctx context.Context, arg UpdateStudioHeroProfileParams) error {
+	_, err := q.db.Exec(ctx, updateStudioHeroProfile,
+		arg.HeroID,
+		arg.Description,
+		arg.BaseCost,
+		arg.AttackStyle,
+		arg.XpRatio,
+		arg.TechnicalDescription,
+		arg.ProfileSourceUrl,
+		arg.SynergyTowerIds,
+		arg.SynergyDescriptions,
+	)
+	return err
+}
+
+const updateStudioPlacement = `-- name: UpdateStudioPlacement :one
+update public.placements
+set
+  pos_x = $1,
+  pos_y = $2,
+  final_path = $3,
+  label = $4,
+  notes = $5
+where id = $6
+returning id, strategy_id, tower_id, pos_x, pos_y, final_path, label, notes
+`
+
+type UpdateStudioPlacementParams struct {
+	PosX        float64 `json:"pos_x"`
+	PosY        float64 `json:"pos_y"`
+	FinalPath   *string `json:"final_path"`
+	Label       *string `json:"label"`
+	Notes       *string `json:"notes"`
+	PlacementID int64   `json:"placement_id"`
+}
+
+func (q *Queries) UpdateStudioPlacement(ctx context.Context, arg UpdateStudioPlacementParams) (*Placement, error) {
+	row := q.db.QueryRow(ctx, updateStudioPlacement,
+		arg.PosX,
+		arg.PosY,
+		arg.FinalPath,
+		arg.Label,
+		arg.Notes,
+		arg.PlacementID,
+	)
+	var i Placement
+	err := row.Scan(
+		&i.ID,
+		&i.StrategyID,
+		&i.TowerID,
+		&i.PosX,
+		&i.PosY,
+		&i.FinalPath,
+		&i.Label,
+		&i.Notes,
+	)
+	return &i, err
+}
+
+const updateStudioStep = `-- name: UpdateStudioStep :exec
+update public.steps
+set
+  placement_id = $1,
+  round_number = $2,
+  action = $3,
+  target_path = $4,
+  description = $5
+where id = $6
+  and strategy_id = $7
+`
+
+type UpdateStudioStepParams struct {
+	PlacementID *int64  `json:"placement_id"`
+	RoundNumber int16   `json:"round_number"`
+	Action      string  `json:"action"`
+	TargetPath  *string `json:"target_path"`
+	Description *string `json:"description"`
+	StepID      int64   `json:"step_id"`
+	StrategyID  int64   `json:"strategy_id"`
+}
+
+func (q *Queries) UpdateStudioStep(ctx context.Context, arg UpdateStudioStepParams) error {
+	_, err := q.db.Exec(ctx, updateStudioStep,
+		arg.PlacementID,
+		arg.RoundNumber,
+		arg.Action,
+		arg.TargetPath,
+		arg.Description,
+		arg.StepID,
+		arg.StrategyID,
+	)
+	return err
+}
+
+const updateStudioStrategy = `-- name: UpdateStudioStrategy :exec
+update public.strategies
+set
+  map_id = $1,
+  game_mode_id = $2,
+  title = $3,
+  description = $4,
+  hero_id = $5,
+  source_url = $6,
+  verified_version = $7,
+  exec_difficulty = $8,
+  status = $9
+where id = $10
+`
+
+type UpdateStudioStrategyParams struct {
+	MapID           int64   `json:"map_id"`
+	GameModeID      int64   `json:"game_mode_id"`
+	Title           string  `json:"title"`
+	Description     *string `json:"description"`
+	HeroID          *int64  `json:"hero_id"`
+	SourceUrl       *string `json:"source_url"`
+	VerifiedVersion *string `json:"verified_version"`
+	ExecDifficulty  *int16  `json:"exec_difficulty"`
+	Status          string  `json:"status"`
+	StrategyID      int64   `json:"strategy_id"`
+}
+
+func (q *Queries) UpdateStudioStrategy(ctx context.Context, arg UpdateStudioStrategyParams) error {
+	_, err := q.db.Exec(ctx, updateStudioStrategy,
+		arg.MapID,
+		arg.GameModeID,
+		arg.Title,
+		arg.Description,
+		arg.HeroID,
+		arg.SourceUrl,
+		arg.VerifiedVersion,
+		arg.ExecDifficulty,
+		arg.Status,
+		arg.StrategyID,
+	)
+	return err
 }

@@ -569,7 +569,7 @@ type TowerRow struct {
 	Category             TowerCategory `json:"category"`
 	Description          *string       `json:"description"`
 	IconPath             string        `json:"icon_path"`
-	IconUrl              *string       `json:"icon_url,omitempty"`
+	IconUrl              string        `json:"icon_url"`
 	Id                   int64         `json:"id"`
 	Name                 string        `json:"name"`
 	ProfileSourceUrl     *string       `json:"profile_source_url"`

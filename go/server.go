@@ -17,6 +17,7 @@ import (
 type server struct {
 	stubServer
 	health         healthChecker
+	postgres       *postgresStore
 	databaseErr    error
 	internalSecret []byte
 	logger         *slog.Logger
@@ -77,6 +78,9 @@ func newHandler(secret string, checker healthChecker, databaseErr error, logger 
 		databaseErr:    databaseErr,
 		internalSecret: []byte(secret),
 		logger:         logger,
+	}
+	if postgres, ok := checker.(*postgresStore); ok {
+		service.postgres = postgres
 	}
 
 	return chimpsapi.HandlerWithOptions(service, chimpsapi.StdHTTPServerOptions{

@@ -83,7 +83,7 @@ func TestUnportedOperationReturnsAuthenticatedStub(t *testing.T) {
 	t.Parallel()
 
 	handler := testHandler(fakeHealthChecker{}, nil)
-	request := authorizedRequest(http.MethodGet, "/studio/maps")
+	request := authorizedRequest(http.MethodGet, "/public/maps")
 	response := httptest.NewRecorder()
 
 	handler.ServeHTTP(response, request)

@@ -75,7 +75,7 @@ export type TowerRow = {
     xp_ratio: number | null;
     technical_description: string | null;
     profile_source_url: string | null;
-    icon_url?: string;
+    icon_url: string;
 };
 
 export type StrategyRow = {

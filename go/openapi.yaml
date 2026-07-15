@@ -510,7 +510,7 @@ components:
         name: { type: string }
     TowerRow:
       type: object
-      required: [id, name, category, base_cost, icon_path, description, attack_style, xp_ratio, technical_description, profile_source_url]
+      required: [id, name, category, base_cost, icon_path, description, attack_style, xp_ratio, technical_description, profile_source_url, icon_url]
       properties:
         id: { type: integer, format: int64 }
         name: { type: string }
