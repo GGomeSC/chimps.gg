@@ -79,7 +79,7 @@ func TestHealthDoesNotExposeDatabaseErrors(t *testing.T) {
 	}
 }
 
-func TestUnportedOperationReturnsAuthenticatedStub(t *testing.T) {
+func TestDatabaseOperationFailsWithoutLeakingConfiguration(t *testing.T) {
 	t.Parallel()
 
 	handler := testHandler(fakeHealthChecker{}, nil)
@@ -88,10 +88,10 @@ func TestUnportedOperationReturnsAuthenticatedStub(t *testing.T) {
 
 	handler.ServeHTTP(response, request)
 
-	if response.Code != http.StatusNotImplemented {
-		t.Fatalf("stub returned %d, want %d", response.Code, http.StatusNotImplemented)
+	if response.Code != http.StatusServiceUnavailable {
+		t.Fatalf("operation returned %d, want %d", response.Code, http.StatusServiceUnavailable)
 	}
-	if body := response.Body.String(); body != "{\"code\":\"not_implemented\",\"message\":\"Operation not implemented.\"}\n" {
+	if body := response.Body.String(); body != "{\"code\":\"database_unavailable\",\"message\":\"Database unavailable.\"}\n" {
 		t.Fatalf("unexpected response body: %s", body)
 	}
 }

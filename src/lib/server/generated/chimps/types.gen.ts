@@ -272,6 +272,11 @@ export type PublicStrategiesResponse = {
     strategies: Array<PublicStrategySummary>;
 };
 
+export type PublicStrategyPage = {
+    strategies: Array<PublicStrategySummary>;
+    nextCursor: number | null;
+};
+
 export type StrategyMapPlacement = {
     id: number;
     towerId: number;
@@ -966,13 +971,13 @@ export type DiscoverPublicStrategiesData = {
     body?: never;
     path?: never;
     query?: {
-        map?: string;
-        mode?: string;
-        hero?: string;
-        difficulty?: string;
-        mapDifficulty?: string;
+        mapId?: number;
+        modeId?: number;
+        heroId?: number;
+        executionDifficulty?: number;
+        mapDifficulty?: MapDifficulty;
         version?: string;
-        cursor?: string;
+        cursor?: number;
     };
     url: '/public/strategies';
 };
@@ -988,9 +993,9 @@ export type DiscoverPublicStrategiesError = DiscoverPublicStrategiesErrors[keyof
 
 export type DiscoverPublicStrategiesResponses = {
     /**
-     * Parsed discovery result.
+     * Ready strategy page for already-validated filters.
      */
-    200: PublicDiscovery;
+    200: PublicStrategyPage;
 };
 
 export type DiscoverPublicStrategiesResponse = DiscoverPublicStrategiesResponses[keyof DiscoverPublicStrategiesResponses];

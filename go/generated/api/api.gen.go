@@ -249,14 +249,6 @@ type PlacementUpdateInput struct {
 	PosY      *float64 `json:"pos_y,omitempty"`
 }
 
-// PublicDiscovery defines model for PublicDiscovery.
-type PublicDiscovery struct {
-	Filters    StrategyFilters         `json:"filters"`
-	NextCursor *int64                  `json:"nextCursor"`
-	Options    StrategyFilterOptions   `json:"options"`
-	Strategies []PublicStrategySummary `json:"strategies"`
-}
-
 // PublicHeroDetail defines model for PublicHeroDetail.
 type PublicHeroDetail struct {
 	AttackStyle      *string                 `json:"attackStyle"`
@@ -340,6 +332,12 @@ type PublicStrategyDetail struct {
 	VerifiedVersion     string                 `json:"verifiedVersion"`
 }
 
+// PublicStrategyPage defines model for PublicStrategyPage.
+type PublicStrategyPage struct {
+	NextCursor *int64                  `json:"nextCursor"`
+	Strategies []PublicStrategySummary `json:"strategies"`
+}
+
 // PublicStrategySummary defines model for PublicStrategySummary.
 type PublicStrategySummary struct {
 	Description         *string              `json:"description"`
@@ -386,25 +384,6 @@ type StepRow struct {
 	RoundNumber int        `json:"round_number"`
 	StrategyId  int64      `json:"strategy_id"`
 	TargetPath  *string    `json:"target_path"`
-}
-
-// StrategyFilterOptions defines model for StrategyFilterOptions.
-type StrategyFilterOptions struct {
-	Heroes   []TowerReference `json:"heroes"`
-	Maps     []TowerReference `json:"maps"`
-	Modes    []PublicMode     `json:"modes"`
-	Versions []string         `json:"versions"`
-}
-
-// StrategyFilters defines model for StrategyFilters.
-type StrategyFilters struct {
-	Cursor              *int64         `json:"cursor"`
-	ExecutionDifficulty *int           `json:"executionDifficulty"`
-	HeroId              *int64         `json:"heroId"`
-	MapDifficulty       *MapDifficulty `json:"mapDifficulty"`
-	MapId               *int64         `json:"mapId"`
-	ModeId              *int64         `json:"modeId"`
-	Version             *string        `json:"version"`
 }
 
 // StrategyInput defines model for StrategyInput.
@@ -602,13 +581,13 @@ type GetPublicLatestStrategiesParams struct {
 
 // DiscoverPublicStrategiesParams defines parameters for DiscoverPublicStrategies.
 type DiscoverPublicStrategiesParams struct {
-	Map           *string `form:"map,omitempty" json:"map,omitempty"`
-	Mode          *string `form:"mode,omitempty" json:"mode,omitempty"`
-	Hero          *string `form:"hero,omitempty" json:"hero,omitempty"`
-	Difficulty    *string `form:"difficulty,omitempty" json:"difficulty,omitempty"`
-	MapDifficulty *string `form:"mapDifficulty,omitempty" json:"mapDifficulty,omitempty"`
-	Version       *string `form:"version,omitempty" json:"version,omitempty"`
-	Cursor        *string `form:"cursor,omitempty" json:"cursor,omitempty"`
+	MapId               *int64         `form:"mapId,omitempty" json:"mapId,omitempty"`
+	ModeId              *int64         `form:"modeId,omitempty" json:"modeId,omitempty"`
+	HeroId              *int64         `form:"heroId,omitempty" json:"heroId,omitempty"`
+	ExecutionDifficulty *int           `form:"executionDifficulty,omitempty" json:"executionDifficulty,omitempty"`
+	MapDifficulty       *MapDifficulty `form:"mapDifficulty,omitempty" json:"mapDifficulty,omitempty"`
+	Version             *string        `form:"version,omitempty" json:"version,omitempty"`
+	Cursor              *int64         `form:"cursor,omitempty" json:"cursor,omitempty"`
 }
 
 // MoveStudioStepJSONBody defines parameters for MoveStudioStep.
@@ -923,54 +902,54 @@ func (siw *ServerInterfaceWrapper) DiscoverPublicStrategies(w http.ResponseWrite
 	// Parameter object where we will unmarshal all parameters from the context
 	var params DiscoverPublicStrategiesParams
 
-	// ------------- Optional query parameter "map" -------------
+	// ------------- Optional query parameter "mapId" -------------
 
-	err = runtime.BindQueryParameterWithOptions("form", true, false, "map", r.URL.Query(), &params.Map, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "mapId", r.URL.Query(), &params.MapId, runtime.BindQueryParameterOptions{Type: "integer", Format: "int64"})
 	if err != nil {
 		var requiredError *runtime.RequiredParameterError
 		if errors.As(err, &requiredError) {
-			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "map"})
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "mapId"})
 		} else {
-			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "map", Err: err})
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "mapId", Err: err})
 		}
 		return
 	}
 
-	// ------------- Optional query parameter "mode" -------------
+	// ------------- Optional query parameter "modeId" -------------
 
-	err = runtime.BindQueryParameterWithOptions("form", true, false, "mode", r.URL.Query(), &params.Mode, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "modeId", r.URL.Query(), &params.ModeId, runtime.BindQueryParameterOptions{Type: "integer", Format: "int64"})
 	if err != nil {
 		var requiredError *runtime.RequiredParameterError
 		if errors.As(err, &requiredError) {
-			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "mode"})
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "modeId"})
 		} else {
-			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "mode", Err: err})
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "modeId", Err: err})
 		}
 		return
 	}
 
-	// ------------- Optional query parameter "hero" -------------
+	// ------------- Optional query parameter "heroId" -------------
 
-	err = runtime.BindQueryParameterWithOptions("form", true, false, "hero", r.URL.Query(), &params.Hero, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "heroId", r.URL.Query(), &params.HeroId, runtime.BindQueryParameterOptions{Type: "integer", Format: "int64"})
 	if err != nil {
 		var requiredError *runtime.RequiredParameterError
 		if errors.As(err, &requiredError) {
-			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "hero"})
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "heroId"})
 		} else {
-			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "hero", Err: err})
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "heroId", Err: err})
 		}
 		return
 	}
 
-	// ------------- Optional query parameter "difficulty" -------------
+	// ------------- Optional query parameter "executionDifficulty" -------------
 
-	err = runtime.BindQueryParameterWithOptions("form", true, false, "difficulty", r.URL.Query(), &params.Difficulty, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "executionDifficulty", r.URL.Query(), &params.ExecutionDifficulty, runtime.BindQueryParameterOptions{Type: "integer", Format: ""})
 	if err != nil {
 		var requiredError *runtime.RequiredParameterError
 		if errors.As(err, &requiredError) {
-			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "difficulty"})
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "executionDifficulty"})
 		} else {
-			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "difficulty", Err: err})
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "executionDifficulty", Err: err})
 		}
 		return
 	}
@@ -1003,7 +982,7 @@ func (siw *ServerInterfaceWrapper) DiscoverPublicStrategies(w http.ResponseWrite
 
 	// ------------- Optional query parameter "cursor" -------------
 
-	err = runtime.BindQueryParameterWithOptions("form", true, false, "cursor", r.URL.Query(), &params.Cursor, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "cursor", r.URL.Query(), &params.Cursor, runtime.BindQueryParameterOptions{Type: "integer", Format: "int64"})
 	if err != nil {
 		var requiredError *runtime.RequiredParameterError
 		if errors.As(err, &requiredError) {

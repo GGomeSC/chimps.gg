@@ -184,6 +184,204 @@ func (q *Queries) GetPlacementTowerForStrategy(ctx context.Context, arg GetPlace
 	return tower_id, err
 }
 
+const getPublicHeroDetail = `-- name: GetPublicHeroDetail :one
+select jsonb_build_object(
+  'id', hero.id,
+  'name', hero.name,
+  'icon_path', hero.icon_path,
+  'description', hero.description,
+  'base_cost', hero.base_cost,
+  'attack_style', hero.attack_style,
+  'xp_ratio', hero.xp_ratio,
+  'technical_description', hero.technical_description,
+  'profile_source_url', hero.profile_source_url,
+  'synergies', coalesce((
+    select jsonb_agg(jsonb_build_object(
+      'id', other.id,
+      'name', other.name,
+      'description', synergy.description
+    ) order by other.name)
+    from public.tower_synergies as synergy
+    join public.towers as other on other.id = case
+      when synergy.tower_a_id = hero.id then synergy.tower_b_id
+      else synergy.tower_a_id
+    end
+    where synergy.tower_a_id = hero.id or synergy.tower_b_id = hero.id
+  ), '[]'::jsonb),
+  'strategies', coalesce((
+    select jsonb_agg(jsonb_build_object(
+      'id', strategy.id,
+      'title', strategy.title,
+      'description', strategy.description,
+      'hero_id', strategy.hero_id,
+      'verified_version', strategy.verified_version,
+      'exec_difficulty', strategy.exec_difficulty,
+      'map', jsonb_build_object(
+        'id', map.id,
+        'name', map.name,
+        'difficulty', map.difficulty,
+        'image_url', map.image_url,
+        'nk_image_url', map.nk_image_url
+      ),
+      'mode', jsonb_build_object('id', mode.id, 'name', mode.name),
+      'placements', coalesce((
+        select jsonb_agg(jsonb_build_object(
+          'id', placement.id,
+          'tower_id', placement.tower_id,
+          'pos_x', placement.pos_x,
+          'pos_y', placement.pos_y
+        ) order by placement.id)
+        from public.placements as placement
+        where placement.strategy_id = strategy.id
+      ), '[]'::jsonb)
+    ) order by strategy.id desc)
+    from public.strategies as strategy
+    join public.maps as map on map.id = strategy.map_id
+    join public.game_modes as mode on mode.id = strategy.game_mode_id
+    where strategy.hero_id = hero.id
+      and strategy.status = 'ready'
+  ), '[]'::jsonb)
+) as hero
+from public.towers as hero
+where hero.id = $1
+  and hero.category = 'Hero'
+`
+
+func (q *Queries) GetPublicHeroDetail(ctx context.Context, heroID int64) ([]byte, error) {
+	row := q.db.QueryRow(ctx, getPublicHeroDetail, heroID)
+	var hero []byte
+	err := row.Scan(&hero)
+	return hero, err
+}
+
+const getPublicReferences = `-- name: GetPublicReferences :one
+select jsonb_build_object(
+  'maps', coalesce((
+    select jsonb_agg(jsonb_build_object(
+      'id', map.id,
+      'name', map.name,
+      'difficulty', map.difficulty,
+      'image_url', map.image_url,
+      'nk_image_url', map.nk_image_url
+    ) order by map.name)
+    from public.maps as map
+  ), '[]'::jsonb),
+  'modes', coalesce((
+    select jsonb_agg(jsonb_build_object('id', mode.id, 'name', mode.name) order by mode.id)
+    from public.game_modes as mode
+  ), '[]'::jsonb),
+  'heroes', coalesce((
+    select jsonb_agg(jsonb_build_object(
+      'id', hero.id,
+      'name', hero.name,
+      'icon_path', hero.icon_path
+    ) order by hero.name)
+    from public.towers as hero
+    where hero.category = 'Hero'
+  ), '[]'::jsonb)
+) as references
+`
+
+func (q *Queries) GetPublicReferences(ctx context.Context) ([]byte, error) {
+	row := q.db.QueryRow(ctx, getPublicReferences)
+	var references []byte
+	err := row.Scan(&references)
+	return references, err
+}
+
+const getPublicSitemapEntries = `-- name: GetPublicSitemapEntries :one
+select jsonb_build_object(
+  'strategyIds', coalesce((
+    select jsonb_agg(strategy.id order by strategy.id)
+    from public.strategies as strategy
+    where strategy.status = 'ready'
+  ), '[]'::jsonb),
+  'heroIds', coalesce((
+    select jsonb_agg(hero.id order by hero.id)
+    from public.towers as hero
+    where hero.category = 'Hero'
+  ), '[]'::jsonb)
+) as entries
+`
+
+func (q *Queries) GetPublicSitemapEntries(ctx context.Context) ([]byte, error) {
+	row := q.db.QueryRow(ctx, getPublicSitemapEntries)
+	var entries []byte
+	err := row.Scan(&entries)
+	return entries, err
+}
+
+const getPublicStrategyDetail = `-- name: GetPublicStrategyDetail :one
+select jsonb_build_object(
+  'id', strategy.id,
+  'title', strategy.title,
+  'description', strategy.description,
+  'hero_id', strategy.hero_id,
+  'verified_version', strategy.verified_version,
+  'exec_difficulty', strategy.exec_difficulty,
+  'source_url', strategy.source_url,
+  'map', jsonb_build_object(
+    'id', map.id,
+    'name', map.name,
+    'difficulty', map.difficulty,
+    'image_url', map.image_url,
+    'nk_image_url', map.nk_image_url
+  ),
+  'mode', jsonb_build_object('id', mode.id, 'name', mode.name),
+  'hero', case when hero.id is null then null else jsonb_build_object(
+    'id', hero.id,
+    'name', hero.name,
+    'icon_path', hero.icon_path
+  ) end,
+  'placements', coalesce((
+    select jsonb_agg(jsonb_build_object(
+      'id', placement.id,
+      'tower_id', placement.tower_id,
+      'pos_x', placement.pos_x,
+      'pos_y', placement.pos_y,
+      'final_path', placement.final_path,
+      'label', placement.label,
+      'tower', jsonb_build_object(
+        'id', tower.id,
+        'name', tower.name,
+        'category', tower.category,
+        'icon_path', tower.icon_path
+      )
+    ) order by placement.id)
+    from public.placements as placement
+    join public.towers as tower on tower.id = placement.tower_id
+    where placement.strategy_id = strategy.id
+  ), '[]'::jsonb),
+  'steps', coalesce((
+    select jsonb_agg(jsonb_build_object(
+      'id', step.id,
+      'placement_id', step.placement_id,
+      'round_number', step.round_number,
+      'action', step.action,
+      'target_path', step.target_path,
+      'description', step.description,
+      'order_index', step.order_index
+    ) order by step.order_index)
+    from public.steps as step
+    where step.strategy_id = strategy.id
+  ), '[]'::jsonb)
+) as strategy
+from public.strategies as strategy
+join public.maps as map on map.id = strategy.map_id
+join public.game_modes as mode on mode.id = strategy.game_mode_id
+left join public.towers as hero
+  on hero.id = strategy.hero_id and hero.category = 'Hero'
+where strategy.id = $1
+  and strategy.status = 'ready'
+`
+
+func (q *Queries) GetPublicStrategyDetail(ctx context.Context, strategyID int64) ([]byte, error) {
+	row := q.db.QueryRow(ctx, getPublicStrategyDetail, strategyID)
+	var strategy []byte
+	err := row.Scan(&strategy)
+	return strategy, err
+}
+
 const getStudioHero = `-- name: GetStudioHero :one
 select
   id, name, icon_path, description, base_cost, attack_style,
@@ -322,6 +520,255 @@ func (q *Queries) ListGameModes(ctx context.Context) ([]*GameMode, error) {
 			return nil, err
 		}
 		items = append(items, &i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listPublicHeroes = `-- name: ListPublicHeroes :many
+select
+  hero.id,
+  hero.name,
+  hero.icon_path,
+  count(strategy.id)::integer as guide_count
+from public.towers as hero
+left join public.strategies as strategy
+  on strategy.hero_id = hero.id and strategy.status = 'ready'
+where hero.category = 'Hero'
+group by hero.id
+order by hero.name asc
+`
+
+type ListPublicHeroesRow struct {
+	ID         int64  `json:"id"`
+	Name       string `json:"name"`
+	IconPath   string `json:"icon_path"`
+	GuideCount int32  `json:"guide_count"`
+}
+
+func (q *Queries) ListPublicHeroes(ctx context.Context) ([]*ListPublicHeroesRow, error) {
+	rows, err := q.db.Query(ctx, listPublicHeroes)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []*ListPublicHeroesRow{}
+	for rows.Next() {
+		var i ListPublicHeroesRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.IconPath,
+			&i.GuideCount,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, &i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listPublicHomeMaps = `-- name: ListPublicHomeMaps :many
+select
+  map.id,
+  map.name,
+  map.difficulty,
+  map.image_url,
+  map.nk_image_url,
+  count(strategy.id)::integer as guide_count
+from public.maps as map
+left join public.strategies as strategy
+  on strategy.map_id = map.id and strategy.status = 'ready'
+where map.difficulty is not null
+group by map.id
+order by map.difficulty asc, map.name asc
+`
+
+type ListPublicHomeMapsRow struct {
+	ID         int64   `json:"id"`
+	Name       string  `json:"name"`
+	Difficulty *string `json:"difficulty"`
+	ImageUrl   *string `json:"image_url"`
+	NkImageUrl *string `json:"nk_image_url"`
+	GuideCount int32   `json:"guide_count"`
+}
+
+func (q *Queries) ListPublicHomeMaps(ctx context.Context) ([]*ListPublicHomeMapsRow, error) {
+	rows, err := q.db.Query(ctx, listPublicHomeMaps)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []*ListPublicHomeMapsRow{}
+	for rows.Next() {
+		var i ListPublicHomeMapsRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.Difficulty,
+			&i.ImageUrl,
+			&i.NkImageUrl,
+			&i.GuideCount,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, &i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listPublicStrategySummaries = `-- name: ListPublicStrategySummaries :many
+select
+  strategy.id,
+  strategy.title,
+  strategy.description,
+  strategy.hero_id,
+  strategy.verified_version,
+  strategy.exec_difficulty,
+  map.id as map_id,
+  map.name as map_name,
+  map.difficulty as map_difficulty,
+  map.image_url as map_image_url,
+  map.nk_image_url as map_nk_image_url,
+  mode.id as mode_id,
+  mode.name as mode_name,
+  hero.id as hero_reference_id,
+  hero.name as hero_name,
+  hero.icon_path as hero_icon_path,
+  (coalesce(
+    jsonb_agg(jsonb_build_object(
+      'id', placement.id,
+      'tower_id', placement.tower_id,
+      'pos_x', placement.pos_x,
+      'pos_y', placement.pos_y
+    ) order by placement.id) filter (where placement.id is not null),
+    '[]'::jsonb
+  ))::json as placements
+from public.strategies as strategy
+join public.maps as map on map.id = strategy.map_id
+join public.game_modes as mode on mode.id = strategy.game_mode_id
+left join public.towers as hero
+  on hero.id = strategy.hero_id and hero.category = 'Hero'
+left join public.placements as placement on placement.strategy_id = strategy.id
+where strategy.status = 'ready'
+  and ($1::bigint is null or strategy.map_id = $1)
+  and ($2::bigint is null or strategy.game_mode_id = $2)
+  and ($3::bigint is null or strategy.hero_id = $3)
+  and ($4::smallint is null or strategy.exec_difficulty = $4)
+  and ($5::text is null or map.difficulty = $5)
+  and ($6::text is null or strategy.verified_version = $6)
+  and ($7::bigint is null or strategy.id < $7)
+group by strategy.id, map.id, mode.id, hero.id
+order by strategy.id desc
+limit $8
+`
+
+type ListPublicStrategySummariesParams struct {
+	MapID           *int64  `json:"map_id"`
+	ModeID          *int64  `json:"mode_id"`
+	HeroID          *int64  `json:"hero_id"`
+	ExecDifficulty  *int16  `json:"exec_difficulty"`
+	MapDifficulty   *string `json:"map_difficulty"`
+	VerifiedVersion *string `json:"verified_version"`
+	Cursor          *int64  `json:"cursor"`
+	PageLimit       int32   `json:"page_limit"`
+}
+
+type ListPublicStrategySummariesRow struct {
+	ID              int64   `json:"id"`
+	Title           string  `json:"title"`
+	Description     *string `json:"description"`
+	HeroID          *int64  `json:"hero_id"`
+	VerifiedVersion *string `json:"verified_version"`
+	ExecDifficulty  *int16  `json:"exec_difficulty"`
+	MapID           int64   `json:"map_id"`
+	MapName         string  `json:"map_name"`
+	MapDifficulty   *string `json:"map_difficulty"`
+	MapImageUrl     *string `json:"map_image_url"`
+	MapNkImageUrl   *string `json:"map_nk_image_url"`
+	ModeID          int64   `json:"mode_id"`
+	ModeName        string  `json:"mode_name"`
+	HeroReferenceID *int64  `json:"hero_reference_id"`
+	HeroName        *string `json:"hero_name"`
+	HeroIconPath    *string `json:"hero_icon_path"`
+	Placements      []byte  `json:"placements"`
+}
+
+func (q *Queries) ListPublicStrategySummaries(ctx context.Context, arg ListPublicStrategySummariesParams) ([]*ListPublicStrategySummariesRow, error) {
+	rows, err := q.db.Query(ctx, listPublicStrategySummaries,
+		arg.MapID,
+		arg.ModeID,
+		arg.HeroID,
+		arg.ExecDifficulty,
+		arg.MapDifficulty,
+		arg.VerifiedVersion,
+		arg.Cursor,
+		arg.PageLimit,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []*ListPublicStrategySummariesRow{}
+	for rows.Next() {
+		var i ListPublicStrategySummariesRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Title,
+			&i.Description,
+			&i.HeroID,
+			&i.VerifiedVersion,
+			&i.ExecDifficulty,
+			&i.MapID,
+			&i.MapName,
+			&i.MapDifficulty,
+			&i.MapImageUrl,
+			&i.MapNkImageUrl,
+			&i.ModeID,
+			&i.ModeName,
+			&i.HeroReferenceID,
+			&i.HeroName,
+			&i.HeroIconPath,
+			&i.Placements,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, &i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listPublicVersions = `-- name: ListPublicVersions :many
+select distinct verified_version
+from public.strategies
+where status = 'ready'
+  and verified_version is not null
+`
+
+func (q *Queries) ListPublicVersions(ctx context.Context) ([]*string, error) {
+	rows, err := q.db.Query(ctx, listPublicVersions)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []*string{}
+	for rows.Next() {
+		var verified_version *string
+		if err := rows.Scan(&verified_version); err != nil {
+			return nil, err
+		}
+		items = append(items, verified_version)
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err

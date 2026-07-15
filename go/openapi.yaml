@@ -332,19 +332,19 @@ paths:
     get:
       operationId: discoverPublicStrategies
       parameters:
-        - { in: query, name: map, schema: { type: string } }
-        - { in: query, name: mode, schema: { type: string } }
-        - { in: query, name: hero, schema: { type: string } }
-        - { in: query, name: difficulty, schema: { type: string } }
-        - { in: query, name: mapDifficulty, schema: { type: string } }
+        - { in: query, name: mapId, schema: { type: integer, format: int64 } }
+        - { in: query, name: modeId, schema: { type: integer, format: int64 } }
+        - { in: query, name: heroId, schema: { type: integer, format: int64 } }
+        - { in: query, name: executionDifficulty, schema: { type: integer, minimum: 1, maximum: 5 } }
+        - { in: query, name: mapDifficulty, schema: { $ref: "#/components/schemas/MapDifficulty" } }
         - { in: query, name: version, schema: { type: string } }
-        - { in: query, name: cursor, schema: { type: string } }
+        - { in: query, name: cursor, schema: { type: integer, format: int64 } }
       responses:
         "200":
-          description: Parsed discovery result.
+          description: Ready strategy page for already-validated filters.
           content:
             application/json:
-              schema: { $ref: "#/components/schemas/PublicDiscovery" }
+              schema: { $ref: "#/components/schemas/PublicStrategyPage" }
         default: { $ref: "#/components/responses/Error" }
   /public/strategies/{strategyId}:
     parameters:
@@ -785,6 +785,14 @@ components:
         strategies:
           type: array
           items: { $ref: "#/components/schemas/PublicStrategySummary" }
+    PublicStrategyPage:
+      type: object
+      required: [strategies, nextCursor]
+      properties:
+        strategies:
+          type: array
+          items: { $ref: "#/components/schemas/PublicStrategySummary" }
+        nextCursor: { type: integer, format: int64, nullable: true }
     StrategyMapPlacement:
       type: object
       required: [id, towerId, x, y, finalPath, label]

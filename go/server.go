@@ -15,7 +15,6 @@ import (
 )
 
 type server struct {
-	stubServer
 	health         healthChecker
 	postgres       *postgresStore
 	databaseErr    error
