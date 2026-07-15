@@ -8,6 +8,7 @@ node_modules
 /build
 /src/lib/paraglide
 /project.inlang/cache
+/supabase/.branches/
 .npmrc
 CLAUDE.md
 skills-lock.json

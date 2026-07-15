@@ -6,23 +6,14 @@ import {
 	createPublicApi
 } from '$lib/server/chimps-client';
 import { withRuntimeCache } from '$lib/server/runtime-cache';
-import { towerIconUrl } from '$lib/server/tower-icons';
-import { toStrategyMapPlacement, toStrategyMapTower } from '$lib/strategy-map';
-import type {
-	GameModeRow,
-	MapDifficulty,
-	MapRow,
-	PlacementRow,
-	StepRow,
-	StrategyRow,
-	TowerRow
-} from '$lib/types/db';
+import type { MapDifficulty } from '$lib/types/db';
 import type {
 	HeroSummary,
 	HomeMap,
 	PublicHeroDetail,
 	PublicHeroReference,
 	PublicMap,
+	PublicMode,
 	PublicStrategyDetail,
 	PublicStrategySummary,
 	StrategyFilterOptions,
@@ -31,70 +22,6 @@ import type {
 
 const REFERENCE_CACHE_TTL = 60 * 60;
 const STRATEGY_METADATA_CACHE_TTL = 5 * 60;
-const STRATEGY_BASE_SELECT = `
-	id,
-	title,
-	description,
-	hero_id,
-	verified_version,
-	exec_difficulty,
-	map:maps!strategies_map_id_fkey(id,name,difficulty,image_url,nk_image_url),
-	mode:game_modes!strategies_game_mode_id_fkey(id,name),
-	hero:towers!strategies_hero_id_fkey(id,name,category,icon_path)
-`;
-// Summaries carry lightweight placement dots (normalized floats) so cards can
-// overlay the final layout on the map art without a detail round-trip.
-const STRATEGY_SUMMARY_SELECT = `
-	${STRATEGY_BASE_SELECT},
-	placements(id,tower_id,pos_x,pos_y)
-`;
-const STRATEGY_DETAIL_SELECT = `
-	${STRATEGY_BASE_SELECT},
-	source_url,
-	placements(
-		id,
-		tower_id,
-		pos_x,
-		pos_y,
-		final_path,
-		label,
-		tower:towers!placements_tower_id_fkey(id,name,category,icon_path)
-	),
-	steps(id,placement_id,round_number,action,target_path,description,order_index)
-`;
-const HERO_DETAIL_SELECT = `
-	id,
-	name,
-	category,
-	icon_path,
-	description,
-	base_cost,
-	attack_style,
-	xp_ratio,
-	technical_description,
-	profile_source_url,
-	synergies_from_a:tower_synergies!tower_synergies_tower_a_id_fkey(
-		id,
-		description,
-		tower:towers!tower_synergies_tower_b_id_fkey(id,name,category,icon_path)
-	),
-	synergies_from_b:tower_synergies!tower_synergies_tower_b_id_fkey(
-		id,
-		description,
-		tower:towers!tower_synergies_tower_a_id_fkey(id,name,category,icon_path)
-	),
-	strategies:strategies!strategies_hero_id_fkey(
-		id,
-		title,
-		description,
-		hero_id,
-		verified_version,
-		exec_difficulty,
-		map:maps!strategies_map_id_fkey(id,name,difficulty,image_url,nk_image_url),
-		mode:game_modes!strategies_game_mode_id_fkey(id,name),
-		placements(id,tower_id,pos_x,pos_y)
-	)
-`;
 const MAP_DIFFICULTIES: readonly MapDifficulty[] = [
 	'Beginner',
 	'Intermediate',
@@ -128,73 +55,10 @@ const MAP_GAME_ORDER: Record<MapDifficulty, readonly string[]> = {
 	]
 };
 
-type MapReference = Pick<MapRow, 'id' | 'name' | 'difficulty' | 'image_url' | 'nk_image_url'>;
-type ModeReference = Pick<GameModeRow, 'id' | 'name'>;
-type HeroReference = Pick<TowerRow, 'id' | 'name' | 'category' | 'icon_path'>;
 type ReferenceData = {
-	maps: MapReference[];
-	modes: ModeReference[];
-	heroes: HeroReference[];
-};
-
-type StrategySummaryRecord = Pick<
-	StrategyRow,
-	| 'id'
-	| 'title'
-	| 'description'
-	| 'hero_id'
-	| 'verified_version'
-	| 'exec_difficulty'
-> & {
-	map: MapReference | null;
-	mode: ModeReference | null;
-	hero: HeroReference | null;
-	placements: Array<Pick<PlacementRow, 'id' | 'tower_id' | 'pos_x' | 'pos_y'>>;
-};
-
-type StrategyDetailRecord = Omit<StrategySummaryRecord, 'placements'> &
-	Pick<StrategyRow, 'source_url'> & {
-		placements: Array<
-			Pick<
-				PlacementRow,
-				'id' | 'tower_id' | 'pos_x' | 'pos_y' | 'final_path' | 'label'
-			> & { tower: HeroReference | null }
-		>;
-		steps: Array<
-			Pick<
-				StepRow,
-				| 'id'
-				| 'placement_id'
-				| 'round_number'
-				| 'action'
-				| 'target_path'
-				| 'description'
-				| 'order_index'
-			>
-		>;
-	};
-
-type HeroDetailRecord = HeroReference &
-	Pick<
-		TowerRow,
-		| 'description'
-		| 'base_cost'
-		| 'attack_style'
-		| 'xp_ratio'
-		| 'technical_description'
-		| 'profile_source_url'
-	> & {
-	synergies_from_a: Array<{
-		id: number;
-		description: string | null;
-		tower: HeroReference | null;
-	}>;
-	synergies_from_b: Array<{
-		id: number;
-		description: string | null;
-		tower: HeroReference | null;
-	}>;
-	strategies: Array<Omit<StrategySummaryRecord, 'hero'>>;
+	maps: PublicMap[];
+	modes: PublicMode[];
+	heroes: PublicHeroReference[];
 };
 
 type StrategyDiscovery = {
@@ -338,23 +202,7 @@ async function loadReferenceData(fetcher: typeof fetch, origin: string): Promise
 		'reference-data-v2',
 		async () => {
 			try {
-				const result = await createPublicApi(fetcher, origin).getReferences();
-				return {
-					maps: result.maps.map((map) => ({
-						id: map.id,
-						name: map.name,
-						difficulty: map.difficulty,
-						image_url: map.imageUrl,
-						nk_image_url: null
-					})),
-					modes: result.modes,
-					heroes: result.heroes.map((hero) => ({
-						id: hero.id,
-						name: hero.name,
-						category: 'Hero' as const,
-						icon_path: ''
-					}))
-				};
+				return await createPublicApi(fetcher, origin).getReferences();
 			} catch (cause) {
 				throw publicDataError(
 					'reference data',
@@ -443,55 +291,6 @@ function filterOptions(references: ReferenceData, versions: string[]): StrategyF
 	};
 }
 
-function toStrategySummary(
-	strategy: StrategySummaryRecord
-): PublicStrategySummary | null {
-	const { map, mode, hero } = strategy;
-	if (
-		!map ||
-		!mode ||
-		(strategy.hero_id && (!hero || hero.category !== 'Hero')) ||
-		!strategy.verified_version
-	) {
-		// One inconsistent row must not take down whole public pages; skip it.
-		console.error(`Skipping incomplete ready strategy ${strategy.id}`);
-		return null;
-	}
-	return {
-		id: strategy.id,
-		title: strategy.title,
-		description: strategy.description,
-		map: toPublicMap(map),
-		mode: { id: mode.id, name: mode.name },
-		hero: hero ? toHeroReference(hero) : null,
-		verifiedVersion: strategy.verified_version,
-		executionDifficulty: strategy.exec_difficulty,
-		placementDots: [...strategy.placements]
-			.sort((a, b) => a.id - b.id)
-			.map((placement) => ({
-				id: placement.id,
-				x: placement.pos_x,
-				y: placement.pos_y,
-				isHero: strategy.hero_id !== null && placement.tower_id === strategy.hero_id
-			}))
-	};
-}
-
-function toPublicMap(map: MapReference): PublicMap {
-	return {
-		id: map.id,
-		name: map.name,
-		difficulty: map.difficulty,
-		imageUrl: map.image_url ?? map.nk_image_url
-	};
-}
-
-function toHeroReference(
-	hero: Pick<TowerRow, 'id' | 'name' | 'icon_path'>
-): PublicHeroReference {
-	return { id: hero.id, name: hero.name, iconUrl: towerIconUrl(hero.icon_path) };
-}
-
 function integer(value: string | null): number | null {
 	if (!value) return null;
 	const parsed = Number(value);
@@ -501,18 +300,6 @@ function integer(value: string | null): number | null {
 function validReferenceId(value: string | null, rows: Array<{ id: number }>): number | null {
 	const id = integer(value);
 	return id && rows.some((row) => row.id === id) ? id : null;
-}
-
-function isString(value: string | null): value is string {
-	return typeof value === 'string' && value.length > 0;
-}
-
-function uniqueBy<T>(items: T[], key: (item: T) => number): T[] {
-	return [...new Map(items.map((item) => [key(item), item])).values()];
-}
-
-function compareVersionsDescending(a: string, b: string): number {
-	return b.localeCompare(a, undefined, { numeric: true });
 }
 
 function publicDataError(area: string, detail: string): ReturnType<typeof error> {
