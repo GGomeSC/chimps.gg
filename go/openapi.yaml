@@ -473,7 +473,10 @@ components:
       properties:
         id: { type: integer, format: int64 }
         name: { type: string }
-        difficulty: { $ref: "#/components/schemas/MapDifficulty", nullable: true }
+        difficulty:
+          nullable: true
+          allOf:
+            - $ref: "#/components/schemas/MapDifficulty"
         image_url: { type: string, nullable: true }
         nk_map_id: { type: string }
         nk_image_url: { type: string, nullable: true }
@@ -489,7 +492,10 @@ components:
       properties:
         id: { type: integer, format: int64 }
         name: { type: string }
-        difficulty: { $ref: "#/components/schemas/MapDifficulty", nullable: true }
+        difficulty:
+          nullable: true
+          allOf:
+            - $ref: "#/components/schemas/MapDifficulty"
     GameModeRow:
       type: object
       required: [id, name]
@@ -721,7 +727,10 @@ components:
       properties:
         id: { type: integer, format: int64 }
         name: { type: string }
-        difficulty: { $ref: "#/components/schemas/MapDifficulty", nullable: true }
+        difficulty:
+          nullable: true
+          allOf:
+            - $ref: "#/components/schemas/MapDifficulty"
         imageUrl: { type: string, nullable: true }
     HomeMap:
       allOf:
@@ -760,7 +769,10 @@ components:
         description: { type: string, nullable: true }
         map: { $ref: "#/components/schemas/PublicMap" }
         mode: { $ref: "#/components/schemas/PublicMode" }
-        hero: { $ref: "#/components/schemas/PublicHeroReference", nullable: true }
+        hero:
+          nullable: true
+          allOf:
+            - $ref: "#/components/schemas/PublicHeroReference"
         verifiedVersion: { type: string }
         executionDifficulty: { type: integer, nullable: true }
         placementDots:
@@ -865,7 +877,10 @@ components:
         modeId: { type: integer, format: int64, nullable: true }
         heroId: { type: integer, format: int64, nullable: true }
         executionDifficulty: { type: integer, nullable: true }
-        mapDifficulty: { $ref: "#/components/schemas/MapDifficulty", nullable: true }
+        mapDifficulty:
+          nullable: true
+          allOf:
+            - $ref: "#/components/schemas/MapDifficulty"
         version: { type: string, nullable: true }
         cursor: { type: integer, format: int64, nullable: true }
     StrategyFilterOptions:

@@ -36,7 +36,7 @@ export type StepAction = 'place' | 'upgrade' | 'sell' | 'retarget' | 'other';
 export type MapRow = {
     id: number;
     name: string;
-    difficulty: MapDifficulty;
+    difficulty: MapDifficulty | null;
     image_url: string | null;
     nk_map_id: string;
     nk_image_url: string | null;
@@ -51,7 +51,7 @@ export type MapRow = {
 export type MapReference = {
     id: number;
     name: string;
-    difficulty: MapDifficulty;
+    difficulty: MapDifficulty | null;
 };
 
 export type GameModeRow = {
@@ -230,7 +230,7 @@ export type HeroProfileInput = {
 export type PublicMap = {
     id: number;
     name: string;
-    difficulty: MapDifficulty;
+    difficulty: MapDifficulty | null;
     imageUrl: string | null;
 };
 
@@ -262,7 +262,7 @@ export type PublicStrategySummary = {
     description: string | null;
     map: PublicMap;
     mode: PublicMode;
-    hero: PublicHeroReference;
+    hero: PublicHeroReference | null;
     verifiedVersion: string;
     executionDifficulty: number | null;
     placementDots: Array<PlacementDot>;
@@ -331,7 +331,7 @@ export type StrategyFilters = {
     modeId: number | null;
     heroId: number | null;
     executionDifficulty: number | null;
-    mapDifficulty: MapDifficulty;
+    mapDifficulty: MapDifficulty | null;
     version: string | null;
     cursor: number | null;
 };

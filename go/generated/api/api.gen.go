@@ -175,11 +175,11 @@ type HeroSummary struct {
 
 // HomeMap defines model for HomeMap.
 type HomeMap struct {
-	Difficulty MapDifficulty `json:"difficulty"`
-	GuideCount int           `json:"guideCount"`
-	Id         int64         `json:"id"`
-	ImageUrl   *string       `json:"imageUrl"`
-	Name       string        `json:"name"`
+	Difficulty *MapDifficulty `json:"difficulty"`
+	GuideCount int            `json:"guideCount"`
+	Id         int64          `json:"id"`
+	ImageUrl   *string        `json:"imageUrl"`
+	Name       string         `json:"name"`
 }
 
 // IdResponse defines model for IdResponse.
@@ -192,25 +192,25 @@ type MapDifficulty string
 
 // MapReference defines model for MapReference.
 type MapReference struct {
-	Difficulty MapDifficulty `json:"difficulty"`
-	Id         int64         `json:"id"`
-	Name       string        `json:"name"`
+	Difficulty *MapDifficulty `json:"difficulty"`
+	Id         int64          `json:"id"`
+	Name       string         `json:"name"`
 }
 
 // MapRow defines model for MapRow.
 type MapRow struct {
-	CreatedAt    time.Time     `json:"created_at"`
-	Difficulty   MapDifficulty `json:"difficulty"`
-	Id           int64         `json:"id"`
-	ImageUrl     *string       `json:"image_url"`
-	LastSyncedAt *time.Time    `json:"last_synced_at"`
-	Name         string        `json:"name"`
-	NkImageUrl   *string       `json:"nk_image_url"`
-	NkMapId      string        `json:"nk_map_id"`
-	Plays        *int64        `json:"plays"`
-	UpdatedAt    time.Time     `json:"updated_at"`
-	Upvotes      *int64        `json:"upvotes"`
-	Wins         *int64        `json:"wins"`
+	CreatedAt    time.Time      `json:"created_at"`
+	Difficulty   *MapDifficulty `json:"difficulty"`
+	Id           int64          `json:"id"`
+	ImageUrl     *string        `json:"image_url"`
+	LastSyncedAt *time.Time     `json:"last_synced_at"`
+	Name         string         `json:"name"`
+	NkImageUrl   *string        `json:"nk_image_url"`
+	NkMapId      string         `json:"nk_map_id"`
+	Plays        *int64         `json:"plays"`
+	UpdatedAt    time.Time      `json:"updated_at"`
+	Upvotes      *int64         `json:"upvotes"`
+	Wins         *int64         `json:"wins"`
 }
 
 // PlacementCreateInput defines model for PlacementCreateInput.
@@ -289,10 +289,10 @@ type PublicHeroReference struct {
 
 // PublicMap defines model for PublicMap.
 type PublicMap struct {
-	Difficulty MapDifficulty `json:"difficulty"`
-	Id         int64         `json:"id"`
-	ImageUrl   *string       `json:"imageUrl"`
-	Name       string        `json:"name"`
+	Difficulty *MapDifficulty `json:"difficulty"`
+	Id         int64          `json:"id"`
+	ImageUrl   *string        `json:"imageUrl"`
+	Name       string         `json:"name"`
 }
 
 // PublicMode defines model for PublicMode.
@@ -327,7 +327,7 @@ type PublicStrategiesResponse struct {
 type PublicStrategyDetail struct {
 	Description         *string                `json:"description"`
 	ExecutionDifficulty *int                   `json:"executionDifficulty"`
-	Hero                PublicHeroReference    `json:"hero"`
+	Hero                *PublicHeroReference   `json:"hero"`
 	Id                  int64                  `json:"id"`
 	Map                 PublicMap              `json:"map"`
 	Mode                PublicMode             `json:"mode"`
@@ -342,15 +342,15 @@ type PublicStrategyDetail struct {
 
 // PublicStrategySummary defines model for PublicStrategySummary.
 type PublicStrategySummary struct {
-	Description         *string             `json:"description"`
-	ExecutionDifficulty *int                `json:"executionDifficulty"`
-	Hero                PublicHeroReference `json:"hero"`
-	Id                  int64               `json:"id"`
-	Map                 PublicMap           `json:"map"`
-	Mode                PublicMode          `json:"mode"`
-	PlacementDots       []PlacementDot      `json:"placementDots"`
-	Title               string              `json:"title"`
-	VerifiedVersion     string              `json:"verifiedVersion"`
+	Description         *string              `json:"description"`
+	ExecutionDifficulty *int                 `json:"executionDifficulty"`
+	Hero                *PublicHeroReference `json:"hero"`
+	Id                  int64                `json:"id"`
+	Map                 PublicMap            `json:"map"`
+	Mode                PublicMode           `json:"mode"`
+	PlacementDots       []PlacementDot       `json:"placementDots"`
+	Title               string               `json:"title"`
+	VerifiedVersion     string               `json:"verifiedVersion"`
 }
 
 // SavedResponse defines model for SavedResponse.
@@ -398,13 +398,13 @@ type StrategyFilterOptions struct {
 
 // StrategyFilters defines model for StrategyFilters.
 type StrategyFilters struct {
-	Cursor              *int64        `json:"cursor"`
-	ExecutionDifficulty *int          `json:"executionDifficulty"`
-	HeroId              *int64        `json:"heroId"`
-	MapDifficulty       MapDifficulty `json:"mapDifficulty"`
-	MapId               *int64        `json:"mapId"`
-	ModeId              *int64        `json:"modeId"`
-	Version             *string       `json:"version"`
+	Cursor              *int64         `json:"cursor"`
+	ExecutionDifficulty *int           `json:"executionDifficulty"`
+	HeroId              *int64         `json:"heroId"`
+	MapDifficulty       *MapDifficulty `json:"mapDifficulty"`
+	MapId               *int64         `json:"mapId"`
+	ModeId              *int64         `json:"modeId"`
+	Version             *string        `json:"version"`
 }
 
 // StrategyInput defines model for StrategyInput.
@@ -497,11 +497,11 @@ type StudioHeroSynergy struct {
 // StudioStrategyEditor defines model for StudioStrategyEditor.
 type StudioStrategyEditor struct {
 	Maps []struct {
-		Difficulty MapDifficulty `json:"difficulty"`
-		Id         int64         `json:"id"`
-		ImageUrl   *string       `json:"image_url"`
-		Name       string        `json:"name"`
-		NkImageUrl *string       `json:"nk_image_url"`
+		Difficulty *MapDifficulty `json:"difficulty"`
+		Id         int64          `json:"id"`
+		ImageUrl   *string        `json:"image_url"`
+		Name       string         `json:"name"`
+		NkImageUrl *string        `json:"nk_image_url"`
 	} `json:"maps"`
 	Modes      []GameModeRow  `json:"modes"`
 	Placements []PlacementRow `json:"placements"`
