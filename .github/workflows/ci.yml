@@ -12,6 +12,10 @@ jobs:
   validate:
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    env:
+      PUBLIC_SITE_URL: https://example.com
+      PUBLIC_SUPABASE_URL: https://example.supabase.co
+      SUPABASE_SECRET_KEY: sb_secret_ci_build_placeholder
 
     steps:
       - uses: actions/checkout@v4
