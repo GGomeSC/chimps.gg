@@ -302,52 +302,22 @@ export async function getStrategyDetail(
 	}
 }
 
-export async function getHeroes(): Promise<HeroSummary[]> {
-	return loadPublicHeroes();
+export async function getHeroes(fetcher: typeof fetch, origin: string): Promise<HeroSummary[]> {
+	return loadPublicHeroes(fetcher, origin);
 }
 
-export async function getHeroDetail(id: number): Promise<PublicHeroDetail | null> {
+export async function getHeroDetail(
+	fetcher: typeof fetch,
+	origin: string,
+	id: number
+): Promise<PublicHeroDetail | null> {
 	if (!Number.isInteger(id) || id < 1) return null;
-	const heroResult = await supabase
-		.from('towers')
-		.select(HERO_DETAIL_SELECT)
-		.eq('id', id)
-		.eq('category', 'Hero')
-		.eq('strategies.status', 'ready')
-		.maybeSingle();
-	if (heroResult.error) throw publicDataError('hero detail', heroResult.error.message);
-	if (!heroResult.data) return null;
-	const hero = heroResult.data as HeroDetailRecord;
-	const strategies = hero.strategies
-		.map((strategy) => toStrategySummary({ ...strategy, hero }))
-		.filter((strategy) => strategy !== null);
-	strategies.sort((a, b) => b.id - a.id);
-	return {
-		...toHeroReference(hero),
-		description: hero.description,
-		baseCost: hero.base_cost,
-		attackStyle: hero.attack_style,
-		xpRatio: hero.xp_ratio,
-		technicalDescription: hero.technical_description,
-		profileSourceUrl: hero.profile_source_url,
-		synergies: [...hero.synergies_from_a, ...hero.synergies_from_b]
-			.filter(
-				(synergy): synergy is typeof synergy & { tower: HeroReference } => synergy.tower !== null
-			)
-			.map((synergy) => ({
-				id: synergy.tower.id,
-				name: synergy.tower.name,
-				description: synergy.description
-			}))
-			.sort((a, b) => a.name.localeCompare(b.name)),
-		guideCount: strategies.length,
-		strategies,
-		maps: uniqueBy(strategies.map((strategy) => strategy.map), (map) => map.id),
-		modes: uniqueBy(strategies.map((strategy) => strategy.mode), (mode) => mode.id),
-		versions: [...new Set(strategies.map((strategy) => strategy.verifiedVersion))].sort(
-			compareVersionsDescending
-		)
-	};
+	try {
+		return await createPublicApi(fetcher, origin).getHero(id);
+	} catch (cause) {
+		if (chimpsErrorCode(cause) === 'hero_not_found') return null;
+		throw publicDataError('hero detail', chimpsErrorMessage(cause, 'Internal service error'));
+	}
 }
 
 export async function getSitemapEntries(): Promise<{ strategyIds: number[]; heroIds: number[] }> {
@@ -421,18 +391,15 @@ async function loadStrategyVersions(fetcher: typeof fetch, origin: string): Prom
 	);
 }
 
-async function loadPublicHeroes(): Promise<HeroSummary[]> {
+async function loadPublicHeroes(fetcher: typeof fetch, origin: string): Promise<HeroSummary[]> {
 	return withRuntimeCache(
 		'public-heroes-v1',
 		async () => {
-			const result = await supabase.rpc('get_public_heroes');
-			if (result.error) throw publicDataError('heroes', result.error.message);
-			return result.data.map((hero) => ({
-				id: hero.id,
-				name: hero.name,
-				iconUrl: towerIconUrl(hero.icon_path),
-				guideCount: hero.guide_count
-			}));
+			try {
+				return (await createPublicApi(fetcher, origin).getHeroes()).heroes;
+			} catch (cause) {
+				throw publicDataError('heroes', chimpsErrorMessage(cause, 'Internal service error'));
+			}
 		},
 		{
 			ttl: STRATEGY_METADATA_CACHE_TTL,
