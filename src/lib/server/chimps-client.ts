@@ -7,6 +7,15 @@ import {
 	deleteStudioPlacement,
 	deleteStudioStep,
 	deleteStudioStrategy,
+	discoverPublicStrategies,
+	getPublicHero,
+	getPublicHeroes,
+	getPublicHomeMaps,
+	getPublicLatestStrategies,
+	getPublicReferences,
+	getPublicSitemapEntries,
+	getPublicStrategy,
+	getPublicVersions,
 	getStudioHero,
 	getStudioHeroes,
 	getStudioMaps,
@@ -20,6 +29,7 @@ import {
 	updateStudioStrategyMetadata
 } from './generated/chimps/sdk.gen';
 import type {
+	DiscoverPublicStrategiesData,
 	HeroProfileInput,
 	PlacementCreateInput,
 	PlacementUpdateInput,
@@ -42,6 +52,26 @@ function createChimpsClient(fetcher: typeof fetch, origin: string) {
 		responseStyle: 'fields',
 		throwOnError: true
 	});
+}
+
+export function createPublicApi(fetcher: typeof fetch, origin: string) {
+	const client = createChimpsClient(fetcher, origin);
+	const options = { client };
+
+	return {
+		getReferences: () => unwrap(getPublicReferences(options)),
+		getVersions: () => unwrap(getPublicVersions(options)),
+		getLatestStrategies: (limit: number) =>
+			unwrap(getPublicLatestStrategies({ ...options, query: { limit } })),
+		getHomeMaps: () => unwrap(getPublicHomeMaps(options)),
+		discoverStrategies: (query: DiscoverPublicStrategiesData['query']) =>
+			unwrap(discoverPublicStrategies({ ...options, query })),
+		getStrategy: (strategyId: number) =>
+			unwrap(getPublicStrategy({ ...options, path: { strategyId } })),
+		getHeroes: () => unwrap(getPublicHeroes(options)),
+		getHero: (heroId: number) => unwrap(getPublicHero({ ...options, path: { heroId } })),
+		getSitemapEntries: () => unwrap(getPublicSitemapEntries(options))
+	};
 }
 
 export function createStudioApi(fetcher: typeof fetch, origin: string) {
