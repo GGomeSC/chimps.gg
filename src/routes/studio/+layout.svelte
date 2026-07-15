@@ -1,26 +1,18 @@
 <script lang="ts">
 	import ThemeToggle from '$lib/components/ThemeToggle.svelte';
 
-	let { data, children } = $props();
+	let { children } = $props();
 </script>
 
 <div class="studio">
 	<header>
 		<strong>chimps.gg studio</strong>
-		{#if !data.isLogin}
-			<nav>
-				<a href="/studio/strategies">Strategies</a>
-				<a href="/studio/maps">Maps</a>
-				<a href="/studio/heroes">Heroes</a>
-			</nav>
-		{/if}
+		<nav>
+			<a href="/studio/strategies">Strategies</a>
+			<a href="/studio/maps">Maps</a>
+			<a href="/studio/heroes">Heroes</a>
+		</nav>
 		<div class="right">
-			{#if !data.isLogin && data.studioUser}
-				<form method="POST" action="/studio/logout" class="session">
-					<span>{data.studioUser.email}</span>
-					<button type="submit">Logout</button>
-				</form>
-			{/if}
 			<ThemeToggle />
 		</div>
 	</header>
@@ -56,15 +48,4 @@
 		gap: 0.75rem;
 	}
 
-	.session {
-		display: flex;
-		align-items: baseline;
-		gap: 0.75rem;
-		color: var(--fg-muted);
-		font-size: 0.9rem;
-	}
-
-	.session button {
-		font: inherit;
-	}
 </style>

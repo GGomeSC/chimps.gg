@@ -19,10 +19,10 @@ Cada estratégia é feita para um mapa e modo de jogo específico e registra o l
 
 </div>
 
-> **Status: public MVP + internal authoring Studio.**
+> **Status: public MVP + authoring Studio.**
 > O site público oferece descoberta de estratégias e heróis, layouts aproximados e build
-> orders versionadas. O `/studio` continua separado e protegido por Supabase magic link e
-> allowlist de emails.
+> orders versionadas. O `/studio` continua separado e, durante a migração do backend, não
+> possui autenticação.
 
 ## Stack
 
@@ -59,39 +59,8 @@ versões distintas são agregadas por funções SQL `ready`-only; os lookups dos
 também são retornados juntos por `get_public_references`, evitando transferir linhas ou
 abrir round-trips apenas para agregá-las na Function.
 
-Para acessar o Studio localmente sem solicitar magic link, defina apenas no `.env`
-local:
-
-```sh
-STUDIO_AUTH_BYPASS=true
-```
-
-O bypass também exige que o SvelteKit esteja em modo de desenvolvimento; portanto,
-ele é ignorado em builds de produção mesmo que a variável seja configurada por
-engano.
-
-## Studio auth
-
-O `/studio` usa Supabase Auth com magic link e `STUDIO_ALLOWED_EMAILS`.
-Para produção:
-
-1. Crie manualmente os usuários permitidos no Supabase Auth. O link de convite/criação
-   do dashboard não é o link de login do Studio; depois de criar o usuário, peça um novo
-   magic link em `/studio/login`.
-2. Desabilite "Allow new users to sign up" no dashboard do Supabase.
-3. Configure `STUDIO_ALLOWED_EMAILS` na Vercel.
-4. Em **Authentication > URL Configuration**, configure o Site URL como
-   `https://chimpsgg.vercel.app`.
-6. Adicione redirect URLs como `http://localhost:5173/auth/confirm**` e
-   `https://chimpsgg.vercel.app/auth/confirm**` (além do domínio canônico, se houver).
-
-Se um link terminar em `localhost:3000/#error=...`, ele não passou por
-`/auth/confirm`: corrija o Site URL/redirect URLs e a template acima, descarte o link
-antigo e solicite outro em `/studio/login`. Links OTP expirados ou já utilizados não
-podem ser reaproveitados.
-
-O SMTP padrão do Supabase é limitado e só envia para membros do projeto; use SMTP
-customizado antes de depender de vários emails na allowlist.
+> **Aviso:** qualquer pessoa que conheça `/studio` pode ler e alterar conteúdo. Essa é
+> uma decisão temporária e explícita do contrato de migração em [`MIGRATION.md`](MIGRATION.md).
 
 ## Database
 

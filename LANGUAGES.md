@@ -2,8 +2,8 @@
 
 Goal: serve the public site in Portuguese to visitors from Brazil and other
 Portuguese-speaking countries, English to everyone else, with an architecture that
-scales to more languages later. Studio (`/studio`) stays English-only — it is an
-internal tool behind an allowlist.
+scales to more languages later. Studio (`/studio`) stays English-only and outside
+the localized public route group.
 
 ## The constraint that shapes everything: ISR
 
@@ -94,7 +94,7 @@ navigations already carry the prefix).
   (git mv; the ISR `config` exports move with their files unchanged, including
   `allowQuery` on `/strategies`). `robots.txt` and `sitemap.xml` move **out** to
   stay unprefixed single URLs: `src/routes/robots.txt/`, `src/routes/sitemap.xml/`.
-- `/studio`, `/auth` untouched.
+- `/studio` and reserved `/auth` paths untouched.
 
 ### 3. Wiring locale into rendering
 
@@ -131,7 +131,7 @@ navigations already carry the prefix).
   - `(public)` pages: home, strategies list + detail, heroes list + detail, `+error.svelte`
   - `src/lib/components/public/*` (header, footer, cards, filters, difficulty pips, page intros, empty states)
   - Page `<title>`/meta descriptions and OG tags (these are per-locale SEO surface, not an afterthought)
-- Not translated (v1): Studio, auth emails, and NK-sourced names (maps, towers,
+- Not translated (v1): Studio and NK-sourced names (maps, towers,
   heroes, game modes) — official English names double as game terminology the BR
   community already uses. A future `name_translations` lookup can localize them.
 - Dates/numbers: use `Intl.DateTimeFormat`/`NumberFormat` with the active locale

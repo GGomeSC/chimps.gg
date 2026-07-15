@@ -36,7 +36,6 @@
 		"@fontsource-variable/inter": "^5.2.8",
 		"@fontsource-variable/jetbrains-mono": "^5.2.8",
 		"@opentelemetry/api": "1.9.1",
-		"@supabase/ssr": "0.12.0",
 		"@supabase/supabase-js": "2.110.2",
 		"@vercel/analytics": "2.0.1",
 		"@vercel/functions": "3.7.5",
