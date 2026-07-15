@@ -26,7 +26,6 @@ import type {
 	StrategyFilters
 } from '$lib/types/public';
 
-const PAGE_SIZE = 24;
 const REFERENCE_CACHE_TTL = 60 * 60;
 const STRATEGY_METADATA_CACHE_TTL = 5 * 60;
 const STRATEGY_BASE_SELECT = `
@@ -256,40 +255,30 @@ export async function discoverStrategies(
 	]);
 	const filters = parseFilters(url.searchParams, references, versions);
 
-	const match: Partial<StrategyRow> = { status: 'ready' };
-	if (filters.mapId) match.map_id = filters.mapId;
-	if (filters.modeId) match.game_mode_id = filters.modeId;
-	if (filters.heroId) match.hero_id = filters.heroId;
-	if (filters.executionDifficulty) match.exec_difficulty = filters.executionDifficulty;
-	if (filters.version) match.verified_version = filters.version;
-	const mapIds = filters.mapDifficulty
-		? references.maps
-				.filter((map) => map.difficulty === filters.mapDifficulty)
-				.map((map) => map.id)
-		: null;
-
-	let pageQuery = supabase
-		.from('strategies')
-		.select(STRATEGY_SUMMARY_SELECT)
-		.match(match)
-		.order('id', { ascending: false })
-		.limit(PAGE_SIZE + 1);
-	if (mapIds) {
-		pageQuery = pageQuery.in('map_id', mapIds);
+	try {
+		const page = await createPublicApi(fetcher, url.origin).discoverStrategies({
+			...(filters.mapId ? { mapId: filters.mapId } : {}),
+			...(filters.modeId ? { modeId: filters.modeId } : {}),
+			...(filters.heroId ? { heroId: filters.heroId } : {}),
+			...(filters.executionDifficulty
+				? { executionDifficulty: filters.executionDifficulty }
+				: {}),
+			...(filters.mapDifficulty ? { mapDifficulty: filters.mapDifficulty } : {}),
+			...(filters.version ? { version: filters.version } : {}),
+			...(filters.cursor ? { cursor: filters.cursor } : {})
+		});
+		return {
+			strategies: page.strategies,
+			filters,
+			options: filterOptions(references, versions),
+			nextCursor: page.nextCursor
+		};
+	} catch (cause) {
+		throw publicDataError(
+			'strategy discovery',
+			chimpsErrorMessage(cause, 'Internal service error')
+		);
 	}
-	if (filters.cursor) pageQuery = pageQuery.lt('id', filters.cursor);
-
-	const pageResult = await pageQuery;
-	if (pageResult.error) throw publicDataError('strategy discovery', pageResult.error.message);
-	const hasMore = pageResult.data.length > PAGE_SIZE;
-	const page = pageResult.data.slice(0, PAGE_SIZE);
-
-	return {
-		strategies: page.map(toStrategySummary).filter((strategy) => strategy !== null),
-		filters,
-		options: filterOptions(references, versions),
-		nextCursor: hasMore ? page.at(-1)?.id ?? null : null
-	};
 }
 
 export async function getStrategyDetail(id: number): Promise<PublicStrategyDetail | null> {
