@@ -410,11 +410,12 @@ As três primeiras fases foram promovidas por fast-forward para `main`:
   reorder e hero profile/synergies;
 - smoke hospedado do Studio executado com uma strategy descartável, removida ao final.
 
-A fase pública está implementada em `migration/04-public-cutover`, mas não foi promovida.
-Todos os reads usam Go/SQL direto, aplicam `status = 'ready'`, preservam a omissão de rows
-inconsistentes e mantêm os adapters, TTLs, ISR, headers, canonicals e URLs externos. O
-sitemap deriva seus IDs do cache de referências de uma hora, evitando uma consulta
-adicional sem alterar sua freshness.
+A fase pública foi implementada em `migration/04-public-cutover` e promovida por
+fast-forward depois da aceitação explícita da exceção de cold start. Todos os reads usam
+Go/SQL direto, aplicam `status = 'ready'`, preservam a omissão de rows inconsistentes e
+mantêm os adapters, TTLs, ISR, headers, canonicals e URLs externos. O sitemap deriva seus
+IDs do cache de referências de uma hora, evitando uma consulta adicional sem alterar sua
+freshness.
 
 Os gates locais passaram com geração reproduzível, `pnpm run check`, `pnpm run build`,
 `go fix ./...`, `go test -race ./...` contra PostgreSQL real, `go vet ./...` e
@@ -428,17 +429,16 @@ Comparação warm p95 com 20 requests intercalados na Preview protegida:
 - heroes: 0,358 s no legado e 0,215 s no Go, melhora de 39,8%;
 - sitemap: 0,088 s no legado e 0,092 s no Go, regressão de 5,3%.
 
-O gate de primeira invocação permanece pendente. Em redeploys novos comparáveis, a home
-legada respondeu em 1,795-1,849 s e a implementação Go em 2,344-2,635 s, uma regressão de
-30,5-42,5%. Os logs atribuem cerca de 685-702 ms de cada instância ao primeiro acquire
-TLS no Supavisor; o ISR executa o loader duas vezes e cada loader faz os dois reads da
-home. Uma operação Go combinada reduziu os acquires, mas as duas gerações ISR foram
+O gate de primeira invocação excedeu o limite original. Em redeploys novos comparáveis, a
+home legada respondeu em 1,795-1,849 s e a implementação Go em 2,344-2,635 s, uma
+regressão de 30,5-42,5%. Os logs atribuem cerca de 685-702 ms de cada instância ao primeiro
+acquire TLS no Supavisor; o ISR executa o loader duas vezes e cada loader faz os dois reads
+da home. Uma operação Go combinada reduziu os acquires, mas as duas gerações ISR foram
 serializadas e a resposta piorou para 3,057 s, por isso a tentativa foi revertida.
 
-Promover a fase pública exige uma decisão explícita entre aceitar a exceção de cold start,
-relaxar o requisito de pool estritamente lazy para permitir prewarming, ou manter os reads
-públicos no legado. Até essa decisão, `main` permanece na fase de cutover completo do
-Studio.
+Essa exceção foi aceita explicitamente em 2026-07-15. A decisão preserva o pool
+estritamente lazy e considera as melhorias warm p95, o cache ISR e a ausência de regressão
+funcional suficientes para promover a fase pública.
 
 ## Conclusão
 
