@@ -26,7 +26,7 @@ Cada estratégia é feita para um mapa e modo de jogo específico e registra o l
 
 ## Stack
 
-SvelteKit · TypeScript · Supabase (PostgreSQL) · Sem ORM.
+SvelteKit · TypeScript · Go · Supabase (PostgreSQL) · Sem ORM.
 
 ## Getting started
 
@@ -45,6 +45,11 @@ Rotas públicas principais:
 
 Somente estratégias com `status = 'ready'` são expostas. Defina `PUBLIC_SITE_URL` com a
 origem canônica de produção (por padrão, `https://chimps.gg`) para metadata e sitemap.
+
+O backend Go é gerado a partir de `go/openapi.yaml` e usa SQL tipado pelo sqlc. Configure
+`DATABASE_URL` com a conexão Supavisor em transaction mode (porta 6543 e SSL) e
+`INTERNAL_SERVICE_SECRET` com um valor aleatório de pelo menos 32 bytes nos ambientes
+Preview e Production da Vercel. O protocolo `/api/chimps/*` é interno ao SvelteKit.
 
 Na Vercel, as Functions executam em São Paulo (`gru1`), próximas ao Supabase em
 `sa-east-1`. As rotas públicas usam ISR por 5 minutos (3 minutos em `/strategies`) e
@@ -90,7 +95,9 @@ pnpm run sync:maps         # faz upsert dos maps (idempotente; -- --pages N para
 | Comando | Descrição |
 | --- | --- |
 | `pnpm run dev` | Servidor de desenvolvimento |
+| `pnpm run generate` | Regenera servidor Go, queries sqlc e cliente TypeScript |
 | `pnpm run check` | Type / Svelte check |
+| `pnpm run build` | Build de produção do SvelteKit |
 | `pnpm run discover:nk` | Imprime respostas de exemplo da NK API |
 | `pnpm run sync:maps` | Sincroniza os maps oficiais no banco |
 
