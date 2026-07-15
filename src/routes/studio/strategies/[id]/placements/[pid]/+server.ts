@@ -1,27 +1,22 @@
 import { error, json } from '@sveltejs/kit';
-import { supabase } from '$lib/server/supabase';
-import { isHeroTower, isNormalized, PATH_PATTERN } from '$lib/server/placements';
-import type { PlacementInsert, PlacementRow } from '$lib/types/db';
+import {
+	chimpsErrorCode,
+	chimpsErrorMessage,
+	createStudioApi
+} from '$lib/server/chimps-client';
+import { isNormalized, PATH_PATTERN } from '$lib/server/placements';
+import type { PlacementInsert } from '$lib/types/db';
 import type { RequestHandler } from './$types';
 
-async function loadPlacement(params: { id: string; pid: string }): Promise<PlacementRow> {
+function placementIds(params: { id: string; pid: string }) {
 	const strategyId = Number(params.id);
 	const placementId = Number(params.pid);
 	if (!Number.isInteger(strategyId) || !Number.isInteger(placementId)) error(404, 'Not found');
-
-	const { data, error: dbError } = await supabase
-		.from('placements')
-		.select('*')
-		.eq('id', placementId)
-		.eq('strategy_id', strategyId)
-		.maybeSingle();
-	if (dbError) error(500, dbError.message);
-	if (!data) error(404, 'Placement not found');
-	return data;
+	return { strategyId, placementId };
 }
 
-export const PATCH: RequestHandler = async ({ params, request }) => {
-	const placement = await loadPlacement(params);
+export const PATCH: RequestHandler = async ({ params, request, fetch, url }) => {
+	const { strategyId, placementId } = placementIds(params);
 	const body = await request.json().catch(() => null);
 	if (!body || typeof body !== 'object') error(400, 'Invalid body');
 
@@ -40,9 +35,6 @@ export const PATCH: RequestHandler = async ({ params, request }) => {
 			if (typeof body.final_path !== 'string' || !PATH_PATTERN.test(body.final_path)) {
 				error(400, 'final_path must match 0-0-0 … 5-5-5');
 			}
-			if (await isHeroTower(placement.tower_id)) {
-				error(400, 'Heroes have no crosspath; final_path must stay empty');
-			}
 		}
 		patch.final_path = body.final_path;
 	}
@@ -52,25 +44,31 @@ export const PATCH: RequestHandler = async ({ params, request }) => {
 
 	if (Object.keys(patch).length === 0) error(400, 'Nothing to update');
 
-	const { data: updated, error: dbError } = await supabase
-		.from('placements')
-		.update(patch)
-		.eq('id', placement.id)
-		.select('*')
-		.single();
-	if (dbError) error(500, dbError.message);
-
-	return json(updated);
+	try {
+		const updated = await createStudioApi(fetch, url.origin).updatePlacement(
+			strategyId,
+			placementId,
+			patch
+		);
+		return json(updated);
+	} catch (cause) {
+		if (chimpsErrorCode(cause) === 'placement_not_found') error(404, 'Placement not found');
+		if (chimpsErrorCode(cause) === 'hero_crosspath') {
+			error(400, 'Heroes have no crosspath; final_path must stay empty');
+		}
+		error(500, chimpsErrorMessage(cause, 'Database operation failed.'));
+	}
 };
 
-export const DELETE: RequestHandler = async ({ params }) => {
-	const placement = await loadPlacement(params);
-
-	// Cascades to steps that reference this placement.
-	const { error: dbError } = await supabase.from('placements').delete().eq('id', placement.id);
-	if (dbError) error(500, dbError.message);
-
-	return new Response(null, { status: 204 });
+export const DELETE: RequestHandler = async ({ params, fetch, url }) => {
+	const { strategyId, placementId } = placementIds(params);
+	try {
+		await createStudioApi(fetch, url.origin).deletePlacement(strategyId, placementId);
+		return new Response(null, { status: 204 });
+	} catch (cause) {
+		if (chimpsErrorCode(cause) === 'placement_not_found') error(404, 'Placement not found');
+		error(500, chimpsErrorMessage(cause, 'Database operation failed.'));
+	}
 };
 
 function nullableText(value: unknown, field: string): string | null {

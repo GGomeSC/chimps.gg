@@ -1,9 +1,13 @@
 import { error, json } from '@sveltejs/kit';
-import { supabase } from '$lib/server/supabase';
-import { heroPlacementError, isNormalized } from '$lib/server/placements';
+import {
+	chimpsErrorCode,
+	chimpsErrorMessage,
+	createStudioApi
+} from '$lib/server/chimps-client';
+import { isNormalized } from '$lib/server/placements';
 import type { RequestHandler } from './$types';
 
-export const POST: RequestHandler = async ({ params, request }) => {
+export const POST: RequestHandler = async ({ params, request, fetch, url }) => {
 	const strategyId = Number(params.id);
 	if (!Number.isInteger(strategyId) || strategyId < 1) error(404, 'Not found');
 
@@ -14,15 +18,17 @@ export const POST: RequestHandler = async ({ params, request }) => {
 		error(400, 'pos_x and pos_y must be numbers in [0, 1]');
 	}
 
-	const heroError = await heroPlacementError(strategyId, towerId);
-	if (heroError) error(400, heroError);
-
-	const { data: created, error: dbError } = await supabase
-		.from('placements')
-		.insert({ strategy_id: strategyId, tower_id: towerId, pos_x: body.pos_x, pos_y: body.pos_y })
-		.select('*')
-		.single();
-	if (dbError) error(500, dbError.message);
-
-	return json(created, { status: 201 });
+	try {
+		const created = await createStudioApi(fetch, url.origin).createPlacement(strategyId, {
+			tower_id: towerId,
+			pos_x: body.pos_x,
+			pos_y: body.pos_y
+		});
+		return json(created, { status: 201 });
+	} catch (cause) {
+		const clientError = ['unknown_tower', 'hero_already_placed'].includes(
+			chimpsErrorCode(cause) ?? ''
+		);
+		error(clientError ? 400 : 500, chimpsErrorMessage(cause, 'Database operation failed.'));
+	}
 };
