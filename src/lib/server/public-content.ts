@@ -207,33 +207,25 @@ export function canonicalUrl(requestUrl: URL, pathname: string): string {
 	return new URL(pathname, configured || requestUrl.origin).toString();
 }
 
-export async function getLatestStrategies(limit = 6): Promise<PublicStrategySummary[]> {
-	const strategies = await supabase
-		.from('strategies')
-		.select(STRATEGY_SUMMARY_SELECT)
-		.eq('status', 'ready')
-		.order('id', { ascending: false })
-		.limit(limit);
-	if (strategies.error) throw publicDataError('latest strategies', strategies.error.message);
-	return strategies.data.map(toStrategySummary).filter((strategy) => strategy !== null);
+export async function getLatestStrategies(
+	fetcher: typeof fetch,
+	origin: string,
+	limit = 6
+): Promise<PublicStrategySummary[]> {
+	try {
+		return (await createPublicApi(fetcher, origin).getLatestStrategies(limit)).strategies;
+	} catch (cause) {
+		throw publicDataError(
+			'latest strategies',
+			chimpsErrorMessage(cause, 'Internal service error')
+		);
+	}
 }
 
-export async function getHomeMaps(): Promise<HomeMap[]> {
-	const [references, strategies] = await Promise.all([
-		loadReferenceData(),
-		supabase.from('strategies').select('map_id').eq('status', 'ready')
-	]);
-	if (strategies.error) throw publicDataError('map guide counts', strategies.error.message);
-
-	const guideCounts = new Map<number, number>();
-	for (const strategy of strategies.data) {
-		guideCounts.set(strategy.map_id, (guideCounts.get(strategy.map_id) ?? 0) + 1);
-	}
-
-	return references.maps
-		.filter((map) => map.difficulty !== null)
-		.map((map) => ({ ...toPublicMap(map), guideCount: guideCounts.get(map.id) ?? 0 }))
-		.sort((a, b) => {
+export async function getHomeMaps(fetcher: typeof fetch, origin: string): Promise<HomeMap[]> {
+	try {
+		const { maps } = await createPublicApi(fetcher, origin).getHomeMaps();
+		return [...maps].sort((a, b) => {
 			if (a.difficulty !== b.difficulty) {
 				return MAP_DIFFICULTIES.indexOf(a.difficulty!) - MAP_DIFFICULTIES.indexOf(b.difficulty!);
 			}
@@ -246,6 +238,12 @@ export async function getHomeMaps(): Promise<HomeMap[]> {
 			}
 			return aIndex - bIndex;
 		});
+	} catch (cause) {
+		throw publicDataError(
+			'map guide counts',
+			chimpsErrorMessage(cause, 'Internal service error')
+		);
+	}
 }
 
 export async function discoverStrategies(
@@ -399,15 +397,10 @@ export async function getSitemapEntries(): Promise<{ strategyIds: number[]; hero
 	};
 }
 
-async function loadReferenceData(fetcher?: typeof fetch, origin?: string): Promise<ReferenceData> {
+async function loadReferenceData(fetcher: typeof fetch, origin: string): Promise<ReferenceData> {
 	return withRuntimeCache(
 		'reference-data-v2',
 		async () => {
-			if (!fetcher || !origin) {
-				const result = await supabase.rpc('get_public_references');
-				if (result.error) throw publicDataError('reference data', result.error.message);
-				return result.data;
-			}
 			try {
 				const result = await createPublicApi(fetcher, origin).getReferences();
 				return {
