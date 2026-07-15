@@ -10,8 +10,8 @@ export const config: Config = {
 	}
 };
 
-export const load: PageServerLoad = async ({ url, setHeaders }) => {
-	const discovery = await discoverStrategies(url);
+export const load: PageServerLoad = async ({ fetch, url, setHeaders }) => {
+	const discovery = await discoverStrategies(fetch, url);
 	const nextUrl = new URL(url);
 	if (discovery.nextCursor) nextUrl.searchParams.set('cursor', String(discovery.nextCursor));
 	else nextUrl.searchParams.delete('cursor');

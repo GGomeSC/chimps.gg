@@ -1,5 +1,6 @@
 import { env } from '$env/dynamic/public';
 import { error } from '@sveltejs/kit';
+import { chimpsErrorMessage, createPublicApi } from '$lib/server/chimps-client';
 import { withRuntimeCache } from '$lib/server/runtime-cache';
 import { supabase } from '$lib/server/supabase';
 import { towerIconUrl } from '$lib/server/tower-icons';
@@ -247,8 +248,14 @@ export async function getHomeMaps(): Promise<HomeMap[]> {
 		});
 }
 
-export async function discoverStrategies(url: URL): Promise<StrategyDiscovery> {
-	const [references, versions] = await Promise.all([loadReferenceData(), loadStrategyVersions()]);
+export async function discoverStrategies(
+	fetcher: typeof fetch,
+	url: URL
+): Promise<StrategyDiscovery> {
+	const [references, versions] = await Promise.all([
+		loadReferenceData(fetcher, url.origin),
+		loadStrategyVersions(fetcher, url.origin)
+	]);
 	const filters = parseFilters(url.searchParams, references, versions);
 
 	const match: Partial<StrategyRow> = { status: 'ready' };
@@ -392,13 +399,39 @@ export async function getSitemapEntries(): Promise<{ strategyIds: number[]; hero
 	};
 }
 
-async function loadReferenceData(): Promise<ReferenceData> {
+async function loadReferenceData(fetcher?: typeof fetch, origin?: string): Promise<ReferenceData> {
 	return withRuntimeCache(
 		'reference-data-v2',
 		async () => {
-			const result = await supabase.rpc('get_public_references');
-			if (result.error) throw publicDataError('reference data', result.error.message);
-			return result.data;
+			if (!fetcher || !origin) {
+				const result = await supabase.rpc('get_public_references');
+				if (result.error) throw publicDataError('reference data', result.error.message);
+				return result.data;
+			}
+			try {
+				const result = await createPublicApi(fetcher, origin).getReferences();
+				return {
+					maps: result.maps.map((map) => ({
+						id: map.id,
+						name: map.name,
+						difficulty: map.difficulty,
+						image_url: map.imageUrl,
+						nk_image_url: null
+					})),
+					modes: result.modes,
+					heroes: result.heroes.map((hero) => ({
+						id: hero.id,
+						name: hero.name,
+						category: 'Hero' as const,
+						icon_path: ''
+					}))
+				};
+			} catch (cause) {
+				throw publicDataError(
+					'reference data',
+					chimpsErrorMessage(cause, 'Internal service error')
+				);
+			}
 		},
 		{
 			ttl: REFERENCE_CACHE_TTL,
@@ -408,15 +441,18 @@ async function loadReferenceData(): Promise<ReferenceData> {
 	);
 }
 
-async function loadStrategyVersions(): Promise<string[]> {
+async function loadStrategyVersions(fetcher: typeof fetch, origin: string): Promise<string[]> {
 	return withRuntimeCache(
 		'strategy-versions-v1',
 		async () => {
-			const result = await supabase.rpc('get_public_strategy_versions');
-			if (result.error) throw publicDataError('strategy versions', result.error.message);
-			return [...new Set(result.data.map((row) => row.verified_version).filter(isString))].sort(
-				compareVersionsDescending
-			);
+			try {
+				return (await createPublicApi(fetcher, origin).getVersions()).versions;
+			} catch (cause) {
+				throw publicDataError(
+					'strategy versions',
+					chimpsErrorMessage(cause, 'Internal service error')
+				);
+			}
 		},
 		{
 			ttl: STRATEGY_METADATA_CACHE_TTL,
