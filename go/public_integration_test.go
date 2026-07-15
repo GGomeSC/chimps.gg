@@ -163,7 +163,7 @@ func seedPublicFixtures(t *testing.T, ctx context.Context, pool *pgxpool.Pool) p
 		}
 	}
 
-	for index := 0; index < 25; index++ {
+	for index := range 25 {
 		version := "99.1"
 		if index%2 == 0 {
 			version = "99.2"
