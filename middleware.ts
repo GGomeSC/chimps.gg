@@ -10,9 +10,9 @@ import {
 } from './src/lib/i18n.js';
 
 export const config = {
-	// Skip /studio, /auth, SvelteKit assets, and anything with a file extension
+	// Skip the internal API, /studio, /auth, SvelteKit assets, and files
 	// (robots.txt, sitemap.xml, favicon.png, __data.json, /_app/* chunks).
-	matcher: '/((?!studio|auth|_app/|.*\\..*).*)'
+	matcher: '/((?!api/|studio|auth|_app/|.*\\..*).*)'
 };
 
 const BOT_RE = /bot|crawler|spider|crawl|slurp|bingpreview|facebookexternalhit|preview/i;
