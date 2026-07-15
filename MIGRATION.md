@@ -400,6 +400,46 @@ Cutover por operação:
 
 Rollback significa restaurar somente o adapter/implementação TypeScript daquela operação. Não há rollback de schema porque esta migração não o altera. A remoção do auth permanece mesmo se o port para Go for revertido.
 
+## Registro da implementação em 2026-07-15
+
+As três primeiras fases foram promovidas por fast-forward para `main`:
+
+- autenticação removida e comportamento sem cookies caracterizado;
+- fundação Go, OpenAPI, sqlc, cliente TypeScript gerado, CI e health autenticado implantados;
+- todos os reads e writes do Studio migrados, incluindo as fronteiras transacionais de
+  reorder e hero profile/synergies;
+- smoke hospedado do Studio executado com uma strategy descartável, removida ao final.
+
+A fase pública está implementada em `migration/04-public-cutover`, mas não foi promovida.
+Todos os reads usam Go/SQL direto, aplicam `status = 'ready'`, preservam a omissão de rows
+inconsistentes e mantêm os adapters, TTLs, ISR, headers, canonicals e URLs externos. O
+sitemap deriva seus IDs do cache de referências de uma hora, evitando uma consulta
+adicional sem alterar sua freshness.
+
+Os gates locais passaram com geração reproduzível, `pnpm run check`, `pnpm run build`,
+`go fix ./...`, `go test -race ./...` contra PostgreSQL real, `go vet ./...` e
+`git diff --check`. O smoke da Preview final passou para EN/PT, home, discovery, detalhes,
+heroes, sitemap, robots, Studio, redirects, 404s e autenticação da API técnica.
+
+Comparação warm p95 com 20 requests intercalados na Preview protegida:
+
+- home: 0,531 s no legado e 0,370 s no Go, melhora de 30,3%;
+- discovery: 0,264 s no legado e 0,224 s no Go, melhora de 15,3%;
+- heroes: 0,358 s no legado e 0,215 s no Go, melhora de 39,8%;
+- sitemap: 0,088 s no legado e 0,092 s no Go, regressão de 5,3%.
+
+O gate de primeira invocação permanece pendente. Em redeploys novos comparáveis, a home
+legada respondeu em 1,795-1,849 s e a implementação Go em 2,344-2,635 s, uma regressão de
+30,5-42,5%. Os logs atribuem cerca de 685-702 ms de cada instância ao primeiro acquire
+TLS no Supavisor; o ISR executa o loader duas vezes e cada loader faz os dois reads da
+home. Uma operação Go combinada reduziu os acquires, mas as duas gerações ISR foram
+serializadas e a resposta piorou para 3,057 s, por isso a tentativa foi revertida.
+
+Promover a fase pública exige uma decisão explícita entre aceitar a exceção de cold start,
+relaxar o requisito de pool estritamente lazy para permitir prewarming, ou manter os reads
+públicos no legado. Até essa decisão, `main` permanece na fase de cutover completo do
+Studio.
+
 ## Conclusão
 
 A migração termina quando o auth foi removido, as operações escolhidas usam Go/sqlc,
