@@ -1,6 +1,10 @@
 import { env } from '$env/dynamic/public';
 import { error } from '@sveltejs/kit';
-import { chimpsErrorMessage, createPublicApi } from '$lib/server/chimps-client';
+import {
+	chimpsErrorCode,
+	chimpsErrorMessage,
+	createPublicApi
+} from '$lib/server/chimps-client';
 import { withRuntimeCache } from '$lib/server/runtime-cache';
 import { supabase } from '$lib/server/supabase';
 import { towerIconUrl } from '$lib/server/tower-icons';
@@ -281,48 +285,21 @@ export async function discoverStrategies(
 	}
 }
 
-export async function getStrategyDetail(id: number): Promise<PublicStrategyDetail | null> {
+export async function getStrategyDetail(
+	fetcher: typeof fetch,
+	origin: string,
+	id: number
+): Promise<PublicStrategyDetail | null> {
 	if (!Number.isInteger(id) || id < 1) return null;
-	const strategyResult = await supabase
-		.from('strategies')
-		.select(STRATEGY_DETAIL_SELECT)
-		.eq('id', id)
-		.eq('status', 'ready')
-		.maybeSingle();
-	if (strategyResult.error) {
-		throw publicDataError('strategy detail', strategyResult.error.message);
+	try {
+		return await createPublicApi(fetcher, origin).getStrategy(id);
+	} catch (cause) {
+		if (chimpsErrorCode(cause) === 'strategy_not_found') return null;
+		throw publicDataError(
+			'strategy detail',
+			chimpsErrorMessage(cause, 'Internal service error')
+		);
 	}
-	if (!strategyResult.data) return null;
-	const strategy = strategyResult.data as StrategyDetailRecord;
-
-	// A ready strategy with drifted references (e.g. its hero tower was
-	// recategorized) is not publicly renderable; treat it as not found.
-	const summary = toStrategySummary(strategy);
-	if (!summary) return null;
-	const placements = [...strategy.placements].sort((a, b) => a.id - b.id);
-	const towers = uniqueBy(
-		placements.flatMap((placement) => (placement.tower ? [placement.tower] : [])),
-		(tower) => tower.id
-	).sort((a, b) => a.name.localeCompare(b.name));
-
-	return {
-		...summary,
-		sourceUrl: strategy.source_url,
-		placements: placements.map(toStrategyMapPlacement),
-		towers: towers.map((tower) =>
-			toStrategyMapTower(tower, towerIconUrl(tower.icon_path))
-		),
-		steps: [...strategy.steps]
-			.sort((a, b) => a.order_index - b.order_index)
-			.map((step) => ({
-				id: step.id,
-				placementId: step.placement_id,
-				roundNumber: step.round_number,
-				action: step.action,
-				targetPath: step.target_path,
-				description: step.description
-			}))
-	};
 }
 
 export async function getHeroes(): Promise<HeroSummary[]> {
