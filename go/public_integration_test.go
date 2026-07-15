@@ -122,6 +122,10 @@ func TestPublicOperationsAgainstPostgres(t *testing.T) {
 	if len(inconsistent.Strategies) != 1 || inconsistent.Strategies[0].Id != fixture.nullableID {
 		t.Fatalf("inconsistent ready rows were not omitted independently: %+v", inconsistent.Strategies)
 	}
+	inconsistentPage := publicResponse[chimpsapi.PublicStrategyPage](t, handler, "/public/strategies", http.StatusOK)
+	if len(inconsistentPage.Strategies) != 1 || inconsistentPage.Strategies[0].Id != fixture.nullableID || inconsistentPage.NextCursor == nil {
+		t.Fatalf("inconsistent rows changed raw pagination boundaries: %+v", inconsistentPage)
+	}
 	publicResponse[chimpsapi.ErrorResponse](t, handler, fmt.Sprintf("/public/strategies/%d", fixture.detailID), http.StatusNotFound)
 	if _, err := pool.Exec(ctx, "update public.towers set category = 'Hero' where id = $1", fixture.heroID); err != nil {
 		t.Fatalf("restore fixture hero: %v", err)

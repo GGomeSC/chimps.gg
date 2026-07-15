@@ -167,11 +167,11 @@ func (s *server) GetPublicLatestStrategies(w http.ResponseWriter, r *http.Reques
 		writeError(w, http.StatusBadRequest, "invalid_limit", "Invalid limit.")
 		return
 	}
-	strategies, err := s.listPublicStrategies(w, r, db.ListPublicStrategySummariesParams{PageLimit: int32(limit)})
+	page, err := s.listPublicStrategies(w, r, db.ListPublicStrategySummariesParams{PageLimit: int32(limit)}, limit)
 	if err != nil {
 		return
 	}
-	writeJSON(w, http.StatusOK, chimpsapi.PublicStrategiesResponse{Strategies: strategies})
+	writeJSON(w, http.StatusOK, chimpsapi.PublicStrategiesResponse{Strategies: page.strategies})
 }
 
 func (s *server) GetPublicHomeMaps(w http.ResponseWriter, r *http.Request) {
@@ -216,20 +216,14 @@ func (s *server) DiscoverPublicStrategies(w http.ResponseWriter, r *http.Request
 		query.MapDifficulty = &value
 	}
 	query.VerifiedVersion = params.Version
-	strategies, err := s.listPublicStrategies(w, r, query)
+	page, err := s.listPublicStrategies(w, r, query, publicPageSize)
 	if err != nil {
 		return
 	}
-	hasMore := len(strategies) > publicPageSize
-	if hasMore {
-		strategies = strategies[:publicPageSize]
+	if page.rawCount <= publicPageSize {
+		page.cursorID = nil
 	}
-	var nextCursor *int64
-	if hasMore && len(strategies) > 0 {
-		value := strategies[len(strategies)-1].Id
-		nextCursor = &value
-	}
-	writeJSON(w, http.StatusOK, chimpsapi.PublicStrategyPage{Strategies: strategies, NextCursor: nextCursor})
+	writeJSON(w, http.StatusOK, chimpsapi.PublicStrategyPage{Strategies: page.strategies, NextCursor: page.cursorID})
 }
 
 func invalidPositiveID(value *int64) bool {
@@ -417,10 +411,16 @@ func (s *server) GetPublicSitemapEntries(w http.ResponseWriter, r *http.Request)
 	writeJSON(w, http.StatusOK, entries)
 }
 
-func (s *server) listPublicStrategies(w http.ResponseWriter, r *http.Request, params db.ListPublicStrategySummariesParams) ([]chimpsapi.PublicStrategySummary, error) {
+type publicStrategyList struct {
+	strategies []chimpsapi.PublicStrategySummary
+	rawCount   int
+	cursorID   *int64
+}
+
+func (s *server) listPublicStrategies(w http.ResponseWriter, r *http.Request, params db.ListPublicStrategySummariesParams, visibleLimit int) (publicStrategyList, error) {
 	queries, release, ok := s.acquireQueries(w, r)
 	if !ok {
-		return nil, errors.New("database unavailable")
+		return publicStrategyList{}, errors.New("database unavailable")
 	}
 	defer release()
 	ctx, cancel := context.WithTimeout(r.Context(), publicQueryTimeout)
@@ -429,10 +429,20 @@ func (s *server) listPublicStrategies(w http.ResponseWriter, r *http.Request, pa
 	s.countQueries(r, 1)
 	if err != nil {
 		s.databaseFailure(w, "list_public_strategies", err)
-		return nil, err
+		return publicStrategyList{}, err
 	}
-	strategies := make([]chimpsapi.PublicStrategySummary, 0, len(rows))
-	for _, row := range rows {
+	result := publicStrategyList{
+		strategies: make([]chimpsapi.PublicStrategySummary, 0, min(len(rows), visibleLimit)),
+		rawCount:   len(rows),
+	}
+	for index, row := range rows {
+		if index == visibleLimit-1 {
+			cursorID := row.ID
+			result.cursorID = &cursorID
+		}
+		if index >= visibleLimit {
+			continue
+		}
 		var placements []publicPlacementRecord
 		if err := json.Unmarshal(row.Placements, &placements); err != nil {
 			s.logger.Error("skipping malformed public strategy placements", "strategy_id", row.ID)
@@ -448,12 +458,12 @@ func (s *server) listPublicStrategies(w http.ResponseWriter, r *http.Request, pa
 			record.Hero = &publicTowerRecord{ID: *row.HeroReferenceID, Name: *row.HeroName, IconPath: *row.HeroIconPath}
 		}
 		if summary, valid := publicStrategySummary(record, nil); valid {
-			strategies = append(strategies, summary)
+			result.strategies = append(result.strategies, summary)
 		} else {
 			s.logger.Error("skipping incomplete ready strategy", "strategy_id", row.ID)
 		}
 	}
-	return strategies, nil
+	return result, nil
 }
 
 func publicStrategySummary(record publicStrategyRecord, heroOverride *publicTowerRecord) (chimpsapi.PublicStrategySummary, bool) {
