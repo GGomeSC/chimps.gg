@@ -1,83 +1,25 @@
 import { error, fail } from '@sveltejs/kit';
-import { supabase } from '$lib/server/supabase';
-import { towerIconUrl } from '$lib/server/tower-icons';
+import {
+	chimpsErrorCode,
+	chimpsErrorMessage,
+	createStudioApi
+} from '$lib/server/chimps-client';
 import type { Actions, PageServerLoad } from './$types';
 
-const CATEGORY_ORDER = ['Primary', 'Military', 'Magic', 'Support'] as const;
-
-export const load: PageServerLoad = async ({ params }) => {
+export const load: PageServerLoad = async ({ params, fetch, url }) => {
 	const heroId = integerId(params.id);
 	if (!heroId) error(404, 'Hero not found');
 
-	const [heroResult, towersResult] = await Promise.all([
-		supabase
-			.from('towers')
-			.select(`
-				id,
-				name,
-				category,
-				icon_path,
-				description,
-				base_cost,
-				attack_style,
-				xp_ratio,
-				technical_description,
-				profile_source_url,
-				synergies_from_a:tower_synergies!tower_synergies_tower_a_id_fkey(
-					tower_b_id,
-					description
-				),
-				synergies_from_b:tower_synergies!tower_synergies_tower_b_id_fkey(
-					tower_a_id,
-					description
-				)
-			`)
-			.eq('id', heroId)
-			.eq('category', 'Hero')
-			.maybeSingle(),
-		supabase
-			.from('towers')
-			.select('id, name, category')
-			.neq('category', 'Hero')
-			.order('name')
-	]);
-
-	if (heroResult.error) error(500, `Failed to load hero: ${heroResult.error.message}`);
-	if (!heroResult.data) error(404, 'Hero not found');
-	if (towersResult.error) error(500, `Failed to load towers: ${towersResult.error.message}`);
-
-	const hero = heroResult.data;
-	return {
-		hero: {
-			id: hero.id,
-			name: hero.name,
-			iconUrl: towerIconUrl(hero.icon_path),
-			description: hero.description,
-			baseCost: hero.base_cost,
-			attackStyle: hero.attack_style,
-			xpRatio: hero.xp_ratio,
-			technicalDescription: hero.technical_description,
-			profileSourceUrl: hero.profile_source_url,
-			synergies: [
-				...hero.synergies_from_a.map((synergy) => ({
-					towerId: synergy.tower_b_id,
-					description: synergy.description
-				})),
-				...hero.synergies_from_b.map((synergy) => ({
-					towerId: synergy.tower_a_id,
-					description: synergy.description
-				}))
-			]
-		},
-		towerGroups: CATEGORY_ORDER.map((category) => ({
-			category,
-			towers: towersResult.data.filter((tower) => tower.category === category)
-		}))
-	};
+	try {
+		return await createStudioApi(fetch, url.origin).getHero(heroId);
+	} catch (cause) {
+		if (chimpsErrorCode(cause) === 'hero_not_found') error(404, 'Hero not found');
+		error(500, `Failed to load hero: ${chimpsErrorMessage(cause, 'Unknown error')}`);
+	}
 };
 
 export const actions: Actions = {
-	default: async ({ params, request }) => {
+	default: async ({ params, request, fetch, url }) => {
 		const heroId = integerId(params.id);
 		if (!heroId) return fail(404, { error: 'Hero not found.' });
 
@@ -119,22 +61,25 @@ export const actions: Actions = {
 			return fail(400, { error: 'Synergy towers must be unique.', values });
 		}
 
-		const result = await supabase.rpc('update_hero_profile', {
-			p_hero_id: heroId,
-			p_description: values.description || null,
-			p_base_cost: baseCost,
-			p_attack_style: values.attackStyle || null,
-			p_xp_ratio: xpRatio,
-			p_technical_description: values.technicalDescription || null,
-			p_profile_source_url: values.profileSourceUrl || null,
-			p_synergy_tower_ids: parsedSynergyTowerIds as number[],
-			p_synergy_descriptions: values.synergyTowerIds.map(
-				(id) => values.synergyDescriptions[id] ?? ''
-			)
-		});
-
-		if (result.error) return fail(400, { error: result.error.message, values });
-		return { success: true };
+		try {
+			return await createStudioApi(fetch, url.origin).updateHeroProfile(heroId, {
+				description: values.description || null,
+				base_cost: baseCost,
+				attack_style: values.attackStyle || null,
+				xp_ratio: xpRatio,
+				technical_description: values.technicalDescription || null,
+				profile_source_url: values.profileSourceUrl || null,
+				synergy_tower_ids: parsedSynergyTowerIds as number[],
+				synergy_descriptions: values.synergyTowerIds.map(
+					(id) => values.synergyDescriptions[id] ?? ''
+				)
+			});
+		} catch (cause) {
+			return fail(400, {
+				error: chimpsErrorMessage(cause, 'Invalid hero profile.'),
+				values
+			});
+		}
 	}
 };
 
