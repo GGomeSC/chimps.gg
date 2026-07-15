@@ -6,7 +6,6 @@ import {
 	createPublicApi
 } from '$lib/server/chimps-client';
 import { withRuntimeCache } from '$lib/server/runtime-cache';
-import { supabase } from '$lib/server/supabase';
 import { towerIconUrl } from '$lib/server/tower-icons';
 import { toStrategyMapPlacement, toStrategyMapTower } from '$lib/strategy-map';
 import type {
@@ -320,17 +319,18 @@ export async function getHeroDetail(
 	}
 }
 
-export async function getSitemapEntries(): Promise<{ strategyIds: number[]; heroIds: number[] }> {
-	const [strategies, heroes] = await Promise.all([
-		supabase.from('strategies').select('id').eq('status', 'ready').order('id'),
-		supabase.from('towers').select('id').eq('category', 'Hero').order('id')
-	]);
-	if (strategies.error) throw publicDataError('sitemap strategies', strategies.error.message);
-	if (heroes.error) throw publicDataError('sitemap heroes', heroes.error.message);
-	return {
-		strategyIds: strategies.data.map((strategy) => strategy.id),
-		heroIds: heroes.data.map((hero) => hero.id)
-	};
+export async function getSitemapEntries(
+	fetcher: typeof fetch,
+	origin: string
+): Promise<{ strategyIds: number[]; heroIds: number[] }> {
+	try {
+		return await createPublicApi(fetcher, origin).getSitemapEntries();
+	} catch (cause) {
+		throw publicDataError(
+			'sitemap entries',
+			chimpsErrorMessage(cause, 'Internal service error')
+		);
+	}
 }
 
 async function loadReferenceData(fetcher: typeof fetch, origin: string): Promise<ReferenceData> {

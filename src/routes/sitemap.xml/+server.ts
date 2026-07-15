@@ -2,8 +2,8 @@ import { SUPPORTED_LOCALES, localizeHref } from '$lib/i18n';
 import { canonicalUrl, getSitemapEntries } from '$lib/server/public-content';
 import type { RequestHandler } from './$types';
 
-export const GET: RequestHandler = async ({ url }) => {
-	const entries = await getSitemapEntries();
+export const GET: RequestHandler = async ({ fetch, url }) => {
+	const entries = await getSitemapEntries(fetch, url.origin);
 	const paths = [
 		'/',
 		'/strategies',
