@@ -1,41 +1,41 @@
 import { error, fail, redirect } from '@sveltejs/kit';
-import { supabase } from '$lib/server/supabase';
+import { chimpsErrorMessage, createStudioApi } from '$lib/server/chimps-client';
 import { parseStrategyForm } from '$lib/server/strategy-form';
 import type { Actions, PageServerLoad } from './$types';
 
-export const load: PageServerLoad = async () => {
-	const [maps, modes, heroes] = await Promise.all([
-		supabase.from('maps').select('id, name, difficulty').order('name'),
-		supabase.from('game_modes').select('id, name').order('id'),
-		supabase.from('towers').select('id, name').eq('category', 'Hero').order('name')
-	]);
-	const firstError = [maps, modes, heroes].find((r) => r.error);
-	if (firstError?.error) error(500, firstError.error.message);
-
-	return { maps: maps.data!, modes: modes.data!, heroes: heroes.data! };
+export const load: PageServerLoad = async ({ fetch, url }) => {
+	try {
+		return await createStudioApi(fetch, url.origin).getStrategyReferences();
+	} catch (cause) {
+		error(500, chimpsErrorMessage(cause, 'Database operation failed.'));
+	}
 };
 
 export const actions: Actions = {
-	default: async ({ request }) => {
+	default: async ({ request, fetch, url }) => {
 		const parsed = parseStrategyForm(await request.formData());
 		if (!parsed.ok) return fail(400, { error: parsed.error });
 
-		if (parsed.data.hero_id) {
-			const { data: hero } = await supabase
-				.from('towers')
-				.select('category')
-				.eq('id', parsed.data.hero_id)
-				.single();
-			if (hero?.category !== 'Hero') return fail(400, { error: 'hero_id must be a Hero tower' });
+		let created: { id: number };
+		try {
+			created = await createStudioApi(fetch, url.origin).createStrategy({
+				map_id: parsed.data.map_id,
+				game_mode_id: parsed.data.game_mode_id,
+				title: parsed.data.title,
+				description: parsed.data.description ?? null,
+				hero_id: parsed.data.hero_id ?? null,
+				source_url: parsed.data.source_url ?? null,
+				verified_version: parsed.data.verified_version ?? null,
+				exec_difficulty: parsed.data.exec_difficulty ?? null,
+				status: parsed.data.status ?? 'draft'
+			});
+		} catch (cause) {
+			const status =
+				typeof cause === 'object' && cause !== null && 'code' in cause && cause.code === 'invalid_hero'
+					? 400
+					: 500;
+			return fail(status, { error: chimpsErrorMessage(cause, 'Database operation failed.') });
 		}
-
-		const { data: created, error: dbError } = await supabase
-			.from('strategies')
-			.insert(parsed.data)
-			.select('id')
-			.single();
-		if (dbError) return fail(500, { error: dbError.message });
-
 		redirect(303, `/studio/strategies/${created.id}`);
 	}
 };

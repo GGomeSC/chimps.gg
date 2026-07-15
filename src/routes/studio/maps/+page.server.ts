@@ -1,17 +1,11 @@
 import { error } from '@sveltejs/kit';
-import { supabase } from '$lib/server/supabase';
+import { chimpsErrorMessage, createStudioApi } from '$lib/server/chimps-client';
 import type { PageServerLoad } from './$types';
 
-export const load: PageServerLoad = async () => {
-	const { data: maps, error: dbError } = await supabase
-		.from('maps')
-		.select('*')
-		.order('difficulty', { ascending: true, nullsFirst: false })
-		.order('name', { ascending: true });
-
-	if (dbError) {
-		error(500, `Failed to load maps: ${dbError.message}`);
+export const load: PageServerLoad = async ({ fetch, url }) => {
+	try {
+		return await createStudioApi(fetch, url.origin).getMaps();
+	} catch (cause) {
+		error(500, `Failed to load maps: ${chimpsErrorMessage(cause, 'Unknown error')}`);
 	}
-
-	return { maps };
 };
