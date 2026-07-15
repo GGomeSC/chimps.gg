@@ -295,9 +295,10 @@ type PublicMode struct {
 
 // PublicReferences defines model for PublicReferences.
 type PublicReferences struct {
-	Heroes []PublicHeroReference `json:"heroes"`
-	Maps   []PublicMap           `json:"maps"`
-	Modes  []PublicMode          `json:"modes"`
+	Heroes      []PublicHeroReference `json:"heroes"`
+	Maps        []PublicMap           `json:"maps"`
+	Modes       []PublicMode          `json:"modes"`
+	StrategyIds []int64               `json:"strategyIds"`
 }
 
 // PublicStep defines model for PublicStep.

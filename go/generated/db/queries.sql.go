@@ -278,6 +278,11 @@ select jsonb_build_object(
     ) order by hero.name)
     from public.towers as hero
     where hero.category = 'Hero'
+  ), '[]'::jsonb),
+  'strategyIds', coalesce((
+    select jsonb_agg(strategy.id order by strategy.id)
+    from public.strategies as strategy
+    where strategy.status = 'ready'
   ), '[]'::jsonb)
 ) as references
 `

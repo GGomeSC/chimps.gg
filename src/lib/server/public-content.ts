@@ -59,6 +59,7 @@ type ReferenceData = {
 	maps: PublicMap[];
 	modes: PublicMode[];
 	heroes: PublicHeroReference[];
+	strategyIds: number[];
 };
 
 type StrategyDiscovery = {
@@ -187,19 +188,16 @@ export async function getSitemapEntries(
 	fetcher: typeof fetch,
 	origin: string
 ): Promise<{ strategyIds: number[]; heroIds: number[] }> {
-	try {
-		return await createPublicApi(fetcher, origin).getSitemapEntries();
-	} catch (cause) {
-		throw publicDataError(
-			'sitemap entries',
-			chimpsErrorMessage(cause, 'Internal service error')
-		);
-	}
+	const references = await loadReferenceData(fetcher, origin);
+	return {
+		strategyIds: references.strategyIds,
+		heroIds: references.heroes.map((hero) => hero.id)
+	};
 }
 
 async function loadReferenceData(fetcher: typeof fetch, origin: string): Promise<ReferenceData> {
 	return withRuntimeCache(
-		'reference-data-v2',
+		'reference-data-v3',
 		async () => {
 			try {
 				return await createPublicApi(fetcher, origin).getReferences();

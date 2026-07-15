@@ -359,6 +359,7 @@ export type PublicReferences = {
     maps: Array<PublicMap>;
     modes: Array<PublicMode>;
     heroes: Array<PublicHeroReference>;
+    strategyIds: Array<number>;
 };
 
 export type SitemapEntries = {

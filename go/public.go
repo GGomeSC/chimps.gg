@@ -76,9 +76,10 @@ type publicStrategyRecord struct {
 }
 
 type publicReferenceRecord struct {
-	Maps   []publicMapRecord   `json:"maps"`
-	Modes  []publicModeRecord  `json:"modes"`
-	Heroes []publicTowerRecord `json:"heroes"`
+	Maps        []publicMapRecord   `json:"maps"`
+	Modes       []publicModeRecord  `json:"modes"`
+	Heroes      []publicTowerRecord `json:"heroes"`
+	StrategyIDs []int64             `json:"strategyIds"`
 }
 
 type publicHeroSynergyRecord struct {
@@ -121,9 +122,10 @@ func (s *server) GetPublicReferences(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	response := chimpsapi.PublicReferences{
-		Maps:   make([]chimpsapi.PublicMap, 0, len(record.Maps)),
-		Modes:  make([]chimpsapi.PublicMode, 0, len(record.Modes)),
-		Heroes: make([]chimpsapi.PublicHeroReference, 0, len(record.Heroes)),
+		Maps:        make([]chimpsapi.PublicMap, 0, len(record.Maps)),
+		Modes:       make([]chimpsapi.PublicMode, 0, len(record.Modes)),
+		Heroes:      make([]chimpsapi.PublicHeroReference, 0, len(record.Heroes)),
+		StrategyIds: record.StrategyIDs,
 	}
 	for _, item := range record.Maps {
 		response.Maps = append(response.Maps, publicMap(item))

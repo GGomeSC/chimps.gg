@@ -13,7 +13,6 @@ import {
 	getPublicHomeMaps,
 	getPublicLatestStrategies,
 	getPublicReferences,
-	getPublicSitemapEntries,
 	getPublicStrategy,
 	getPublicVersions,
 	getStudioHero,
@@ -70,7 +69,6 @@ export function createPublicApi(fetcher: typeof fetch, origin: string) {
 			unwrap(getPublicStrategy({ ...options, path: { strategyId } })),
 		getHeroes: () => unwrap(getPublicHeroes(options)),
 		getHero: (heroId: number) => unwrap(getPublicHero({ ...options, path: { heroId } })),
-		getSitemapEntries: () => unwrap(getPublicSitemapEntries(options))
 	};
 }
 

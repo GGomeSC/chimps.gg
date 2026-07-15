@@ -36,8 +36,9 @@ func TestPublicOperationsAgainstPostgres(t *testing.T) {
 
 	references := publicResponse[chimpsapi.PublicReferences](t, handler, "/public/references", http.StatusOK)
 	if !slices.ContainsFunc(references.Maps, func(item chimpsapi.PublicMap) bool { return item.Id == fixture.mapID }) ||
-		!slices.ContainsFunc(references.Heroes, func(item chimpsapi.PublicHeroReference) bool { return item.Id == fixture.heroID }) {
-		t.Fatal("public references omitted fixture map or hero")
+		!slices.ContainsFunc(references.Heroes, func(item chimpsapi.PublicHeroReference) bool { return item.Id == fixture.heroID }) ||
+		!slices.Contains(references.StrategyIds, fixture.detailID) || slices.Contains(references.StrategyIds, fixture.draftID) {
+		t.Fatal("public references omitted fixture data or exposed a draft strategy")
 	}
 
 	versions := publicResponse[struct {

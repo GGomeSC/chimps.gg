@@ -919,7 +919,7 @@ components:
         nextCursor: { type: integer, format: int64, nullable: true }
     PublicReferences:
       type: object
-      required: [maps, modes, heroes]
+      required: [maps, modes, heroes, strategyIds]
       properties:
         maps:
           type: array
@@ -930,6 +930,9 @@ components:
         heroes:
           type: array
           items: { $ref: "#/components/schemas/PublicHeroReference" }
+        strategyIds:
+          type: array
+          items: { type: integer, format: int64 }
     SitemapEntries:
       type: object
       required: [strategyIds, heroIds]
