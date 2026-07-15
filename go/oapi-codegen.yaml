@@ -1,0 +1,5 @@
+package: api
+output: go/generated/api/api.gen.go
+generate:
+  models: true
+  std-http-server: true

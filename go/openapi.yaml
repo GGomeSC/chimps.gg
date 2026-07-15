@@ -1,0 +1,919 @@
+openapi: 3.0.3
+info:
+  title: chimps.gg internal service
+  version: 1.0.0
+  description: Private protocol between SvelteKit and the single Go Function.
+servers:
+  - url: /api/chimps
+security:
+  - internalSecret: []
+paths:
+  /health:
+    get:
+      operationId: getHealth
+      responses:
+        "200":
+          description: Database is reachable.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthResponse"
+        default:
+          $ref: "#/components/responses/Error"
+  /studio/maps:
+    get:
+      operationId: getStudioMaps
+      responses:
+        "200":
+          description: Studio map rows.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [maps]
+                properties:
+                  maps:
+                    type: array
+                    items: { $ref: "#/components/schemas/MapRow" }
+        default: { $ref: "#/components/responses/Error" }
+  /studio/strategy-references:
+    get:
+      operationId: getStudioStrategyReferences
+      responses:
+        "200":
+          description: Lookups used by strategy forms.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/StudioStrategyReferences" }
+        default: { $ref: "#/components/responses/Error" }
+  /studio/strategies:
+    get:
+      operationId: getStudioStrategies
+      responses:
+        "200":
+          description: Studio strategy list.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [strategies]
+                properties:
+                  strategies:
+                    type: array
+                    items: { $ref: "#/components/schemas/StudioStrategyListItem" }
+        default: { $ref: "#/components/responses/Error" }
+    post:
+      operationId: createStudioStrategy
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/StrategyInput" }
+      responses:
+        "200":
+          description: Created strategy ID.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/IdResponse" }
+        default: { $ref: "#/components/responses/Error" }
+  /studio/strategies/{strategyId}:
+    parameters:
+      - $ref: "#/components/parameters/StrategyId"
+    get:
+      operationId: getStudioStrategy
+      responses:
+        "200":
+          description: Complete strategy editor data.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/StudioStrategyEditor" }
+        default: { $ref: "#/components/responses/Error" }
+    delete:
+      operationId: deleteStudioStrategy
+      responses:
+        "200":
+          description: Delete completed, including a missing-row no-op.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SuccessResponse" }
+        default: { $ref: "#/components/responses/Error" }
+  /studio/strategies/{strategyId}/metadata:
+    parameters:
+      - $ref: "#/components/parameters/StrategyId"
+    patch:
+      operationId: updateStudioStrategyMetadata
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/StrategyInput" }
+      responses:
+        "200":
+          description: Update completed, including a missing-row no-op.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SavedResponse" }
+        default: { $ref: "#/components/responses/Error" }
+  /studio/strategies/{strategyId}/steps:
+    parameters:
+      - $ref: "#/components/parameters/StrategyId"
+    post:
+      operationId: createStudioStep
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/StepInput" }
+      responses:
+        "200":
+          description: Step created.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SavedResponse" }
+        default: { $ref: "#/components/responses/Error" }
+  /studio/strategies/{strategyId}/steps/{stepId}:
+    parameters:
+      - $ref: "#/components/parameters/StrategyId"
+      - $ref: "#/components/parameters/StepId"
+    patch:
+      operationId: updateStudioStep
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/StepInput" }
+      responses:
+        "200":
+          description: Step update completed.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SavedResponse" }
+        default: { $ref: "#/components/responses/Error" }
+    delete:
+      operationId: deleteStudioStep
+      responses:
+        "200":
+          description: Step delete completed.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SavedResponse" }
+        default: { $ref: "#/components/responses/Error" }
+  /studio/strategies/{strategyId}/steps/{stepId}/move:
+    parameters:
+      - $ref: "#/components/parameters/StrategyId"
+      - $ref: "#/components/parameters/StepId"
+    post:
+      operationId: moveStudioStep
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [direction]
+              properties:
+                direction:
+                  type: string
+                  enum: [up, down]
+      responses:
+        "200":
+          description: Move completed or successful edge no-op.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SavedResponse" }
+        default: { $ref: "#/components/responses/Error" }
+  /studio/strategies/{strategyId}/placements:
+    parameters:
+      - $ref: "#/components/parameters/StrategyId"
+    post:
+      operationId: createStudioPlacement
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/PlacementCreateInput" }
+      responses:
+        "200":
+          description: Placement created; SvelteKit translates this to external 201.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PlacementRow" }
+        default: { $ref: "#/components/responses/Error" }
+  /studio/strategies/{strategyId}/placements/{placementId}:
+    parameters:
+      - $ref: "#/components/parameters/StrategyId"
+      - $ref: "#/components/parameters/PlacementId"
+    patch:
+      operationId: updateStudioPlacement
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/PlacementUpdateInput" }
+      responses:
+        "200":
+          description: Updated placement.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PlacementRow" }
+        default: { $ref: "#/components/responses/Error" }
+    delete:
+      operationId: deleteStudioPlacement
+      responses:
+        "200":
+          description: Delete completed; SvelteKit translates this to external 204.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SuccessResponse" }
+        default: { $ref: "#/components/responses/Error" }
+  /studio/heroes:
+    get:
+      operationId: getStudioHeroes
+      responses:
+        "200":
+          description: Studio hero profile list.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [heroes]
+                properties:
+                  heroes:
+                    type: array
+                    items: { $ref: "#/components/schemas/StudioHeroListItem" }
+        default: { $ref: "#/components/responses/Error" }
+  /studio/heroes/{heroId}:
+    parameters:
+      - $ref: "#/components/parameters/HeroId"
+    get:
+      operationId: getStudioHero
+      responses:
+        "200":
+          description: Studio hero profile editor.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/StudioHeroEditor" }
+        default: { $ref: "#/components/responses/Error" }
+  /studio/heroes/{heroId}/profile:
+    parameters:
+      - $ref: "#/components/parameters/HeroId"
+    put:
+      operationId: updateStudioHeroProfile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/HeroProfileInput" }
+      responses:
+        "200":
+          description: Profile and synergies updated transactionally.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SuccessResponse" }
+        default: { $ref: "#/components/responses/Error" }
+  /public/references:
+    get:
+      operationId: getPublicReferences
+      responses:
+        "200":
+          description: Public reference data.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PublicReferences" }
+        default: { $ref: "#/components/responses/Error" }
+  /public/versions:
+    get:
+      operationId: getPublicVersions
+      responses:
+        "200":
+          description: Ready strategy versions.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [versions]
+                properties:
+                  versions:
+                    type: array
+                    items: { type: string }
+        default: { $ref: "#/components/responses/Error" }
+  /public/latest:
+    get:
+      operationId: getPublicLatestStrategies
+      parameters:
+        - in: query
+          name: limit
+          required: true
+          schema: { type: integer, minimum: 1, maximum: 24 }
+      responses:
+        "200":
+          description: Latest ready strategy summaries.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PublicStrategiesResponse" }
+        default: { $ref: "#/components/responses/Error" }
+  /public/maps:
+    get:
+      operationId: getPublicHomeMaps
+      responses:
+        "200":
+          description: Home map list and ready guide counts.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [maps]
+                properties:
+                  maps:
+                    type: array
+                    items: { $ref: "#/components/schemas/HomeMap" }
+        default: { $ref: "#/components/responses/Error" }
+  /public/strategies:
+    get:
+      operationId: discoverPublicStrategies
+      parameters:
+        - { in: query, name: map, schema: { type: string } }
+        - { in: query, name: mode, schema: { type: string } }
+        - { in: query, name: hero, schema: { type: string } }
+        - { in: query, name: difficulty, schema: { type: string } }
+        - { in: query, name: mapDifficulty, schema: { type: string } }
+        - { in: query, name: version, schema: { type: string } }
+        - { in: query, name: cursor, schema: { type: string } }
+      responses:
+        "200":
+          description: Parsed discovery result.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PublicDiscovery" }
+        default: { $ref: "#/components/responses/Error" }
+  /public/strategies/{strategyId}:
+    parameters:
+      - $ref: "#/components/parameters/StrategyId"
+    get:
+      operationId: getPublicStrategy
+      responses:
+        "200":
+          description: Ready strategy detail.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PublicStrategyDetail" }
+        default: { $ref: "#/components/responses/Error" }
+  /public/heroes:
+    get:
+      operationId: getPublicHeroes
+      responses:
+        "200":
+          description: Public hero summaries.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [heroes]
+                properties:
+                  heroes:
+                    type: array
+                    items: { $ref: "#/components/schemas/HeroSummary" }
+        default: { $ref: "#/components/responses/Error" }
+  /public/heroes/{heroId}:
+    parameters:
+      - $ref: "#/components/parameters/HeroId"
+    get:
+      operationId: getPublicHero
+      responses:
+        "200":
+          description: Public hero detail.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PublicHeroDetail" }
+        default: { $ref: "#/components/responses/Error" }
+  /public/sitemap:
+    get:
+      operationId: getPublicSitemapEntries
+      responses:
+        "200":
+          description: Numeric IDs included in the sitemap.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SitemapEntries" }
+        default: { $ref: "#/components/responses/Error" }
+components:
+  securitySchemes:
+    internalSecret:
+      type: http
+      scheme: bearer
+  responses:
+    Error:
+      description: Internal service error.
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ErrorResponse" }
+  parameters:
+    StrategyId:
+      in: path
+      name: strategyId
+      required: true
+      schema: { type: integer, format: int64, minimum: 1 }
+    StepId:
+      in: path
+      name: stepId
+      required: true
+      schema: { type: integer, format: int64, minimum: 1 }
+    PlacementId:
+      in: path
+      name: placementId
+      required: true
+      schema: { type: integer, format: int64, minimum: 1 }
+    HeroId:
+      in: path
+      name: heroId
+      required: true
+      schema: { type: integer, format: int64, minimum: 1 }
+  schemas:
+    ErrorResponse:
+      type: object
+      required: [code, message]
+      properties:
+        code: { type: string }
+        message: { type: string }
+    HealthResponse:
+      type: object
+      required: [ok]
+      properties:
+        ok: { type: boolean }
+    SuccessResponse:
+      type: object
+      required: [success]
+      properties:
+        success: { type: boolean }
+    SavedResponse:
+      type: object
+      required: [saved]
+      properties:
+        saved: { type: boolean }
+    IdResponse:
+      type: object
+      required: [id]
+      properties:
+        id: { type: integer, format: int64 }
+    MapDifficulty:
+      type: string
+      enum: [Beginner, Intermediate, Advanced, Expert]
+    TowerCategory:
+      type: string
+      enum: [Primary, Military, Magic, Support, Hero]
+    StrategyStatus:
+      type: string
+      enum: [draft, ready, archived]
+    StepAction:
+      type: string
+      enum: [place, upgrade, sell, retarget, other]
+    MapRow:
+      type: object
+      required: [id, name, difficulty, image_url, nk_map_id, nk_image_url, plays, wins, upvotes, last_synced_at, created_at, updated_at]
+      properties:
+        id: { type: integer, format: int64 }
+        name: { type: string }
+        difficulty: { $ref: "#/components/schemas/MapDifficulty", nullable: true }
+        image_url: { type: string, nullable: true }
+        nk_map_id: { type: string }
+        nk_image_url: { type: string, nullable: true }
+        plays: { type: integer, format: int64, nullable: true }
+        wins: { type: integer, format: int64, nullable: true }
+        upvotes: { type: integer, format: int64, nullable: true }
+        last_synced_at: { type: string, format: date-time, nullable: true }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+    MapReference:
+      type: object
+      required: [id, name, difficulty]
+      properties:
+        id: { type: integer, format: int64 }
+        name: { type: string }
+        difficulty: { $ref: "#/components/schemas/MapDifficulty", nullable: true }
+    GameModeRow:
+      type: object
+      required: [id, name]
+      properties:
+        id: { type: integer, format: int64 }
+        name: { type: string }
+    TowerReference:
+      type: object
+      required: [id, name]
+      properties:
+        id: { type: integer, format: int64 }
+        name: { type: string }
+    TowerRow:
+      type: object
+      required: [id, name, category, base_cost, icon_path, description, attack_style, xp_ratio, technical_description, profile_source_url]
+      properties:
+        id: { type: integer, format: int64 }
+        name: { type: string }
+        category: { $ref: "#/components/schemas/TowerCategory" }
+        base_cost: { type: integer, nullable: true }
+        icon_path: { type: string }
+        description: { type: string, nullable: true }
+        attack_style: { type: string, nullable: true }
+        xp_ratio: { type: number, format: double, nullable: true }
+        technical_description: { type: string, nullable: true }
+        profile_source_url: { type: string, nullable: true }
+        icon_url: { type: string }
+    StrategyRow:
+      type: object
+      required: [id, map_id, game_mode_id, title, description, hero_id, source_url, verified_version, exec_difficulty, status, score, created_at, updated_at]
+      properties:
+        id: { type: integer, format: int64 }
+        map_id: { type: integer, format: int64 }
+        game_mode_id: { type: integer, format: int64 }
+        title: { type: string }
+        description: { type: string, nullable: true }
+        hero_id: { type: integer, format: int64, nullable: true }
+        source_url: { type: string, nullable: true }
+        verified_version: { type: string, nullable: true }
+        exec_difficulty: { type: integer, nullable: true }
+        status: { $ref: "#/components/schemas/StrategyStatus" }
+        score: { type: integer, nullable: true }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+    PlacementRow:
+      type: object
+      required: [id, strategy_id, tower_id, pos_x, pos_y, final_path, label, notes]
+      properties:
+        id: { type: integer, format: int64 }
+        strategy_id: { type: integer, format: int64 }
+        tower_id: { type: integer, format: int64 }
+        pos_x: { type: number, format: double }
+        pos_y: { type: number, format: double }
+        final_path: { type: string, nullable: true }
+        label: { type: string, nullable: true }
+        notes: { type: string, nullable: true }
+    StepRow:
+      type: object
+      required: [id, strategy_id, placement_id, round_number, action, target_path, description, order_index]
+      properties:
+        id: { type: integer, format: int64 }
+        strategy_id: { type: integer, format: int64 }
+        placement_id: { type: integer, format: int64, nullable: true }
+        round_number: { type: integer }
+        action: { $ref: "#/components/schemas/StepAction" }
+        target_path: { type: string, nullable: true }
+        description: { type: string, nullable: true }
+        order_index: { type: integer }
+    StrategyInput:
+      type: object
+      required: [map_id, game_mode_id, title, description, hero_id, source_url, verified_version, exec_difficulty, status]
+      properties:
+        map_id: { type: integer, format: int64 }
+        game_mode_id: { type: integer, format: int64 }
+        title: { type: string }
+        description: { type: string, nullable: true }
+        hero_id: { type: integer, format: int64, nullable: true }
+        source_url: { type: string, nullable: true }
+        verified_version: { type: string, nullable: true }
+        exec_difficulty: { type: integer, nullable: true }
+        status: { $ref: "#/components/schemas/StrategyStatus" }
+    StepInput:
+      type: object
+      required: [round_number, action, placement_id, target_path, description]
+      properties:
+        round_number: { type: integer }
+        action: { $ref: "#/components/schemas/StepAction" }
+        placement_id: { type: integer, format: int64, nullable: true }
+        target_path: { type: string, nullable: true }
+        description: { type: string, nullable: true }
+    PlacementCreateInput:
+      type: object
+      required: [tower_id, pos_x, pos_y]
+      properties:
+        tower_id: { type: integer, format: int64 }
+        pos_x: { type: number, format: double }
+        pos_y: { type: number, format: double }
+    PlacementUpdateInput:
+      type: object
+      properties:
+        pos_x: { type: number, format: double }
+        pos_y: { type: number, format: double }
+        final_path: { type: string, nullable: true }
+        label: { type: string, nullable: true }
+        notes: { type: string, nullable: true }
+    StudioStrategyReferences:
+      type: object
+      required: [maps, modes, heroes]
+      properties:
+        maps:
+          type: array
+          items: { $ref: "#/components/schemas/MapReference" }
+        modes:
+          type: array
+          items: { $ref: "#/components/schemas/GameModeRow" }
+        heroes:
+          type: array
+          items: { $ref: "#/components/schemas/TowerReference" }
+    StudioStrategyListItem:
+      allOf:
+        - $ref: "#/components/schemas/StrategyRow"
+        - type: object
+          required: [map_name, mode_name, hero_name, placement_count]
+          properties:
+            map_name: { type: string }
+            mode_name: { type: string }
+            hero_name: { type: string, nullable: true }
+            placement_count: { type: integer }
+    StudioStrategyEditor:
+      type: object
+      required: [strategy, maps, modes, towers, placements, steps]
+      properties:
+        strategy: { $ref: "#/components/schemas/StrategyRow" }
+        maps:
+          type: array
+          items:
+            allOf:
+              - $ref: "#/components/schemas/MapReference"
+              - type: object
+                required: [image_url, nk_image_url]
+                properties:
+                  image_url: { type: string, nullable: true }
+                  nk_image_url: { type: string, nullable: true }
+        modes:
+          type: array
+          items: { $ref: "#/components/schemas/GameModeRow" }
+        towers:
+          type: array
+          items: { $ref: "#/components/schemas/TowerRow" }
+        placements:
+          type: array
+          items: { $ref: "#/components/schemas/PlacementRow" }
+        steps:
+          type: array
+          items: { $ref: "#/components/schemas/StepRow" }
+    StudioHeroListItem:
+      type: object
+      required: [id, name, iconUrl, completedFields, totalFields, synergyCount]
+      properties:
+        id: { type: integer, format: int64 }
+        name: { type: string }
+        iconUrl: { type: string }
+        completedFields: { type: integer }
+        totalFields: { type: integer }
+        synergyCount: { type: integer }
+    StudioHeroSynergy:
+      type: object
+      required: [towerId, description]
+      properties:
+        towerId: { type: integer, format: int64 }
+        description: { type: string, nullable: true }
+    StudioHero:
+      type: object
+      required: [id, name, iconUrl, description, baseCost, attackStyle, xpRatio, technicalDescription, profileSourceUrl, synergies]
+      properties:
+        id: { type: integer, format: int64 }
+        name: { type: string }
+        iconUrl: { type: string }
+        description: { type: string, nullable: true }
+        baseCost: { type: integer, nullable: true }
+        attackStyle: { type: string, nullable: true }
+        xpRatio: { type: number, format: double, nullable: true }
+        technicalDescription: { type: string, nullable: true }
+        profileSourceUrl: { type: string, nullable: true }
+        synergies:
+          type: array
+          items: { $ref: "#/components/schemas/StudioHeroSynergy" }
+    TowerGroup:
+      type: object
+      required: [category, towers]
+      properties:
+        category: { $ref: "#/components/schemas/TowerCategory" }
+        towers:
+          type: array
+          items:
+            type: object
+            required: [id, name, category]
+            properties:
+              id: { type: integer, format: int64 }
+              name: { type: string }
+              category: { $ref: "#/components/schemas/TowerCategory" }
+    StudioHeroEditor:
+      type: object
+      required: [hero, towerGroups]
+      properties:
+        hero: { $ref: "#/components/schemas/StudioHero" }
+        towerGroups:
+          type: array
+          items: { $ref: "#/components/schemas/TowerGroup" }
+    HeroProfileInput:
+      type: object
+      required: [description, base_cost, attack_style, xp_ratio, technical_description, profile_source_url, synergy_tower_ids, synergy_descriptions]
+      properties:
+        description: { type: string, nullable: true }
+        base_cost: { type: integer, nullable: true }
+        attack_style: { type: string, nullable: true }
+        xp_ratio: { type: number, format: double, nullable: true }
+        technical_description: { type: string, nullable: true }
+        profile_source_url: { type: string, nullable: true }
+        synergy_tower_ids:
+          type: array
+          items: { type: integer, format: int64 }
+        synergy_descriptions:
+          type: array
+          items: { type: string }
+    PublicMap:
+      type: object
+      required: [id, name, difficulty, imageUrl]
+      properties:
+        id: { type: integer, format: int64 }
+        name: { type: string }
+        difficulty: { $ref: "#/components/schemas/MapDifficulty", nullable: true }
+        imageUrl: { type: string, nullable: true }
+    HomeMap:
+      allOf:
+        - $ref: "#/components/schemas/PublicMap"
+        - type: object
+          required: [guideCount]
+          properties:
+            guideCount: { type: integer }
+    PublicMode:
+      type: object
+      required: [id, name]
+      properties:
+        id: { type: integer, format: int64 }
+        name: { type: string }
+    PublicHeroReference:
+      type: object
+      required: [id, name, iconUrl]
+      properties:
+        id: { type: integer, format: int64 }
+        name: { type: string }
+        iconUrl: { type: string }
+    PlacementDot:
+      type: object
+      required: [id, x, y, isHero]
+      properties:
+        id: { type: integer, format: int64 }
+        x: { type: number, format: double }
+        y: { type: number, format: double }
+        isHero: { type: boolean }
+    PublicStrategySummary:
+      type: object
+      required: [id, title, description, map, mode, hero, verifiedVersion, executionDifficulty, placementDots]
+      properties:
+        id: { type: integer, format: int64 }
+        title: { type: string }
+        description: { type: string, nullable: true }
+        map: { $ref: "#/components/schemas/PublicMap" }
+        mode: { $ref: "#/components/schemas/PublicMode" }
+        hero: { $ref: "#/components/schemas/PublicHeroReference", nullable: true }
+        verifiedVersion: { type: string }
+        executionDifficulty: { type: integer, nullable: true }
+        placementDots:
+          type: array
+          items: { $ref: "#/components/schemas/PlacementDot" }
+    PublicStrategiesResponse:
+      type: object
+      required: [strategies]
+      properties:
+        strategies:
+          type: array
+          items: { $ref: "#/components/schemas/PublicStrategySummary" }
+    StrategyMapPlacement:
+      type: object
+      required: [id, towerId, x, y, finalPath, label]
+      properties:
+        id: { type: integer, format: int64 }
+        towerId: { type: integer, format: int64 }
+        x: { type: number, format: double }
+        y: { type: number, format: double }
+        finalPath: { type: string, nullable: true }
+        label: { type: string, nullable: true }
+    StrategyMapTower:
+      type: object
+      required: [id, name, category, iconUrl]
+      properties:
+        id: { type: integer, format: int64 }
+        name: { type: string }
+        category: { $ref: "#/components/schemas/TowerCategory" }
+        iconUrl: { type: string }
+    PublicStep:
+      type: object
+      required: [id, placementId, roundNumber, action, targetPath, description]
+      properties:
+        id: { type: integer, format: int64 }
+        placementId: { type: integer, format: int64, nullable: true }
+        roundNumber: { type: integer }
+        action: { $ref: "#/components/schemas/StepAction" }
+        targetPath: { type: string, nullable: true }
+        description: { type: string, nullable: true }
+    PublicStrategyDetail:
+      allOf:
+        - $ref: "#/components/schemas/PublicStrategySummary"
+        - type: object
+          required: [sourceUrl, placements, towers, steps]
+          properties:
+            sourceUrl: { type: string, nullable: true }
+            placements:
+              type: array
+              items: { $ref: "#/components/schemas/StrategyMapPlacement" }
+            towers:
+              type: array
+              items: { $ref: "#/components/schemas/StrategyMapTower" }
+            steps:
+              type: array
+              items: { $ref: "#/components/schemas/PublicStep" }
+    HeroSummary:
+      allOf:
+        - $ref: "#/components/schemas/PublicHeroReference"
+        - type: object
+          required: [guideCount]
+          properties:
+            guideCount: { type: integer }
+    PublicHeroDetail:
+      allOf:
+        - $ref: "#/components/schemas/HeroSummary"
+        - type: object
+          required: [description, baseCost, attackStyle, xpRatio, technicalDescription, profileSourceUrl, synergies, strategies, maps, modes, versions]
+          properties:
+            description: { type: string, nullable: true }
+            baseCost: { type: integer, nullable: true }
+            attackStyle: { type: string, nullable: true }
+            xpRatio: { type: number, format: double, nullable: true }
+            technicalDescription: { type: string, nullable: true }
+            profileSourceUrl: { type: string, nullable: true }
+            synergies:
+              type: array
+              items:
+                type: object
+                required: [id, name, description]
+                properties:
+                  id: { type: integer, format: int64 }
+                  name: { type: string }
+                  description: { type: string, nullable: true }
+            strategies:
+              type: array
+              items: { $ref: "#/components/schemas/PublicStrategySummary" }
+            maps:
+              type: array
+              items: { $ref: "#/components/schemas/PublicMap" }
+            modes:
+              type: array
+              items: { $ref: "#/components/schemas/PublicMode" }
+            versions:
+              type: array
+              items: { type: string }
+    StrategyFilters:
+      type: object
+      required: [mapId, modeId, heroId, executionDifficulty, mapDifficulty, version, cursor]
+      properties:
+        mapId: { type: integer, format: int64, nullable: true }
+        modeId: { type: integer, format: int64, nullable: true }
+        heroId: { type: integer, format: int64, nullable: true }
+        executionDifficulty: { type: integer, nullable: true }
+        mapDifficulty: { $ref: "#/components/schemas/MapDifficulty", nullable: true }
+        version: { type: string, nullable: true }
+        cursor: { type: integer, format: int64, nullable: true }
+    StrategyFilterOptions:
+      type: object
+      required: [maps, modes, heroes, versions]
+      properties:
+        maps:
+          type: array
+          items: { $ref: "#/components/schemas/TowerReference" }
+        modes:
+          type: array
+          items: { $ref: "#/components/schemas/PublicMode" }
+        heroes:
+          type: array
+          items: { $ref: "#/components/schemas/TowerReference" }
+        versions:
+          type: array
+          items: { type: string }
+    PublicDiscovery:
+      type: object
+      required: [strategies, filters, options, nextCursor]
+      properties:
+        strategies:
+          type: array
+          items: { $ref: "#/components/schemas/PublicStrategySummary" }
+        filters: { $ref: "#/components/schemas/StrategyFilters" }
+        options: { $ref: "#/components/schemas/StrategyFilterOptions" }
+        nextCursor: { type: integer, format: int64, nullable: true }
+    PublicReferences:
+      type: object
+      required: [maps, modes, heroes]
+      properties:
+        maps:
+          type: array
+          items: { $ref: "#/components/schemas/PublicMap" }
+        modes:
+          type: array
+          items: { $ref: "#/components/schemas/PublicMode" }
+        heroes:
+          type: array
+          items: { $ref: "#/components/schemas/PublicHeroReference" }
+    SitemapEntries:
+      type: object
+      required: [strategyIds, heroIds]
+      properties:
+        strategyIds:
+          type: array
+          items: { type: integer, format: int64 }
+        heroIds:
+          type: array
+          items: { type: integer, format: int64 }
