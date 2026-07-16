@@ -46,7 +46,7 @@ Rotas públicas principais:
 Somente estratégias com `status = 'ready'` são expostas. Defina `PUBLIC_SITE_URL` com a
 origem canônica de produção (por padrão, `https://chimps.gg`) para metadata e sitemap.
 
-O backend Go é gerado a partir de `go/openapi.yaml` e usa SQL tipado pelo sqlc. Configure
+O backend Go é gerado a partir de `backend/openapi.yaml` e usa SQL tipado pelo sqlc. Configure
 `DATABASE_URL` com a conexão Supavisor em transaction mode (porta 6543 e SSL) e
 `INTERNAL_SERVICE_SECRET` com um valor aleatório de pelo menos 32 bytes nos ambientes
 Preview e Production da Vercel. O protocolo `/api/chimps/*` é interno ao SvelteKit.

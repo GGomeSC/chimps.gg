@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/GGomeSC/chimps.gg/go/generated/db"
+	"github.com/GGomeSC/chimps.gg/backend/generated/db"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )

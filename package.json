@@ -8,7 +8,7 @@
 		"dev": "vite dev",
 		"build": "vite build && node scripts/fix-vercel-route-order.mjs",
 		"generate": "pnpm run generate:go && pnpm run generate:client",
-		"generate:go": "go tool sqlc generate -f go/sqlc.yaml && go tool oapi-codegen -config go/oapi-codegen.yaml go/openapi.yaml",
+		"generate:go": "go tool sqlc generate -f backend/sqlc.yaml && go tool oapi-codegen -config backend/oapi-codegen.yaml backend/openapi.yaml",
 		"generate:client": "openapi-ts",
 		"preview": "vite preview",
 		"prepare": "svelte-kit sync || echo ''",

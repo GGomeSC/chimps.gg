@@ -1,7 +1,7 @@
 import { defineConfig } from '@hey-api/openapi-ts';
 
 export default defineConfig({
-	input: { path: './go/openapi.yaml' },
+	input: { path: './backend/openapi.yaml' },
 	output: {
 		path: 'src/lib/server/generated/chimps'
 	},

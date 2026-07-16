@@ -11,8 +11,8 @@ import (
 	"strings"
 	"time"
 
-	chimpsapi "github.com/GGomeSC/chimps.gg/go/generated/api"
-	"github.com/GGomeSC/chimps.gg/go/generated/db"
+	chimpsapi "github.com/GGomeSC/chimps.gg/backend/generated/api"
+	"github.com/GGomeSC/chimps.gg/backend/generated/db"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgtype"

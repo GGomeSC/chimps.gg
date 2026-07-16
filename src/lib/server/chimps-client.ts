@@ -36,18 +36,11 @@ import type {
 	StrategyInput
 } from './generated/chimps/types.gen';
 
-function createChimpsClient(fetcher: typeof fetch, origin: string) {
-	const internalServiceSecret = env.INTERNAL_SERVICE_SECRET;
-	if (!internalServiceSecret) {
-		throw new Error('INTERNAL_SERVICE_SECRET is not configured.');
-	}
-
+function createChimpsClient(fetcher: typeof fetch, origin: string, headers?: Record<string, string>) {
 	return createClient({
 		baseUrl: `${origin}/api/chimps`,
 		fetch: fetcher,
-		headers: {
-			Authorization: `Bearer ${internalServiceSecret}`
-		},
+		headers,
 		responseStyle: 'fields',
 		throwOnError: true
 	});
@@ -73,7 +66,9 @@ export function createPublicApi(fetcher: typeof fetch, origin: string) {
 }
 
 export function createStudioApi(fetcher: typeof fetch, origin: string) {
-	const client = createChimpsClient(fetcher, origin);
+	const client = createChimpsClient(fetcher, origin, {
+		Authorization: `Bearer ${env.INTERNAL_SERVICE_SECRET}`
+	});
 	const options = { client };
 
 	return {

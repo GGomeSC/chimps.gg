@@ -5,13 +5,14 @@ import (
 	"crypto/sha256"
 	"crypto/subtle"
 	"encoding/json"
+	"fmt"
 	"log/slog"
 	"net/http"
 	"os"
 	"strings"
 	"time"
 
-	chimpsapi "github.com/GGomeSC/chimps.gg/go/generated/api"
+	chimpsapi "github.com/GGomeSC/chimps.gg/backend/generated/api"
 )
 
 type server struct {
@@ -84,6 +85,7 @@ func newHandler(secret string, checker healthChecker, databaseErr error, logger 
 
 	return chimpsapi.HandlerWithOptions(service, chimpsapi.StdHTTPServerOptions{
 		Middlewares: []chimpsapi.MiddlewareFunc{
+			service.cacheControlMiddleware,
 			service.authorizationMiddleware,
 			service.loggingMiddleware,
 		},
@@ -121,6 +123,10 @@ func (s *server) GetHealth(w http.ResponseWriter, r *http.Request) {
 
 func (s *server) authorizationMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if isPublicRoute(r) {
+			next.ServeHTTP(w, r)
+			return
+		}
 		const prefix = "Bearer "
 		authorization := r.Header.Get("Authorization")
 		if !strings.HasPrefix(authorization, prefix) || !constantTimeEqual([]byte(strings.TrimPrefix(authorization, prefix)), s.internalSecret) {
@@ -149,6 +155,62 @@ func (s *server) loggingMiddleware(next http.Handler) http.Handler {
 			"status", recorder.status,
 		)
 	})
+}
+
+func isPublicRoute(r *http.Request) bool {
+	return r.Method == http.MethodGet && strings.HasPrefix(r.URL.Path, "/public/")
+}
+
+func (s *server) cacheControlMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		directive := publicCacheControl(r)
+		if directive == "" {
+			next.ServeHTTP(w, r)
+			return
+		}
+		next.ServeHTTP(&cacheControlWriter{ResponseWriter: w, directive: directive}, r)
+	})
+}
+
+type cacheControlWriter struct {
+	http.ResponseWriter
+	directive   string
+	headerAdded bool
+}
+
+func (w *cacheControlWriter) WriteHeader(status int) {
+	if !w.headerAdded {
+		w.headerAdded = true
+		if status >= http.StatusOK && status < http.StatusMultipleChoices {
+			w.Header().Set("Cache-Control", w.directive)
+		}
+	}
+	w.ResponseWriter.WriteHeader(status)
+}
+
+func (w *cacheControlWriter) Write(body []byte) (int, error) {
+	if !w.headerAdded {
+		w.WriteHeader(http.StatusOK)
+	}
+	return w.ResponseWriter.Write(body)
+}
+
+func publicCacheControl(r *http.Request) string {
+	if !isPublicRoute(r) {
+		return ""
+	}
+	switch r.URL.Path {
+	case "/public/references":
+		return cacheDirective(3600, 86400)
+	case "/public/strategies":
+		return cacheDirective(180, 3600)
+	default:
+		return cacheDirective(300, 3600)
+	}
+}
+
+func cacheDirective(sMaxAge int, staleWhileRevalidate int) string {
+	return fmt.Sprintf("public, s-maxage=%d, stale-while-revalidate=%d", sMaxAge, staleWhileRevalidate)
 }
 
 func constantTimeEqual(provided []byte, expected []byte) bool {

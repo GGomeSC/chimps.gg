@@ -75,7 +75,7 @@ Usar um único package Go de aplicação:
 ```text
 api/
 `-- chimps.go                 # único entrypoint Vercel
-go/
+backend/
 |-- app.go                    # router, config e erros HTTP internos
 |-- config.go                 # se necessário
 |-- studio.go                 # operações atuais do Studio

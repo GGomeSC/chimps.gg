@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"sync"
 
-	chimps "github.com/GGomeSC/chimps.gg/go"
+	chimps "github.com/GGomeSC/chimps.gg/backend"
 )
 
 var (

@@ -43,6 +43,62 @@ func TestHandlerRequiresBearerSecret(t *testing.T) {
 	}
 }
 
+func TestPublicRoutesSkipAuthorization(t *testing.T) {
+	t.Parallel()
+
+	handler := testHandler(fakeHealthChecker{}, nil)
+
+	public := httptest.NewRequest(http.MethodGet, "/public/maps", nil)
+	publicResponse := httptest.NewRecorder()
+	handler.ServeHTTP(publicResponse, public)
+	if publicResponse.Code == http.StatusUnauthorized {
+		t.Fatalf("public route required authorization, want it open")
+	}
+
+	studio := httptest.NewRequest(http.MethodGet, "/studio/maps", nil)
+	studioResponse := httptest.NewRecorder()
+	handler.ServeHTTP(studioResponse, studio)
+	if studioResponse.Code != http.StatusUnauthorized {
+		t.Fatalf("studio route returned %d, want %d", studioResponse.Code, http.StatusUnauthorized)
+	}
+}
+
+func TestPublicErrorsAreNotCached(t *testing.T) {
+	t.Parallel()
+
+	handler := testHandler(fakeHealthChecker{}, nil)
+	request := httptest.NewRequest(http.MethodGet, "/public/maps", nil)
+	response := httptest.NewRecorder()
+	handler.ServeHTTP(response, request)
+	if got := response.Header().Get("Cache-Control"); got != "" {
+		t.Fatalf("error response set Cache-Control %q, want none", got)
+	}
+}
+
+func TestPublicCacheControl(t *testing.T) {
+	t.Parallel()
+
+	cases := map[string]string{
+		"/public/references": "public, s-maxage=3600, stale-while-revalidate=86400",
+		"/public/strategies": "public, s-maxage=180, stale-while-revalidate=3600",
+		"/public/latest":     "public, s-maxage=300, stale-while-revalidate=3600",
+		"/public/heroes/42":  "public, s-maxage=300, stale-while-revalidate=3600",
+	}
+	for path, want := range cases {
+		request := httptest.NewRequest(http.MethodGet, path, nil)
+		if got := publicCacheControl(request); got != want {
+			t.Fatalf("publicCacheControl(%q) = %q, want %q", path, got, want)
+		}
+	}
+
+	if got := publicCacheControl(httptest.NewRequest(http.MethodGet, "/studio/maps", nil)); got != "" {
+		t.Fatalf("studio route got Cache-Control %q, want none", got)
+	}
+	if got := publicCacheControl(httptest.NewRequest(http.MethodPost, "/public/strategies", nil)); got != "" {
+		t.Fatalf("non-GET public route got Cache-Control %q, want none", got)
+	}
+}
+
 func TestHealthChecksDatabase(t *testing.T) {
 	t.Parallel()
 
