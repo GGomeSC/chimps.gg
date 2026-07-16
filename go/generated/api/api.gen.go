@@ -357,12 +357,6 @@ type SavedResponse struct {
 	Saved bool `json:"saved"`
 }
 
-// SitemapEntries defines model for SitemapEntries.
-type SitemapEntries struct {
-	HeroIds     []int64 `json:"heroIds"`
-	StrategyIds []int64 `json:"strategyIds"`
-}
-
 // StepAction defines model for StepAction.
 type StepAction string
 
@@ -644,9 +638,6 @@ type ServerInterface interface {
 	// (GET /public/references)
 	GetPublicReferences(w http.ResponseWriter, r *http.Request)
 
-	// (GET /public/sitemap)
-	GetPublicSitemapEntries(w http.ResponseWriter, r *http.Request)
-
 	// (GET /public/strategies)
 	DiscoverPublicStrategies(w http.ResponseWriter, r *http.Request, params DiscoverPublicStrategiesParams)
 
@@ -859,26 +850,6 @@ func (siw *ServerInterfaceWrapper) GetPublicReferences(w http.ResponseWriter, r 
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.GetPublicReferences(w, r)
-	}))
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		handler = middleware(handler)
-	}
-
-	handler.ServeHTTP(w, r)
-}
-
-// GetPublicSitemapEntries operation middleware
-func (siw *ServerInterfaceWrapper) GetPublicSitemapEntries(w http.ResponseWriter, r *http.Request) {
-
-	ctx := r.Context()
-
-	ctx = context.WithValue(ctx, InternalSecretScopes, []string{})
-
-	r = r.WithContext(ctx)
-
-	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.GetPublicSitemapEntries(w, r)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -1712,7 +1683,6 @@ func HandlerWithOptions(si ServerInterface, options StdHTTPServerOptions) http.H
 	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/public/latest", wrapper.GetPublicLatestStrategies)
 	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/public/maps", wrapper.GetPublicHomeMaps)
 	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/public/references", wrapper.GetPublicReferences)
-	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/public/sitemap", wrapper.GetPublicSitemapEntries)
 	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/public/strategies", wrapper.DiscoverPublicStrategies)
 	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/public/strategies/{strategyId}", wrapper.GetPublicStrategy)
 	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/public/versions", wrapper.GetPublicVersions)

@@ -391,28 +391,6 @@ func (s *server) GetPublicHero(w http.ResponseWriter, r *http.Request, heroID ch
 	})
 }
 
-func (s *server) GetPublicSitemapEntries(w http.ResponseWriter, r *http.Request) {
-	queries, release, ok := s.acquireQueries(w, r)
-	if !ok {
-		return
-	}
-	defer release()
-	ctx, cancel := context.WithTimeout(r.Context(), publicQueryTimeout)
-	defer cancel()
-	payload, err := queries.GetPublicSitemapEntries(ctx)
-	s.countQueries(r, 1)
-	if err != nil {
-		s.databaseFailure(w, "get_public_sitemap", err)
-		return
-	}
-	var entries chimpsapi.SitemapEntries
-	if err := json.Unmarshal(payload, &entries); err != nil {
-		s.databaseFailure(w, "decode_public_sitemap", err)
-		return
-	}
-	writeJSON(w, http.StatusOK, entries)
-}
-
 type publicStrategyList struct {
 	strategies []chimpsapi.PublicStrategySummary
 	rawCount   int

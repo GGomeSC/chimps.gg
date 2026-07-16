@@ -111,11 +111,6 @@ func TestPublicOperationsAgainstPostgres(t *testing.T) {
 		t.Fatalf("hero detail aggregates changed: %+v", heroDetail)
 	}
 
-	sitemap := publicResponse[chimpsapi.SitemapEntries](t, handler, "/public/sitemap", http.StatusOK)
-	if len(sitemap.StrategyIds) != 26 || slices.Contains(sitemap.StrategyIds, fixture.draftID) || !slices.Contains(sitemap.HeroIds, fixture.heroID) {
-		t.Fatalf("sitemap did not contain only ready strategy IDs and all hero IDs: %+v", sitemap)
-	}
-
 	if _, err := pool.Exec(ctx, "update public.towers set category = 'Support' where id = $1", fixture.heroID); err != nil {
 		t.Fatalf("make ready rows inconsistent: %v", err)
 	}

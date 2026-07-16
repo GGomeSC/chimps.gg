@@ -505,17 +505,3 @@ select jsonb_build_object(
 from public.towers as hero
 where hero.id = sqlc.arg(hero_id)
   and hero.category = 'Hero';
-
--- name: GetPublicSitemapEntries :one
-select jsonb_build_object(
-  'strategyIds', coalesce((
-    select jsonb_agg(strategy.id order by strategy.id)
-    from public.strategies as strategy
-    where strategy.status = 'ready'
-  ), '[]'::jsonb),
-  'heroIds', coalesce((
-    select jsonb_agg(hero.id order by hero.id)
-    from public.towers as hero
-    where hero.category = 'Hero'
-  ), '[]'::jsonb)
-) as entries;

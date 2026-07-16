@@ -386,16 +386,6 @@ paths:
             application/json:
               schema: { $ref: "#/components/schemas/PublicHeroDetail" }
         default: { $ref: "#/components/responses/Error" }
-  /public/sitemap:
-    get:
-      operationId: getPublicSitemapEntries
-      responses:
-        "200":
-          description: Numeric IDs included in the sitemap.
-          content:
-            application/json:
-              schema: { $ref: "#/components/schemas/SitemapEntries" }
-        default: { $ref: "#/components/responses/Error" }
 components:
   securitySchemes:
     internalSecret:
@@ -931,15 +921,5 @@ components:
           type: array
           items: { $ref: "#/components/schemas/PublicHeroReference" }
         strategyIds:
-          type: array
-          items: { type: integer, format: int64 }
-    SitemapEntries:
-      type: object
-      required: [strategyIds, heroIds]
-      properties:
-        strategyIds:
-          type: array
-          items: { type: integer, format: int64 }
-        heroIds:
           type: array
           items: { type: integer, format: int64 }

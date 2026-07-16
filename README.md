@@ -103,7 +103,8 @@ pnpm run sync:maps         # faz upsert dos maps (idempotente; -- --pages N para
 
 ## Notas do projeto
 
-As principais decisões e convenções estão no [`CLAUDE.md`](CLAUDE.md).
+As principais decisões e convenções da migração do backend estão no
+[`MIGRATION.md`](MIGRATION.md).
 
 ## Proveniência dos dados
 
