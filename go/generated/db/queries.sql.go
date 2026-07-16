@@ -294,28 +294,6 @@ func (q *Queries) GetPublicReferences(ctx context.Context) ([]byte, error) {
 	return references, err
 }
 
-const getPublicSitemapEntries = `-- name: GetPublicSitemapEntries :one
-select jsonb_build_object(
-  'strategyIds', coalesce((
-    select jsonb_agg(strategy.id order by strategy.id)
-    from public.strategies as strategy
-    where strategy.status = 'ready'
-  ), '[]'::jsonb),
-  'heroIds', coalesce((
-    select jsonb_agg(hero.id order by hero.id)
-    from public.towers as hero
-    where hero.category = 'Hero'
-  ), '[]'::jsonb)
-) as entries
-`
-
-func (q *Queries) GetPublicSitemapEntries(ctx context.Context) ([]byte, error) {
-	row := q.db.QueryRow(ctx, getPublicSitemapEntries)
-	var entries []byte
-	err := row.Scan(&entries)
-	return entries, err
-}
-
 const getPublicStrategyDetail = `-- name: GetPublicStrategyDetail :one
 select jsonb_build_object(
   'id', strategy.id,

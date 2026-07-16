@@ -13,10 +13,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 	const locale = pathnameLocale(pathname);
 	return localeStorage.run(locale, () =>
 		resolve(event, {
-			transformPageChunk: ({ html }) => html.replace('%lang%', locale),
-			filterSerializedResponseHeaders(name) {
-				return name === 'content-range' || name === 'x-supabase-api-version';
-			}
+			transformPageChunk: ({ html }) => html.replace('%lang%', locale)
 		})
 	);
 };

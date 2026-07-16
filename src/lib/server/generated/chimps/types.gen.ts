@@ -362,11 +362,6 @@ export type PublicReferences = {
     strategyIds: Array<number>;
 };
 
-export type SitemapEntries = {
-    strategyIds: Array<number>;
-    heroIds: Array<number>;
-};
-
 export type StrategyId = number;
 
 export type StepId = number;
@@ -1081,28 +1076,3 @@ export type GetPublicHeroResponses = {
 };
 
 export type GetPublicHeroResponse = GetPublicHeroResponses[keyof GetPublicHeroResponses];
-
-export type GetPublicSitemapEntriesData = {
-    body?: never;
-    path?: never;
-    query?: never;
-    url: '/public/sitemap';
-};
-
-export type GetPublicSitemapEntriesErrors = {
-    /**
-     * Internal service error.
-     */
-    default: ErrorResponse;
-};
-
-export type GetPublicSitemapEntriesError = GetPublicSitemapEntriesErrors[keyof GetPublicSitemapEntriesErrors];
-
-export type GetPublicSitemapEntriesResponses = {
-    /**
-     * Numeric IDs included in the sitemap.
-     */
-    200: SitemapEntries;
-};
-
-export type GetPublicSitemapEntriesResponse = GetPublicSitemapEntriesResponses[keyof GetPublicSitemapEntriesResponses];
