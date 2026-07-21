@@ -1,5 +1,6 @@
 <script lang="ts">
 	import BuildOrder from '$lib/components/public/BuildOrder.svelte';
+	import Breadcrumbs from '$lib/components/public/Breadcrumbs.svelte';
 	import DifficultyPips from '$lib/components/public/DifficultyPips.svelte';
 	import EntityIcon from '$lib/components/public/EntityIcon.svelte';
 	import StrategyMap from '$lib/components/StrategyMap.svelte';
@@ -37,7 +38,7 @@
 
 <article class="strategy-detail">
 	<header class="detail-header page-shell">
-		<a class="back" href={href('/strategies')}>{m.all_strategies_back()}</a>
+		<Breadcrumbs href={href('/strategies')} parent={m.nav_strategies()} current={data.strategy.title} />
 		<div class="badges">
 			<span>v{data.strategy.verifiedVersion}</span>
 			<span>{data.strategy.mode.name}</span>
@@ -119,16 +120,6 @@
 		padding-block: var(--space-5);
 	}
 
-	.back {
-		display: inline-flex;
-		min-height: var(--icon-control);
-		align-items: center;
-		margin-bottom: var(--space-4);
-		color: var(--fg-muted);
-		font-size: var(--text-meta);
-		font-weight: 750;
-	}
-
 	.badges {
 		display: flex;
 		flex-wrap: wrap;
@@ -149,7 +140,7 @@
 	h1 {
 		max-width: 55rem;
 		margin: 0.8rem 0 1.5rem;
-		font-size: clamp(2.5rem, 7vw, 4.5rem);
+		font-size: var(--text-3xl);
 		line-height: 0.98;
 		letter-spacing: -0.065em;
 	}
@@ -226,6 +217,10 @@
 		border-radius: var(--radius-lg);
 		background: var(--surface);
 		box-shadow: var(--shadow-card);
+	}
+
+	@media (min-width: 64.01rem) {
+		.build-column { position: sticky; top: 5.5rem; max-height: calc(100vh - 7rem); overflow-y: auto; }
 	}
 
 	.content-grid .section-heading {

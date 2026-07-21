@@ -35,7 +35,13 @@
 		const current = delocalizePath(page.url.pathname);
 		return path === '/' ? current === '/' : current.startsWith(path);
 	}
+
+	function closeMenu(event: KeyboardEvent): void {
+		if (event.key === 'Escape') menuOpen = false;
+	}
 </script>
+
+<svelte:window onkeydown={closeMenu} />
 
 <header class="site-header">
 	<a class="skip-link" href="#main-content">{m.skip_to_content()}</a>
@@ -57,7 +63,7 @@
 		</button>
 
 		<nav id="public-navigation" class:open={menuOpen} aria-label={m.primary_navigation()}>
-			<a href={href('/')} aria-current={isCurrent('/') ? 'page' : undefined}>{m.nav_home()}</a>
+			<a href={href('/maps')} aria-current={isCurrent('/maps') ? 'page' : undefined}>{m.nav_maps()}</a>
 			<a href={href('/strategies')} aria-current={isCurrent('/strategies') ? 'page' : undefined}
 				>{m.nav_strategies()}</a
 			>
@@ -74,6 +80,7 @@
 			<ThemeToggle />
 		</nav>
 	</div>
+	{#if menuOpen}<button class="menu-scrim" type="button" aria-label={m.toggle_navigation()} onclick={() => (menuOpen = false)}></button>{/if}
 	<div class="navigation-progress" class:active={navigating.to !== null} aria-hidden="true"></div>
 </header>
 
@@ -159,6 +166,7 @@
 	}
 
 	nav > a[aria-current='page'] {
+		background: var(--brand-soft);
 		color: var(--fg);
 	}
 
@@ -176,10 +184,11 @@
 		transition: transform var(--motion-standard) var(--ease-out);
 	}
 
-	nav > a:hover::after,
-	nav > a[aria-current='page']::after {
+	nav > a:hover::after {
 		transform: scaleX(1);
 	}
+
+	.menu-scrim { display: none; }
 
 	.menu-button {
 		display: none;
@@ -235,6 +244,16 @@
 	}
 
 	@media (max-width: 44rem) {
+		.menu-scrim {
+			position: fixed;
+			z-index: -1;
+			inset: 4.25rem 0 0;
+			display: block;
+			border: 0;
+			background: rgb(5 10 17 / 0.42);
+			backdrop-filter: blur(2px);
+		}
+
 		.menu-button {
 			display: block;
 		}
@@ -244,6 +263,7 @@
 			top: calc(100% + 0.5rem);
 			right: var(--public-gutter);
 			left: var(--public-gutter);
+			z-index: 2;
 			display: grid;
 			align-items: stretch;
 			padding: var(--space-2);

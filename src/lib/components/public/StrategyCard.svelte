@@ -15,8 +15,8 @@
 	);
 </script>
 
-<article class="strategy-card">
-	<a class="media" href={href(`/strategies/${strategy.id}`)} aria-label={m.card_view_label({ title: strategy.title })}>
+<a class="strategy-card" href={href(`/strategies/${strategy.id}`)} aria-label={m.card_view_label({ title: strategy.title })}>
+	<div class="media">
 		<FallbackImage src={strategy.map.imageUrl} alt={m.card_map_alt({ name: strategy.map.name })}>
 			{#snippet fallback()}
 				<div class="map-fallback" aria-label={m.card_image_unavailable({ name: strategy.map.name })}>{m.map_fallback()}</div>
@@ -33,7 +33,7 @@
 				{towerCount === 1 ? m.towers_hint_one({ count: towerCount }) : m.towers_hint_other({ count: towerCount })}
 			</span>
 		{/if}
-	</a>
+	</div>
 
 	<div class="body">
 		<div class="badges">
@@ -43,7 +43,7 @@
 			<span class="mode">{strategy.mode.name}</span>
 			<span class="map-name">{strategy.map.name}</span>
 		</div>
-		<h3><a href={href(`/strategies/${strategy.id}`)}>{strategy.title}</a></h3>
+		<h3>{strategy.title}</h3>
 		{#if strategy.description}
 			<p>{strategy.description}</p>
 		{/if}
@@ -59,7 +59,7 @@
 			<DifficultyPips value={strategy.executionDifficulty} />
 		</footer>
 	</div>
-</article>
+</a>
 
 <style>
 	.strategy-card {
@@ -70,7 +70,9 @@
 		border: 1px solid var(--border);
 		border-radius: var(--radius-md);
 		background: var(--surface-raised);
+		color: inherit;
 		box-shadow: var(--shadow-card);
+		text-decoration: none;
 		transition:
 			transform 180ms cubic-bezier(0.2, 0.7, 0.3, 1),
 			border-color 180ms ease,
@@ -79,7 +81,7 @@
 
 	.strategy-card:hover,
 	.strategy-card:focus-within {
-		transform: translateY(-3px);
+		transform: translateY(-2px);
 		border-color: color-mix(in srgb, var(--brand) 55%, var(--border));
 		box-shadow: var(--glow-brand), var(--shadow-card-hover);
 	}
@@ -108,9 +110,7 @@
 	}
 
 	.strategy-card:hover .media :global(img),
-	.strategy-card:focus-within .media :global(img) {
-		transform: scale(1.03);
-	}
+	.strategy-card:focus-within .media :global(img) { transform: scale(1.02); }
 
 	.map-fallback {
 		display: grid;
@@ -273,11 +273,6 @@
 		font-weight: 750;
 		letter-spacing: -0.015em;
 		line-height: 1.25;
-	}
-
-	h3 a {
-		color: inherit;
-		text-decoration: none;
 	}
 
 	p {

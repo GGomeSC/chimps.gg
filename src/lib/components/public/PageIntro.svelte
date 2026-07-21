@@ -1,39 +1,39 @@
 <script lang="ts">
 	let {
 		title,
-		headingId
+		headingId,
+		lead
 	}: {
 		title: string;
 		headingId?: string;
+		lead?: string;
 	} = $props();
 </script>
 
 <header class="page-intro">
 	<h1 id={headingId}>{title}</h1>
+	{#if lead}<p>{lead}</p>{/if}
 </header>
 
 <style>
 	.page-intro {
-		padding: var(--space-4);
-		border: 1px solid var(--border);
-		border-radius: var(--radius-lg);
-		background:
-			linear-gradient(115deg, color-mix(in srgb, var(--brand-soft) 54%, transparent), transparent 58%),
-			var(--surface-raised);
-		box-shadow: var(--shadow-card);
+		display: grid;
+		gap: var(--space-2);
+		max-width: 52rem;
 	}
 
 	h1 {
 		margin: 0;
-		font-size: clamp(2.25rem, 5vw, 3.6rem);
-		font-weight: 820;
+		font-size: var(--text-3xl);
+		font-weight: 800;
 		line-height: 1;
 		letter-spacing: -0.05em;
 	}
 
-	@media (max-width: 40rem) {
-		.page-intro {
-			padding: var(--space-3);
-		}
+	p {
+		max-width: var(--reading-max);
+		margin: 0;
+		color: var(--fg-muted);
+		font-size: var(--text-lead);
 	}
 </style>

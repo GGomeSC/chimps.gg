@@ -1,0 +1,4 @@
+interface:
+  display_name: "Design for Player Value"
+  short_description: "Keep product UI useful, direct, and player-first"
+  default_prompt: "Use $design-for-player-value to review this interface for player value and remove ornamental content."

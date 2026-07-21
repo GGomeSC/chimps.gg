@@ -69,9 +69,7 @@
 		transition: scale 300ms ease;
 	}
 
-	.hero-card:hover .art {
-		scale: 1.05;
-	}
+	.hero-card:hover .art { scale: 1.02; }
 
 	.portrait {
 		position: relative;

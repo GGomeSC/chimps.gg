@@ -20,6 +20,7 @@
 	// Each change applies immediately; SvelteKit's router handles the GET
 	// submission client-side. The form has no cursor input, so paging resets.
 	function submit(event: Event) {
+		if ((event.target as HTMLInputElement | null)?.type === 'search') return;
 		(event.currentTarget as HTMLFormElement).requestSubmit();
 	}
 
@@ -93,13 +94,14 @@
 				bind:this={searchInput}
 				bind:value={query}
 				type="search"
+				name="q"
 				placeholder={m.search_placeholder()}
 				aria-label={m.search_label()}
 			/>
 			<kbd aria-hidden="true">/</kbd>
 		</label>
 
-		<label>
+		<label class="primary-filter">
 			<span>{m.filter_map()}</span>
 			<select name="map" value={filters.mapId ?? ''}>
 				<option value="">{m.filter_all()}</option>
@@ -109,7 +111,7 @@
 			</select>
 		</label>
 
-		<label>
+		<label class="primary-filter">
 			<span>{m.filter_mode()}</span>
 			<select name="mode" value={filters.modeId ?? ''}>
 				<option value="">{m.filter_all()}</option>
@@ -119,7 +121,7 @@
 			</select>
 		</label>
 
-		<label>
+		<label class="primary-filter">
 			<span>{m.filter_hero()}</span>
 			<select name="hero" value={filters.heroId ?? ''}>
 				<option value="">{m.filter_all()}</option>
@@ -129,35 +131,32 @@
 			</select>
 		</label>
 
-		<label>
-			<span>{m.filter_execution()}</span>
-			<select name="difficulty" value={filters.executionDifficulty ?? ''}>
-				<option value="">{m.filter_any()}</option>
-				{#each [1, 2, 3, 4, 5] as difficulty (difficulty)}
-					<option value={difficulty}>{difficulty} / 5</option>
-				{/each}
-			</select>
-		</label>
-
-		<label>
-			<span>{m.filter_tier()}</span>
-			<select name="mapDifficulty" value={filters.mapDifficulty ?? ''}>
-				<option value="">{m.filter_all()}</option>
-				{#each tierOptions as difficulty (difficulty)}
-					<option value={difficulty}>{mapDifficultyLabel(difficulty)}</option>
-				{/each}
-			</select>
-		</label>
-
-		<label>
-			<span>{m.filter_version()}</span>
-			<select name="version" value={filters.version ?? ''}>
-				<option value="">{m.filter_all()}</option>
-				{#each options.versions as version (version)}
-					<option value={version}>v{version}</option>
-				{/each}
-			</select>
-		</label>
+		<details class="advanced" open={Boolean(filters.executionDifficulty || filters.mapDifficulty || filters.version)}>
+			<summary>{m.more_filters()} <span aria-hidden="true">＋</span></summary>
+			<div class="advanced-controls">
+				<label>
+					<span>{m.filter_execution()}</span>
+					<select name="difficulty" value={filters.executionDifficulty ?? ''}>
+						<option value="">{m.filter_any()}</option>
+						{#each [1, 2, 3, 4, 5] as difficulty (difficulty)}<option value={difficulty}>{difficulty} / 5</option>{/each}
+					</select>
+				</label>
+				<label>
+					<span>{m.filter_tier()}</span>
+					<select name="mapDifficulty" value={filters.mapDifficulty ?? ''}>
+						<option value="">{m.filter_all()}</option>
+						{#each tierOptions as difficulty (difficulty)}<option value={difficulty}>{mapDifficultyLabel(difficulty)}</option>{/each}
+					</select>
+				</label>
+				<label>
+					<span>{m.filter_version()}</span>
+					<select name="version" value={filters.version ?? ''}>
+						<option value="">{m.filter_all()}</option>
+						{#each options.versions as version (version)}<option value={version}>v{version}</option>{/each}
+					</select>
+				</label>
+			</div>
+		</details>
 
 		<noscript><button class="button" type="submit">{m.apply()}</button></noscript>
 	</div>
@@ -187,11 +186,18 @@
 	}
 
 	.controls {
-		display: flex;
-		flex-wrap: wrap;
+		display: grid;
+		grid-template-columns: minmax(14rem, 2fr) repeat(3, minmax(8rem, 1fr)) auto;
 		gap: var(--space-2);
 		align-items: end;
 	}
+
+	.advanced { align-self: end; }
+	.advanced summary { display: flex; min-height: var(--control-height); align-items: center; gap: var(--space-2); padding: 0 var(--space-3); border: 1px solid var(--border-strong); border-radius: var(--radius-sm); background: var(--surface-raised); color: var(--fg); font-size: var(--text-meta); font-weight: 750; cursor: pointer; list-style: none; white-space: nowrap; }
+	.advanced summary::-webkit-details-marker { display: none; }
+	.advanced summary span { color: var(--brand-strong); transition: rotate var(--motion-standard) var(--ease-out); }
+	.advanced[open] summary span { rotate: 45deg; }
+	.advanced-controls { position: absolute; z-index: 10; right: var(--public-gutter); left: var(--public-gutter); display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-3); max-width: var(--public-content-max); padding: var(--space-4); margin: var(--space-2) auto 0; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--surface-raised); box-shadow: var(--shadow-card-hover); }
 
 	.search {
 		display: flex;
@@ -325,8 +331,14 @@
 
 	@media (max-width: 40rem) {
 		.filter-bar { padding: var(--space-3); }
-		.search { flex-basis: 100%; }
-		label:not(.search) { flex: 1 1 8rem; }
+		.controls { grid-template-columns: 1fr 1fr; }
+		.search, .advanced { grid-column: 1 / -1; }
+		.advanced summary { justify-content: space-between; }
+		.advanced-controls { position: static; grid-template-columns: 1fr; padding: var(--space-3); }
 		select { width: 100%; }
+	}
+
+	@media (min-width: 40.01rem) and (max-width: 64rem) {
+		.controls { grid-template-columns: minmax(14rem, 2fr) repeat(2, 1fr); }
 	}
 </style>

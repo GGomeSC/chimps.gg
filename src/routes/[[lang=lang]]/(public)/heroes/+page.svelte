@@ -18,6 +18,7 @@
 <section class="page-shell hero-list" aria-labelledby="hero-list-heading">
 	<PageIntro
 		title={m.choose_your_hero()}
+		lead={m.heroes_lead()}
 		headingId="hero-list-heading"
 	/>
 	<div class="hero-grid">
@@ -35,19 +36,11 @@
 	}
 
 	.hero-grid {
-		grid-template-columns: repeat(4, minmax(0, 1fr));
+		grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
 		gap: var(--space-3);
-	}
-
-	@media (max-width: 58rem) {
-		.hero-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 	}
 
 	@media (max-width: 42rem) {
 		.hero-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-	}
-
-	@media (max-width: 34rem) {
-		.hero-grid { grid-template-columns: 1fr; }
 	}
 </style>

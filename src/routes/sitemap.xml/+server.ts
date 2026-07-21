@@ -6,6 +6,7 @@ export const GET: RequestHandler = async ({ fetch, url }) => {
 	const entries = await getSitemapEntries(fetch, url.origin);
 	const paths = [
 		'/',
+		'/maps',
 		'/strategies',
 		'/heroes',
 		...entries.strategyIds.map((id) => `/strategies/${id}`),
