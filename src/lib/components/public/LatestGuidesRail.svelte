@@ -33,7 +33,7 @@
 </section>
 
 <style>
-	.latest { padding-block: var(--space-5) var(--space-4); }
+	.latest { padding-block: var(--space-6) var(--space-7); }
 	header { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); margin-bottom: var(--space-3); }
 	h2 { margin: 0; font-size: clamp(1.75rem, 3vw, 2.25rem); letter-spacing: -.03em; }
 	.actions { display: flex; align-items: center; gap: var(--space-1); }

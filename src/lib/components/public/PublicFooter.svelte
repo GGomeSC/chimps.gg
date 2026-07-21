@@ -30,6 +30,7 @@
 			<p class="legal">{m.footer_disclaimer()}</p>
 		</div>
 		<nav aria-label={m.footer_navigation()}>
+			<a href={href('/maps')}>{m.nav_maps()}</a>
 			<a href={href('/strategies')}>{m.nav_strategies()}</a>
 			<a href={href('/heroes')}>{m.nav_heroes()}</a>
 			<a href="https://data.ninjakiwi.com/" rel="external">Ninja Kiwi Open Data</a>
@@ -47,7 +48,7 @@
 <style>
 	.site-footer {
 		margin-top: 0;
-		padding: var(--space-2) 0;
+		padding: var(--space-5) 0;
 		border-top: 1px solid var(--border);
 		background: var(--surface);
 	}

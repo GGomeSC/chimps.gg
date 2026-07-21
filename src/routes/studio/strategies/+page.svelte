@@ -6,8 +6,10 @@
 	<title>Strategies · chimps.gg studio</title>
 </svelte:head>
 
-<h1>Strategies</h1>
-<p><a href="/studio/strategies/new">+ New strategy</a></p>
+<div class="heading">
+	<div><h1>Strategies</h1><p>Manage build orders, placements, and publishing status.</p></div>
+	<a class="create" href="/studio/strategies/new">+ New strategy</a>
+</div>
 
 {#if form?.error}
 	<p class="error">{form.error}</p>
@@ -56,6 +58,10 @@
 {/if}
 
 <style>
+	.heading { display: flex; align-items: end; justify-content: space-between; gap: var(--space-4); margin-bottom: var(--space-5); }
+	.heading h1, .heading p { margin: 0; }
+	.heading p { color: var(--fg-muted); }
+	.create { display: inline-flex; min-height: 2.75rem; align-items: center; padding: 0 var(--space-3); border-radius: var(--radius-sm); background: var(--brand); color: var(--ink); text-decoration: none; }
 	table {
 		border-collapse: collapse;
 		width: 100%;

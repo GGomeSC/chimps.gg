@@ -48,6 +48,14 @@
 	--radius-sm: 0.65rem;
 	--radius-md: 0.9rem;
 	--radius-lg: 1.25rem;
+	--space-1: 0.25rem;
+	--space-2: 0.5rem;
+	--space-3: 0.75rem;
+	--space-4: 1rem;
+	--space-5: 1.5rem;
+	--space-6: 2rem;
+	--space-7: 3rem;
+	--space-8: 4rem;
 	--shadow-card: light-dark(
 		0 1px 2px rgb(26 36 48 / 0.06),
 		0 1px 2px rgb(0 0 0 / 0.4)
@@ -129,28 +137,32 @@ a {
 	width: 100%;
 	min-height: 100vh;
 	flex-direction: column;
-	font-size: 1.0625rem;
+	font-size: 1rem;
 	line-height: 1.55;
 
 	/* Public-only sizing system. Studio remains on the root defaults. */
 	--public-content-max: 80rem;
-	--public-gutter: clamp(1rem, 3vw, 2rem);
-	--space-1: 0.5rem;
-	--space-2: 0.75rem;
-	--space-3: 1rem;
-	--space-4: 1.5rem;
-	--space-5: 2rem;
+	--public-gutter: clamp(1rem, 4vw, 2rem);
+	--section-gap: clamp(2.5rem, 6vw, 4.5rem);
+	--card-padding: clamp(1rem, 2vw, 1.5rem);
+	--reading-max: 42rem;
+	--text-xs: 0.75rem;
 	--text-meta: 0.875rem;
-	--text-body: 1.0625rem;
+	--text-body: 1rem;
 	--text-lead: 1.125rem;
+	--text-xl: 1.375rem;
+	--text-2xl: clamp(1.75rem, 3vw, 2.25rem);
+	--text-3xl: clamp(2.25rem, 5vw, 3.75rem);
 	--control-height: 3rem;
+	--control-sm: 2.25rem;
+	--control-md: 2.75rem;
 	--icon-control: 2.75rem;
 	--map-border: 1px solid var(--border);
 	--map-shadow: var(--shadow-card);
 	--map-marker-size: 2.75rem;
 	--motion-fast: 160ms;
-	--motion-standard: 260ms;
-	--motion-enter: 420ms;
+	--motion-standard: 200ms;
+	--motion-enter: 280ms;
 	--ease-out: cubic-bezier(0.22, 1, 0.36, 1);
 	--radius-sm: 0.75rem;
 	--radius-md: 1rem;
@@ -215,8 +227,8 @@ a {
 
 .public-site .section-heading h2 {
 	margin: 0;
-	font-size: clamp(1.75rem, 3vw, 2.25rem);
-	font-weight: 750;
+	font-size: var(--text-2xl);
+	font-weight: 760;
 	letter-spacing: -0.03em;
 }
 
@@ -235,7 +247,7 @@ a {
 .public-site .strategy-grid,
 .public-site .hero-grid {
 	display: grid;
-	grid-template-columns: repeat(3, minmax(0, 1fr));
+	grid-template-columns: repeat(auto-fit, minmax(min(100%, 17rem), 1fr));
 	gap: var(--space-3);
 }
 
@@ -280,51 +292,17 @@ a {
 	animation: public-page-in 260ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
-.public-site :is(.page-intro, .detail-header, .profile-header, .error-page) {
+.public-site :is(.page-intro, .detail-header, .profile-header, .error-page, .home-hero) {
 	animation: public-enter var(--motion-enter) var(--ease-out) both;
 }
 
-.public-site :is(.filter-bar, .tier-tabs, .latest > header, .summary-row) {
+.public-site :is(.filter-bar, .tier-tabs, .summary-row) {
 	animation: public-enter var(--motion-enter) var(--ease-out) 60ms backwards;
 }
 
-.public-site :is(.map-viewport, .latest .rail, .content-grid > *, .related-section, .coverage-section) {
+.public-site :is(.map-viewport, .content-grid, .related-section, .coverage-section) {
 	animation: public-enter var(--motion-enter) var(--ease-out) 110ms backwards;
 }
-
-.public-site :is(.strategy-grid, .hero-grid, .map-page:first-child) > * {
-	animation: public-enter var(--motion-enter) var(--ease-out) 100ms backwards;
-}
-
-.public-site :is(.strategy-grid, .hero-grid, .map-page:first-child) > :nth-child(2) {
-	animation-delay: 135ms;
-}
-
-.public-site :is(.strategy-grid, .hero-grid, .map-page:first-child) > :nth-child(3) {
-	animation-delay: 170ms;
-}
-
-.public-site :is(.strategy-grid, .hero-grid, .map-page:first-child) > :nth-child(4) {
-	animation-delay: 205ms;
-}
-
-.public-site :is(.strategy-grid, .hero-grid, .map-page:first-child) > :nth-child(5) {
-	animation-delay: 240ms;
-}
-
-.public-site :is(.strategy-grid, .hero-grid, .map-page:first-child) > :nth-child(6) {
-	animation-delay: 275ms;
-}
-
-.public-site .build-order > li:nth-child(-n + 6) {
-	animation: public-enter var(--motion-enter) var(--ease-out) 100ms backwards;
-}
-
-.public-site .build-order > li:nth-child(2) { animation-delay: 135ms; }
-.public-site .build-order > li:nth-child(3) { animation-delay: 170ms; }
-.public-site .build-order > li:nth-child(4) { animation-delay: 205ms; }
-.public-site .build-order > li:nth-child(5) { animation-delay: 240ms; }
-.public-site .build-order > li:nth-child(6) { animation-delay: 275ms; }
 
 .public-site .theme-toggle span {
 	display: block;
@@ -361,18 +339,7 @@ a {
 	scale: 1.08;
 }
 
-@media (max-width: 48rem) {
-	.public-site .strategy-grid {
-		grid-template-columns: repeat(2, minmax(0, 1fr));
-	}
-}
-
 @media (max-width: 34rem) {
-	.public-site .strategy-grid,
-	.public-site .hero-grid {
-		grid-template-columns: 1fr;
-	}
-
 	.public-site .section-heading {
 		align-items: start;
 		flex-direction: column;

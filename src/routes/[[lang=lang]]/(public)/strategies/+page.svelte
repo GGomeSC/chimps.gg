@@ -9,7 +9,7 @@
 
 	let { data } = $props();
 
-	let query = $state('');
+	let query = $derived(data.query);
 
 	// Fuzzy search narrows the loaded page client-side; server filters own the URL.
 	const visible = $derived(
@@ -37,10 +37,14 @@
 <div class="page-shell discovery">
 	<PageIntro
 		title={m.find_your_next_run()}
+		lead={m.strategies_lead()}
 	/>
 	<FilterBar filters={data.filters} options={data.options} bind:query />
 
 	<section class="results" aria-label={m.strategy_results()}>
+		<header class="results-heading" aria-live="polite">
+			<strong>{visible.length === 1 ? m.results_count_one({ count: visible.length }) : m.results_count_other({ count: visible.length })}</strong>
+		</header>
 		{#if visible.length > 0}
 			<div class="strategy-grid">
 				{#each visible as strategy (strategy.id)}
@@ -75,4 +79,8 @@
 		justify-content: center;
 		margin-top: var(--space-5);
 	}
+
+	.results { display: grid; gap: var(--space-3); }
+	.results-heading { display: flex; min-height: var(--control-sm); align-items: center; color: var(--fg-muted); font-size: var(--text-meta); }
+	.results-heading strong { color: var(--fg); font-variant-numeric: tabular-nums; }
 </style>

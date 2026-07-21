@@ -1,5 +1,6 @@
 <script lang="ts">
 	import EmptyState from '$lib/components/public/EmptyState.svelte';
+	import Breadcrumbs from '$lib/components/public/Breadcrumbs.svelte';
 	import CompactStrategyCard from '$lib/components/public/CompactStrategyCard.svelte';
 	import EntityIcon from '$lib/components/public/EntityIcon.svelte';
 	import { heroAccent } from '$lib/hero-accents';
@@ -52,7 +53,7 @@
 </svelte:head>
 
 <section class="profile-header page-shell">
-	<a class="back" href={href('/heroes')}>{m.all_heroes_back()}</a>
+	<Breadcrumbs href={href('/heroes')} parent={m.nav_heroes()} current={data.hero.name} />
 	<div class:has-quick={hasQuickProfile} class="profile-grid" style:--hero-accent={accent}>
 		<div class="portrait">
 			<EntityIcon src={data.hero.iconUrl} name={data.hero.name} profile />
@@ -171,16 +172,6 @@
 		padding-block: var(--space-5) 0;
 	}
 
-	.back {
-		display: inline-flex;
-		min-height: var(--icon-control);
-		align-items: center;
-		margin-bottom: var(--space-3);
-		color: var(--fg-muted);
-		font-size: var(--text-meta);
-		font-weight: 750;
-	}
-
 	.profile-grid {
 		isolation: isolate;
 		position: relative;
@@ -234,7 +225,7 @@
 
 	h1 {
 		margin: 0.2rem 0;
-		font-size: clamp(2.5rem, 6vw, 4.25rem);
+		font-size: var(--text-3xl);
 		letter-spacing: -0.065em;
 	}
 
@@ -378,10 +369,8 @@
 	}
 
 	.coverage-panel {
-		padding: var(--space-4);
-		border: 1px solid var(--border);
-		border-radius: var(--radius-lg);
-		background: var(--surface-raised);
+		padding-block: var(--space-5);
+		border-top: 1px solid var(--border);
 	}
 
 	.coverage-panel > h2 {

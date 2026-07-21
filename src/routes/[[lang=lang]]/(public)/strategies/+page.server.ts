@@ -6,7 +6,7 @@ import type { PageServerLoad } from './$types';
 export const config: Config = {
 	isr: {
 		expiration: 180,
-		allowQuery: ['map', 'mode', 'hero', 'difficulty', 'mapDifficulty', 'version', 'cursor']
+		allowQuery: ['q', 'map', 'mode', 'hero', 'difficulty', 'mapDifficulty', 'version', 'cursor']
 	}
 };
 
@@ -25,6 +25,9 @@ export const load: PageServerLoad = async ({ fetch, url, setHeaders }) => {
 		...discovery,
 		nextHref: discovery.nextCursor ? `${nextUrl.pathname}${nextUrl.search}` : null,
 		canonical: canonicalUrl(url, localizeHref('/strategies', pathnameLocale(url.pathname))),
-		filtered: Object.values(applied).some((value) => value !== null)
+		filtered:
+			Object.values(applied).some((value) => value !== null) ||
+			Boolean(url.searchParams.get('q')?.trim()),
+		query: url.searchParams.get('q')?.trim() ?? ''
 	};
 };

@@ -8,7 +8,7 @@
 	import type { HomeMap } from '$lib/types/public';
 	import type { MapDifficulty } from '$lib/types/db';
 
-	let { maps }: { maps: HomeMap[] } = $props();
+	let { maps, title = m.choose_your_map(), lead }: { maps: HomeMap[]; title?: string; lead?: string } = $props();
 
 	function guidesCount(count: number): string {
 		return count === 1 ? m.guides_count_one({ count }) : m.guides_count_other({ count });
@@ -50,9 +50,10 @@
 	}
 </script>
 
-<section class="map-selector page-shell" aria-labelledby="map-selector-title">
+<section id="maps" class="map-selector page-shell" aria-labelledby="map-selector-title">
 	<PageIntro
-		title={m.choose_your_map()}
+		{title}
+		{lead}
 		headingId="map-selector-title"
 	/>
 
@@ -116,7 +117,7 @@
 </section>
 
 <style>
-	.map-selector { display: grid; gap: var(--space-4); padding-top: var(--space-5); }
+	.map-selector { display: grid; gap: var(--space-5); padding-block: var(--space-6); }
 	.tier-tabs { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-1); padding: var(--space-1); border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--surface); box-shadow: var(--shadow-card); }
 	.tier-tabs button { min-height: var(--control-height); padding: .65rem 1rem; border: 0; border-radius: var(--radius-sm); background: transparent; color: var(--fg-muted); font-size: var(--text-meta); font-weight: 750; transition: background var(--motion-standard) ease, color var(--motion-fast) ease; }
 	.tier-tabs button[aria-selected='true'] { background: color-mix(in srgb, var(--tier-color) 18%, var(--surface-raised)); box-shadow: inset 0 -2px var(--tier-color); color: var(--fg); }
@@ -147,6 +148,6 @@
 	.page-dots button:hover::after { background: var(--fg-muted); transform: scaleX(.5); }
 	.page-dots button.active::after { background: var(--brand); transform: scaleX(1); }
 	@media (max-width: 52rem) { .map-page { grid-template-columns: repeat(2, minmax(0, 1fr)); } .tier-tabs { overflow-x: auto; grid-template-columns: repeat(4, minmax(8rem, 1fr)); } }
-	@media (max-width: 34rem) { .map-page { grid-template-columns: 1fr; } }
+	@media (max-width: 34rem) { .map-page { grid-template-columns: 1fr; } .tier-tabs { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 	@media (prefers-reduced-motion: reduce) { .map-track { scroll-behavior: auto; } }
 </style>
