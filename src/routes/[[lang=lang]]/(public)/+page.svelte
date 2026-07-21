@@ -1,7 +1,6 @@
 <script lang="ts">
 	import LatestGuidesRail from '$lib/components/public/LatestGuidesRail.svelte';
 	import MapSelector from '$lib/components/public/MapSelector.svelte';
-	import HomeHero from '$lib/components/public/HomeHero.svelte';
 	import { m } from '$lib/paraglide/messages.js';
 
 	let { data } = $props();
@@ -16,6 +15,5 @@
 	<meta property="og:url" content={data.canonical} />
 </svelte:head>
 
-<HomeHero guideCount={data.guideCount} mapCount={data.mapCount} />
 <MapSelector maps={data.maps} />
 <LatestGuidesRail strategies={data.strategies} />

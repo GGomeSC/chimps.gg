@@ -15,8 +15,6 @@ export const load: PageServerLoad = async ({ fetch, url, setHeaders }) => {
 	return {
 		strategies,
 		maps,
-		guideCount: maps.reduce((total, map) => total + map.guideCount, 0),
-		mapCount: maps.filter((map) => map.guideCount > 0).length,
 		canonical: canonicalUrl(url, localizeHref('/', pathnameLocale(url.pathname)))
 	};
 };

@@ -292,7 +292,7 @@ a {
 	animation: public-page-in 260ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
-.public-site :is(.page-intro, .detail-header, .profile-header, .error-page, .home-hero) {
+.public-site :is(.page-intro, .detail-header, .profile-header, .error-page) {
 	animation: public-enter var(--motion-enter) var(--ease-out) both;
 }
 
