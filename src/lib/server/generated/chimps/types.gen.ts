@@ -4,6 +4,67 @@ export type ClientOptions = {
     baseUrl: `${string}://${string}/api/chimps` | (string & {});
 };
 
+export type PublicPlayer = {
+    userId: string;
+    displayName: string;
+    rank: number;
+    veteranRank: number;
+    achievements: number;
+    mostExperiencedMonkey: string;
+    highestRound: number;
+    avatarUrl: string | null;
+    bannerUrl: string | null;
+    followers: number;
+    bloonsPopped: number;
+    gameCount: number;
+    gamesWon: number;
+    lastSyncedAt: string;
+};
+
+export type CommunityMapCounters = {
+    plays: number;
+    wins: number;
+    losses: number;
+    playsUnique: number;
+    winsUnique: number;
+    lossesUnique: number;
+};
+
+export type CommunityMapVersionTrend = {
+    version: string;
+    sinceTrackingBegan: boolean;
+    plays: number;
+    wins: number;
+    losses: number;
+    playsUnique: number;
+    winsUnique: number;
+    lossesUnique: number;
+};
+
+export type CommunityMapTransition = {
+    fromVersion: string;
+    toVersion: string;
+    capturedAt: string;
+};
+
+export type PublicCommunityMap = {
+    mapCode: string;
+    name: string;
+    creator: PublicPlayer | null;
+    createdAt: string;
+    creationVersion: string;
+    mapUrl: string;
+    counters: CommunityMapCounters;
+    /**
+     * Decisive win rate: wins / (wins + losses).
+     */
+    winRate: number | null;
+    firstObservedAt: string;
+    lastSyncedAt: string;
+    trends: Array<CommunityMapVersionTrend>;
+    transitions: Array<CommunityMapTransition>;
+};
+
 export type ErrorResponse = {
     code: string;
     message: string;
@@ -369,6 +430,173 @@ export type StepId = number;
 export type PlacementId = number;
 
 export type HeroId = number;
+
+export type ResolveOwnPlayerData = {
+    body: {
+        oak: string;
+    };
+    path?: never;
+    query?: never;
+    url: '/players/oak';
+};
+
+export type ResolveOwnPlayerErrors = {
+    /**
+     * Internal service error.
+     */
+    default: ErrorResponse;
+};
+
+export type ResolveOwnPlayerError = ResolveOwnPlayerErrors[keyof ResolveOwnPlayerErrors];
+
+export type ResolveOwnPlayerResponses = {
+    /**
+     * OAK resolved transiently; only the public user ID is returned.
+     */
+    200: {
+        userId: string;
+    };
+};
+
+export type ResolveOwnPlayerResponse = ResolveOwnPlayerResponses[keyof ResolveOwnPlayerResponses];
+
+export type ResolvePlayerData = {
+    body: {
+        identifier: string;
+    };
+    path?: never;
+    query?: never;
+    url: '/players/resolve';
+};
+
+export type ResolvePlayerErrors = {
+    /**
+     * Internal service error.
+     */
+    default: ErrorResponse;
+};
+
+export type ResolvePlayerError = ResolvePlayerErrors[keyof ResolvePlayerErrors];
+
+export type ResolvePlayerResponses = {
+    /**
+     * Indexed public player.
+     */
+    200: PublicPlayer;
+};
+
+export type ResolvePlayerResponse = ResolvePlayerResponses[keyof ResolvePlayerResponses];
+
+export type SyncCommunityMapsData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/sync/community-maps';
+};
+
+export type SyncCommunityMapsErrors = {
+    /**
+     * Internal service error.
+     */
+    default: ErrorResponse;
+};
+
+export type SyncCommunityMapsError = SyncCommunityMapsErrors[keyof SyncCommunityMapsErrors];
+
+export type SyncCommunityMapsResponses = {
+    /**
+     * Cached maps refreshed and snapshotted.
+     */
+    200: {
+        version: string;
+        maps: number;
+    };
+};
+
+export type SyncCommunityMapsResponse = SyncCommunityMapsResponses[keyof SyncCommunityMapsResponses];
+
+export type SearchPublicPlayersData = {
+    body?: never;
+    path?: never;
+    query: {
+        q: string;
+    };
+    url: '/public/players';
+};
+
+export type SearchPublicPlayersErrors = {
+    /**
+     * Internal service error.
+     */
+    default: ErrorResponse;
+};
+
+export type SearchPublicPlayersError = SearchPublicPlayersErrors[keyof SearchPublicPlayersErrors];
+
+export type SearchPublicPlayersResponses = {
+    /**
+     * Previously indexed matching players.
+     */
+    200: {
+        players: Array<PublicPlayer>;
+    };
+};
+
+export type SearchPublicPlayersResponse = SearchPublicPlayersResponses[keyof SearchPublicPlayersResponses];
+
+export type GetPublicPlayerData = {
+    body?: never;
+    path: {
+        userId: string;
+    };
+    query?: never;
+    url: '/public/players/{userId}';
+};
+
+export type GetPublicPlayerErrors = {
+    /**
+     * Internal service error.
+     */
+    default: ErrorResponse;
+};
+
+export type GetPublicPlayerError = GetPublicPlayerErrors[keyof GetPublicPlayerErrors];
+
+export type GetPublicPlayerResponses = {
+    /**
+     * Indexed public player.
+     */
+    200: PublicPlayer;
+};
+
+export type GetPublicPlayerResponse = GetPublicPlayerResponses[keyof GetPublicPlayerResponses];
+
+export type GetPublicCommunityMapData = {
+    body?: never;
+    path: {
+        mapCode: string;
+    };
+    query?: never;
+    url: '/public/community-maps/{mapCode}';
+};
+
+export type GetPublicCommunityMapErrors = {
+    /**
+     * Internal service error.
+     */
+    default: ErrorResponse;
+};
+
+export type GetPublicCommunityMapError = GetPublicCommunityMapErrors[keyof GetPublicCommunityMapErrors];
+
+export type GetPublicCommunityMapResponses = {
+    /**
+     * Live/read-through cached community map and tracked deltas.
+     */
+    200: PublicCommunityMap;
+};
+
+export type GetPublicCommunityMapResponse = GetPublicCommunityMapResponses[keyof GetPublicCommunityMapResponses];
 
 export type GetHealthData = {
     body?: never;

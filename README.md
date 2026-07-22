@@ -42,6 +42,8 @@ Rotas públicas principais:
 - `/strategies` — descoberta com filtros de mapa, modo, herói, dificuldade e versão;
 - `/strategies/[id]` — placements aproximados e build order;
 - `/heroes` e `/heroes/[id]` — cobertura factual derivada de estratégias `ready`.
+- `/players` e `/players/[id]` — perfil público por OAK transitória ou índice limitado;
+- `/community-maps` e `/community-maps/[code]` — lookup por share code e tendências acompanhadas.
 
 Somente estratégias com `status = 'ready'` são expostas. Defina `PUBLIC_SITE_URL` com a
 origem canônica de produção (por padrão, `https://chimps.gg`) para metadata e sitemap.
@@ -89,6 +91,15 @@ Os maps oficiais do BTD6 vêm da [Ninja Kiwi Open Data API](https://data.ninjaki
 pnpm run discover:nk       # inspeciona o formato bruto das respostas da API
 pnpm run sync:maps         # faz upsert dos maps (idempotente; -- --pages N para ampliar)
 ```
+
+Mapas da comunidade ficam separados dos mapas oficiais. O primeiro lookup por share code
+cria um cache read-through; o Vercel Cron em `/api/cron/community-maps` atualiza somente
+esses mapas diariamente. Cada execução valida a versão ativa no challenge mais recente,
+rejeita regressões e grava snapshots append-only. Configure `CRON_SECRET` para proteger a rota.
+
+As tendências começam quando o mapa é consultado pela primeira vez e não são retroativas.
+A taxa exibida é `wins / (wins + losses)`; `plays` permanece separado porque também inclui
+reinícios e tentativas abandonadas.
 
 ## Scripts
 

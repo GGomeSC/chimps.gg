@@ -8,6 +8,105 @@ servers:
 security:
   - internalSecret: []
 paths:
+  /players/oak:
+    post:
+      operationId: resolveOwnPlayer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [oak]
+              properties:
+                oak: { type: string, minLength: 8, maxLength: 2048 }
+      responses:
+        "200":
+          description: OAK resolved transiently; only the public user ID is returned.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [userId]
+                properties:
+                  userId: { type: string }
+        default: { $ref: "#/components/responses/Error" }
+  /players/resolve:
+    post:
+      operationId: resolvePlayer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [identifier]
+              properties:
+                identifier: { type: string, minLength: 1, maxLength: 512 }
+      responses:
+        "200":
+          description: Indexed public player.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PublicPlayer" }
+        default: { $ref: "#/components/responses/Error" }
+  /sync/community-maps:
+    post:
+      operationId: syncCommunityMaps
+      responses:
+        "200":
+          description: Cached maps refreshed and snapshotted.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [version, maps]
+                properties:
+                  version: { type: string }
+                  maps: { type: integer }
+        default: { $ref: "#/components/responses/Error" }
+  /public/players:
+    get:
+      operationId: searchPublicPlayers
+      parameters:
+        - { in: query, name: q, required: true, schema: { type: string, minLength: 1, maxLength: 80 } }
+      responses:
+        "200":
+          description: Previously indexed matching players.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [players]
+                properties:
+                  players:
+                    type: array
+                    items: { $ref: "#/components/schemas/PublicPlayer" }
+        default: { $ref: "#/components/responses/Error" }
+  /public/players/{userId}:
+    get:
+      operationId: getPublicPlayer
+      parameters:
+        - { in: path, name: userId, required: true, schema: { type: string } }
+      responses:
+        "200":
+          description: Indexed public player.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PublicPlayer" }
+        default: { $ref: "#/components/responses/Error" }
+  /public/community-maps/{mapCode}:
+    get:
+      operationId: getPublicCommunityMap
+      parameters:
+        - { in: path, name: mapCode, required: true, schema: { type: string } }
+      responses:
+        "200":
+          description: Live/read-through cached community map and tracked deltas.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PublicCommunityMap" }
+        default: { $ref: "#/components/responses/Error" }
   /health:
     get:
       operationId: getHealth
@@ -419,6 +518,75 @@ components:
       required: true
       schema: { type: integer, format: int64, minimum: 1 }
   schemas:
+    PublicPlayer:
+      type: object
+      required: [userId, displayName, rank, veteranRank, achievements, mostExperiencedMonkey, highestRound, avatarUrl, bannerUrl, followers, bloonsPopped, gameCount, gamesWon, lastSyncedAt]
+      properties:
+        userId: { type: string }
+        displayName: { type: string }
+        rank: { type: integer }
+        veteranRank: { type: integer }
+        achievements: { type: integer }
+        mostExperiencedMonkey: { type: string }
+        highestRound: { type: integer }
+        avatarUrl: { type: string, nullable: true }
+        bannerUrl: { type: string, nullable: true }
+        followers: { type: integer, format: int64 }
+        bloonsPopped: { type: integer, format: int64 }
+        gameCount: { type: integer, format: int64 }
+        gamesWon: { type: integer, format: int64 }
+        lastSyncedAt: { type: string, format: date-time }
+    CommunityMapCounters:
+      type: object
+      required: [plays, wins, losses, playsUnique, winsUnique, lossesUnique]
+      properties:
+        plays: { type: integer, format: int64 }
+        wins: { type: integer, format: int64 }
+        losses: { type: integer, format: int64 }
+        playsUnique: { type: integer, format: int64 }
+        winsUnique: { type: integer, format: int64 }
+        lossesUnique: { type: integer, format: int64 }
+    CommunityMapVersionTrend:
+      type: object
+      required: [version, sinceTrackingBegan, plays, wins, losses, playsUnique, winsUnique, lossesUnique]
+      properties:
+        version: { type: string }
+        sinceTrackingBegan: { type: boolean }
+        plays: { type: integer, format: int64 }
+        wins: { type: integer, format: int64 }
+        losses: { type: integer, format: int64 }
+        playsUnique: { type: integer, format: int64 }
+        winsUnique: { type: integer, format: int64 }
+        lossesUnique: { type: integer, format: int64 }
+    CommunityMapTransition:
+      type: object
+      required: [fromVersion, toVersion, capturedAt]
+      properties:
+        fromVersion: { type: string }
+        toVersion: { type: string }
+        capturedAt: { type: string, format: date-time }
+    PublicCommunityMap:
+      type: object
+      required: [mapCode, name, creator, createdAt, creationVersion, mapUrl, counters, winRate, firstObservedAt, lastSyncedAt, trends, transitions]
+      properties:
+        mapCode: { type: string }
+        name: { type: string }
+        creator:
+          nullable: true
+          allOf: [{ $ref: "#/components/schemas/PublicPlayer" }]
+        createdAt: { type: string, format: date-time }
+        creationVersion: { type: string }
+        mapUrl: { type: string }
+        counters: { $ref: "#/components/schemas/CommunityMapCounters" }
+        winRate: { type: number, format: double, nullable: true, description: "Decisive win rate: wins / (wins + losses)." }
+        firstObservedAt: { type: string, format: date-time }
+        lastSyncedAt: { type: string, format: date-time }
+        trends:
+          type: array
+          items: { $ref: "#/components/schemas/CommunityMapVersionTrend" }
+        transitions:
+          type: array
+          items: { $ref: "#/components/schemas/CommunityMapTransition" }
     ErrorResponse:
       type: object
       required: [code, message]

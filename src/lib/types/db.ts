@@ -22,6 +22,67 @@ export type MapRow = {
 	updated_at: string;
 }
 
+export type NkPlayerRow = {
+	user_id: string;
+	display_name: string;
+	rank: number;
+	veteran_rank: number;
+	achievements: number;
+	most_experienced_monkey: string;
+	highest_round: number;
+	avatar_url: string | null;
+	banner_url: string | null;
+	followers: number;
+	bloons_popped: number;
+	game_count: number;
+	games_won: number;
+	profile_data: Record<string, unknown>;
+	first_observed_at: string;
+	last_synced_at: string;
+	updated_at: string;
+};
+
+export type CommunityMapRow = {
+	map_code: string;
+	name: string;
+	creator_user_id: string | null;
+	created_at: string;
+	creation_version: string;
+	map_url: string;
+	plays: number;
+	wins: number;
+	losses: number;
+	plays_unique: number;
+	wins_unique: number;
+	losses_unique: number;
+	first_observed_at: string;
+	last_synced_at: string;
+	updated_at: string;
+};
+
+export type CommunityMapSnapshotRow = {
+	id: number;
+	map_code: string;
+	snapshot_date: string;
+	captured_at: string;
+	game_version: string;
+	version_source_url: string;
+	version_observed_at: string;
+	plays: number;
+	wins: number;
+	losses: number;
+	plays_unique: number;
+	wins_unique: number;
+	losses_unique: number;
+};
+
+export type NkVersionObservationRow = {
+	id: number;
+	game_version: string;
+	source_url: string;
+	observed_at: string;
+};
+
 type MapInsert = {
 	name: string;
 	difficulty?: MapDifficulty | null;
@@ -161,6 +222,30 @@ export type StepInsert = {
 export type Database = {
 	public: {
 		Tables: {
+			nk_version_observations: {
+				Row: NkVersionObservationRow;
+				Insert: Omit<NkVersionObservationRow, 'id'>;
+				Update: never;
+				Relationships: [];
+			};
+			nk_players: {
+				Row: NkPlayerRow;
+				Insert: Omit<NkPlayerRow, 'first_observed_at' | 'last_synced_at' | 'updated_at'> & Partial<Pick<NkPlayerRow, 'first_observed_at' | 'last_synced_at' | 'updated_at'>>;
+				Update: Partial<NkPlayerRow>;
+				Relationships: [];
+			};
+			community_maps: {
+				Row: CommunityMapRow;
+				Insert: Omit<CommunityMapRow, 'first_observed_at' | 'last_synced_at' | 'updated_at'> & Partial<Pick<CommunityMapRow, 'first_observed_at' | 'last_synced_at' | 'updated_at'>>;
+				Update: Partial<CommunityMapRow>;
+				Relationships: [{ foreignKeyName: 'community_maps_creator_user_id_fkey'; columns: ['creator_user_id']; isOneToOne: false; referencedRelation: 'nk_players'; referencedColumns: ['user_id'] }];
+			};
+			community_map_snapshots: {
+				Row: CommunityMapSnapshotRow;
+				Insert: Omit<CommunityMapSnapshotRow, 'id'>;
+				Update: never;
+				Relationships: [{ foreignKeyName: 'community_map_snapshots_map_code_fkey'; columns: ['map_code']; isOneToOne: false; referencedRelation: 'community_maps'; referencedColumns: ['map_code'] }];
+			};
 			maps: {
 				Row: MapRow;
 				Insert: MapInsert;

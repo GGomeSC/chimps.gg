@@ -15,6 +15,12 @@ import {
 	getPublicReferences,
 	getPublicStrategy,
 	getPublicVersions,
+	getPublicCommunityMap,
+	getPublicPlayer,
+	resolveOwnPlayer,
+	resolvePlayer,
+	searchPublicPlayers,
+	syncCommunityMaps,
 	getStudioHero,
 	getStudioHeroes,
 	getStudioMaps,
@@ -62,6 +68,22 @@ export function createPublicApi(fetcher: typeof fetch, origin: string) {
 			unwrap(getPublicStrategy({ ...options, path: { strategyId } })),
 		getHeroes: () => unwrap(getPublicHeroes(options)),
 		getHero: (heroId: number) => unwrap(getPublicHero({ ...options, path: { heroId } })),
+		searchPlayers: (q: string) => unwrap(searchPublicPlayers({ ...options, query: { q } })),
+		getPlayer: (userId: string) => unwrap(getPublicPlayer({ ...options, path: { userId } })),
+		getCommunityMap: (mapCode: string) =>
+			unwrap(getPublicCommunityMap({ ...options, path: { mapCode } })),
+	};
+}
+
+export function createAnalyticsApi(fetcher: typeof fetch, origin: string) {
+	const client = createChimpsClient(fetcher, origin, {
+		Authorization: `Bearer ${env.INTERNAL_SERVICE_SECRET}`
+	});
+	const options = { client };
+	return {
+		resolveOwnPlayer: (oak: string) => unwrap(resolveOwnPlayer({ ...options, body: { oak } })),
+		resolvePlayer: (identifier: string) => unwrap(resolvePlayer({ ...options, body: { identifier } })),
+		syncCommunityMaps: () => unwrap(syncCommunityMaps(options))
 	};
 }
 

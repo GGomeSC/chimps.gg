@@ -2,7 +2,7 @@
 
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
-import type { CreateStudioPlacementData, CreateStudioPlacementErrors, CreateStudioPlacementResponses, CreateStudioStepData, CreateStudioStepErrors, CreateStudioStepResponses, CreateStudioStrategyData, CreateStudioStrategyErrors, CreateStudioStrategyResponses, DeleteStudioPlacementData, DeleteStudioPlacementErrors, DeleteStudioPlacementResponses, DeleteStudioStepData, DeleteStudioStepErrors, DeleteStudioStepResponses, DeleteStudioStrategyData, DeleteStudioStrategyErrors, DeleteStudioStrategyResponses, DiscoverPublicStrategiesData, DiscoverPublicStrategiesErrors, DiscoverPublicStrategiesResponses, GetHealthData, GetHealthErrors, GetHealthResponses, GetPublicHeroData, GetPublicHeroErrors, GetPublicHeroesData, GetPublicHeroesErrors, GetPublicHeroesResponses, GetPublicHeroResponses, GetPublicHomeMapsData, GetPublicHomeMapsErrors, GetPublicHomeMapsResponses, GetPublicLatestStrategiesData, GetPublicLatestStrategiesErrors, GetPublicLatestStrategiesResponses, GetPublicReferencesData, GetPublicReferencesErrors, GetPublicReferencesResponses, GetPublicStrategyData, GetPublicStrategyErrors, GetPublicStrategyResponses, GetPublicVersionsData, GetPublicVersionsErrors, GetPublicVersionsResponses, GetStudioHeroData, GetStudioHeroErrors, GetStudioHeroesData, GetStudioHeroesErrors, GetStudioHeroesResponses, GetStudioHeroResponses, GetStudioMapsData, GetStudioMapsErrors, GetStudioMapsResponses, GetStudioStrategiesData, GetStudioStrategiesErrors, GetStudioStrategiesResponses, GetStudioStrategyData, GetStudioStrategyErrors, GetStudioStrategyReferencesData, GetStudioStrategyReferencesErrors, GetStudioStrategyReferencesResponses, GetStudioStrategyResponses, MoveStudioStepData, MoveStudioStepErrors, MoveStudioStepResponses, UpdateStudioHeroProfileData, UpdateStudioHeroProfileErrors, UpdateStudioHeroProfileResponses, UpdateStudioPlacementData, UpdateStudioPlacementErrors, UpdateStudioPlacementResponses, UpdateStudioStepData, UpdateStudioStepErrors, UpdateStudioStepResponses, UpdateStudioStrategyMetadataData, UpdateStudioStrategyMetadataErrors, UpdateStudioStrategyMetadataResponses } from './types.gen';
+import type { CreateStudioPlacementData, CreateStudioPlacementErrors, CreateStudioPlacementResponses, CreateStudioStepData, CreateStudioStepErrors, CreateStudioStepResponses, CreateStudioStrategyData, CreateStudioStrategyErrors, CreateStudioStrategyResponses, DeleteStudioPlacementData, DeleteStudioPlacementErrors, DeleteStudioPlacementResponses, DeleteStudioStepData, DeleteStudioStepErrors, DeleteStudioStepResponses, DeleteStudioStrategyData, DeleteStudioStrategyErrors, DeleteStudioStrategyResponses, DiscoverPublicStrategiesData, DiscoverPublicStrategiesErrors, DiscoverPublicStrategiesResponses, GetHealthData, GetHealthErrors, GetHealthResponses, GetPublicCommunityMapData, GetPublicCommunityMapErrors, GetPublicCommunityMapResponses, GetPublicHeroData, GetPublicHeroErrors, GetPublicHeroesData, GetPublicHeroesErrors, GetPublicHeroesResponses, GetPublicHeroResponses, GetPublicHomeMapsData, GetPublicHomeMapsErrors, GetPublicHomeMapsResponses, GetPublicLatestStrategiesData, GetPublicLatestStrategiesErrors, GetPublicLatestStrategiesResponses, GetPublicPlayerData, GetPublicPlayerErrors, GetPublicPlayerResponses, GetPublicReferencesData, GetPublicReferencesErrors, GetPublicReferencesResponses, GetPublicStrategyData, GetPublicStrategyErrors, GetPublicStrategyResponses, GetPublicVersionsData, GetPublicVersionsErrors, GetPublicVersionsResponses, GetStudioHeroData, GetStudioHeroErrors, GetStudioHeroesData, GetStudioHeroesErrors, GetStudioHeroesResponses, GetStudioHeroResponses, GetStudioMapsData, GetStudioMapsErrors, GetStudioMapsResponses, GetStudioStrategiesData, GetStudioStrategiesErrors, GetStudioStrategiesResponses, GetStudioStrategyData, GetStudioStrategyErrors, GetStudioStrategyReferencesData, GetStudioStrategyReferencesErrors, GetStudioStrategyReferencesResponses, GetStudioStrategyResponses, MoveStudioStepData, MoveStudioStepErrors, MoveStudioStepResponses, ResolveOwnPlayerData, ResolveOwnPlayerErrors, ResolveOwnPlayerResponses, ResolvePlayerData, ResolvePlayerErrors, ResolvePlayerResponses, SearchPublicPlayersData, SearchPublicPlayersErrors, SearchPublicPlayersResponses, SyncCommunityMapsData, SyncCommunityMapsErrors, SyncCommunityMapsResponses, UpdateStudioHeroProfileData, UpdateStudioHeroProfileErrors, UpdateStudioHeroProfileResponses, UpdateStudioPlacementData, UpdateStudioPlacementErrors, UpdateStudioPlacementResponses, UpdateStudioStepData, UpdateStudioStepErrors, UpdateStudioStepResponses, UpdateStudioStrategyMetadataData, UpdateStudioStrategyMetadataErrors, UpdateStudioStrategyMetadataResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -17,6 +17,50 @@ export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends 
      */
     meta?: keyof ClientMeta extends never ? Record<string, unknown> : ClientMeta;
 };
+
+export const resolveOwnPlayer = <ThrowOnError extends boolean = true>(options: Options<ResolveOwnPlayerData, ThrowOnError>): RequestResult<ResolveOwnPlayerResponses, ResolveOwnPlayerErrors, ThrowOnError> => (options.client ?? client).post<ResolveOwnPlayerResponses, ResolveOwnPlayerErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/players/oak',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+export const resolvePlayer = <ThrowOnError extends boolean = true>(options: Options<ResolvePlayerData, ThrowOnError>): RequestResult<ResolvePlayerResponses, ResolvePlayerErrors, ThrowOnError> => (options.client ?? client).post<ResolvePlayerResponses, ResolvePlayerErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/players/resolve',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+export const syncCommunityMaps = <ThrowOnError extends boolean = true>(options?: Options<SyncCommunityMapsData, ThrowOnError>): RequestResult<SyncCommunityMapsResponses, SyncCommunityMapsErrors, ThrowOnError> => (options?.client ?? client).post<SyncCommunityMapsResponses, SyncCommunityMapsErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/sync/community-maps',
+    ...options
+});
+
+export const searchPublicPlayers = <ThrowOnError extends boolean = true>(options: Options<SearchPublicPlayersData, ThrowOnError>): RequestResult<SearchPublicPlayersResponses, SearchPublicPlayersErrors, ThrowOnError> => (options.client ?? client).get<SearchPublicPlayersResponses, SearchPublicPlayersErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/public/players',
+    ...options
+});
+
+export const getPublicPlayer = <ThrowOnError extends boolean = true>(options: Options<GetPublicPlayerData, ThrowOnError>): RequestResult<GetPublicPlayerResponses, GetPublicPlayerErrors, ThrowOnError> => (options.client ?? client).get<GetPublicPlayerResponses, GetPublicPlayerErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/public/players/{userId}',
+    ...options
+});
+
+export const getPublicCommunityMap = <ThrowOnError extends boolean = true>(options: Options<GetPublicCommunityMapData, ThrowOnError>): RequestResult<GetPublicCommunityMapResponses, GetPublicCommunityMapErrors, ThrowOnError> => (options.client ?? client).get<GetPublicCommunityMapResponses, GetPublicCommunityMapErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/public/community-maps/{mapCode}',
+    ...options
+});
 
 export const getHealth = <ThrowOnError extends boolean = true>(options?: Options<GetHealthData, ThrowOnError>): RequestResult<GetHealthResponses, GetHealthErrors, ThrowOnError> => (options?.client ?? client).get<GetHealthResponses, GetHealthErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],

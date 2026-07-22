@@ -64,10 +64,12 @@
 
 		<nav id="public-navigation" class:open={menuOpen} aria-label={m.primary_navigation()}>
 			<a href={href('/maps')} aria-current={isCurrent('/maps') ? 'page' : undefined}>{m.nav_maps()}</a>
+			<a href={href('/community-maps')} aria-current={isCurrent('/community-maps') ? 'page' : undefined}>{m.nav_community_maps()}</a>
 			<a href={href('/strategies')} aria-current={isCurrent('/strategies') ? 'page' : undefined}
 				>{m.nav_strategies()}</a
 			>
 			<a href={href('/heroes')} aria-current={isCurrent('/heroes') ? 'page' : undefined}>{m.nav_heroes()}</a>
+			<a href={href('/players')} aria-current={isCurrent('/players') ? 'page' : undefined}>{m.nav_players()}</a>
 			<a
 				class="lang-switch"
 				href={switchHref}
