@@ -1,6 +1,8 @@
 {
 	"$schema": "https://openapi.vercel.sh/vercel.json",
 	"regions": ["gru1"],
+	"functions": { "api/chimps.go": { "maxDuration": 300 } },
+	"crons": [{ "path": "/api/cron/community-maps", "schedule": "17 3 * * *" }],
 	"rewrites": [
 		{
 			"source": "/api/chimps/:path*",

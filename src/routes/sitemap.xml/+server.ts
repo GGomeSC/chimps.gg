@@ -7,6 +7,8 @@ export const GET: RequestHandler = async ({ fetch, url }) => {
 	const paths = [
 		'/',
 		'/maps',
+		'/community-maps',
+		'/players',
 		'/strategies',
 		'/heroes',
 		...entries.strategyIds.map((id) => `/strategies/${id}`),

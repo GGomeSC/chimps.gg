@@ -136,6 +136,35 @@ func (e MoveStudioStepJSONBodyDirection) Valid() bool {
 	}
 }
 
+// CommunityMapCounters defines model for CommunityMapCounters.
+type CommunityMapCounters struct {
+	Losses       int64 `json:"losses"`
+	LossesUnique int64 `json:"lossesUnique"`
+	Plays        int64 `json:"plays"`
+	PlaysUnique  int64 `json:"playsUnique"`
+	Wins         int64 `json:"wins"`
+	WinsUnique   int64 `json:"winsUnique"`
+}
+
+// CommunityMapTransition defines model for CommunityMapTransition.
+type CommunityMapTransition struct {
+	CapturedAt  time.Time `json:"capturedAt"`
+	FromVersion string    `json:"fromVersion"`
+	ToVersion   string    `json:"toVersion"`
+}
+
+// CommunityMapVersionTrend defines model for CommunityMapVersionTrend.
+type CommunityMapVersionTrend struct {
+	Losses             int64  `json:"losses"`
+	LossesUnique       int64  `json:"lossesUnique"`
+	Plays              int64  `json:"plays"`
+	PlaysUnique        int64  `json:"playsUnique"`
+	SinceTrackingBegan bool   `json:"sinceTrackingBegan"`
+	Version            string `json:"version"`
+	Wins               int64  `json:"wins"`
+	WinsUnique         int64  `json:"winsUnique"`
+}
+
 // ErrorResponse defines model for ErrorResponse.
 type ErrorResponse struct {
 	Code    string `json:"code"`
@@ -249,6 +278,24 @@ type PlacementUpdateInput struct {
 	PosY      *float64 `json:"pos_y,omitempty"`
 }
 
+// PublicCommunityMap defines model for PublicCommunityMap.
+type PublicCommunityMap struct {
+	Counters        CommunityMapCounters       `json:"counters"`
+	CreatedAt       time.Time                  `json:"createdAt"`
+	CreationVersion string                     `json:"creationVersion"`
+	Creator         *PublicPlayer              `json:"creator"`
+	FirstObservedAt time.Time                  `json:"firstObservedAt"`
+	LastSyncedAt    time.Time                  `json:"lastSyncedAt"`
+	MapCode         string                     `json:"mapCode"`
+	MapUrl          string                     `json:"mapUrl"`
+	Name            string                     `json:"name"`
+	Transitions     []CommunityMapTransition   `json:"transitions"`
+	Trends          []CommunityMapVersionTrend `json:"trends"`
+
+	// WinRate Decisive win rate: wins / (wins + losses).
+	WinRate *float64 `json:"winRate"`
+}
+
 // PublicHeroDetail defines model for PublicHeroDetail.
 type PublicHeroDetail struct {
 	AttackStyle      *string                 `json:"attackStyle"`
@@ -291,6 +338,24 @@ type PublicMap struct {
 type PublicMode struct {
 	Id   int64  `json:"id"`
 	Name string `json:"name"`
+}
+
+// PublicPlayer defines model for PublicPlayer.
+type PublicPlayer struct {
+	Achievements          int       `json:"achievements"`
+	AvatarUrl             *string   `json:"avatarUrl"`
+	BannerUrl             *string   `json:"bannerUrl"`
+	BloonsPopped          int64     `json:"bloonsPopped"`
+	DisplayName           string    `json:"displayName"`
+	Followers             int64     `json:"followers"`
+	GameCount             int64     `json:"gameCount"`
+	GamesWon              int64     `json:"gamesWon"`
+	HighestRound          int       `json:"highestRound"`
+	LastSyncedAt          time.Time `json:"lastSyncedAt"`
+	MostExperiencedMonkey string    `json:"mostExperiencedMonkey"`
+	Rank                  int       `json:"rank"`
+	UserId                string    `json:"userId"`
+	VeteranRank           int       `json:"veteranRank"`
 }
 
 // PublicReferences defines model for PublicReferences.
@@ -569,9 +634,24 @@ type Error = ErrorResponse
 // internalSecretContextKey is the context key for internalSecret security scheme
 type internalSecretContextKey string
 
+// ResolveOwnPlayerJSONBody defines parameters for ResolveOwnPlayer.
+type ResolveOwnPlayerJSONBody struct {
+	Oak string `json:"oak"`
+}
+
+// ResolvePlayerJSONBody defines parameters for ResolvePlayer.
+type ResolvePlayerJSONBody struct {
+	Identifier string `json:"identifier"`
+}
+
 // GetPublicLatestStrategiesParams defines parameters for GetPublicLatestStrategies.
 type GetPublicLatestStrategiesParams struct {
 	Limit int `form:"limit" json:"limit"`
+}
+
+// SearchPublicPlayersParams defines parameters for SearchPublicPlayers.
+type SearchPublicPlayersParams struct {
+	Q string `form:"q" json:"q"`
 }
 
 // DiscoverPublicStrategiesParams defines parameters for DiscoverPublicStrategies.
@@ -592,6 +672,12 @@ type MoveStudioStepJSONBody struct {
 
 // MoveStudioStepJSONBodyDirection defines parameters for MoveStudioStep.
 type MoveStudioStepJSONBodyDirection string
+
+// ResolveOwnPlayerJSONRequestBody defines body for ResolveOwnPlayer for application/json ContentType.
+type ResolveOwnPlayerJSONRequestBody ResolveOwnPlayerJSONBody
+
+// ResolvePlayerJSONRequestBody defines body for ResolvePlayer for application/json ContentType.
+type ResolvePlayerJSONRequestBody ResolvePlayerJSONBody
 
 // UpdateStudioHeroProfileJSONRequestBody defines body for UpdateStudioHeroProfile for application/json ContentType.
 type UpdateStudioHeroProfileJSONRequestBody = HeroProfileInput
@@ -623,6 +709,15 @@ type ServerInterface interface {
 	// (GET /health)
 	GetHealth(w http.ResponseWriter, r *http.Request)
 
+	// (POST /players/oak)
+	ResolveOwnPlayer(w http.ResponseWriter, r *http.Request)
+
+	// (POST /players/resolve)
+	ResolvePlayer(w http.ResponseWriter, r *http.Request)
+
+	// (GET /public/community-maps/{mapCode})
+	GetPublicCommunityMap(w http.ResponseWriter, r *http.Request, mapCode string)
+
 	// (GET /public/heroes)
 	GetPublicHeroes(w http.ResponseWriter, r *http.Request)
 
@@ -634,6 +729,12 @@ type ServerInterface interface {
 
 	// (GET /public/maps)
 	GetPublicHomeMaps(w http.ResponseWriter, r *http.Request)
+
+	// (GET /public/players)
+	SearchPublicPlayers(w http.ResponseWriter, r *http.Request, params SearchPublicPlayersParams)
+
+	// (GET /public/players/{userId})
+	GetPublicPlayer(w http.ResponseWriter, r *http.Request, userId string)
 
 	// (GET /public/references)
 	GetPublicReferences(w http.ResponseWriter, r *http.Request)
@@ -697,6 +798,9 @@ type ServerInterface interface {
 
 	// (GET /studio/strategy-references)
 	GetStudioStrategyReferences(w http.ResponseWriter, r *http.Request)
+
+	// (POST /sync/community-maps)
+	SyncCommunityMaps(w http.ResponseWriter, r *http.Request)
 }
 
 // ServerInterfaceWrapper converts contexts to parameters.
@@ -719,6 +823,78 @@ func (siw *ServerInterfaceWrapper) GetHealth(w http.ResponseWriter, r *http.Requ
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.GetHealth(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ResolveOwnPlayer operation middleware
+func (siw *ServerInterfaceWrapper) ResolveOwnPlayer(w http.ResponseWriter, r *http.Request) {
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, InternalSecretScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ResolveOwnPlayer(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ResolvePlayer operation middleware
+func (siw *ServerInterfaceWrapper) ResolvePlayer(w http.ResponseWriter, r *http.Request) {
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, InternalSecretScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ResolvePlayer(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetPublicCommunityMap operation middleware
+func (siw *ServerInterfaceWrapper) GetPublicCommunityMap(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "mapCode" -------------
+	var mapCode string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "mapCode", r.PathValue("mapCode"), &mapCode, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "mapCode", Err: err})
+		return
+	}
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, InternalSecretScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetPublicCommunityMap(w, r, mapCode)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -830,6 +1006,77 @@ func (siw *ServerInterfaceWrapper) GetPublicHomeMaps(w http.ResponseWriter, r *h
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.GetPublicHomeMaps(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// SearchPublicPlayers operation middleware
+func (siw *ServerInterfaceWrapper) SearchPublicPlayers(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, InternalSecretScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params SearchPublicPlayersParams
+
+	// ------------- Required query parameter "q" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, true, "q", r.URL.Query(), &params.Q, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "q"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "q", Err: err})
+		}
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.SearchPublicPlayers(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetPublicPlayer operation middleware
+func (siw *ServerInterfaceWrapper) GetPublicPlayer(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "userId" -------------
+	var userId string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "userId", r.PathValue("userId"), &userId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "userId", Err: err})
+		return
+	}
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, InternalSecretScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetPublicPlayer(w, r, userId)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -1557,6 +1804,26 @@ func (siw *ServerInterfaceWrapper) GetStudioStrategyReferences(w http.ResponseWr
 	handler.ServeHTTP(w, r)
 }
 
+// SyncCommunityMaps operation middleware
+func (siw *ServerInterfaceWrapper) SyncCommunityMaps(w http.ResponseWriter, r *http.Request) {
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, InternalSecretScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.SyncCommunityMaps(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
 type UnescapedCookieParamError struct {
 	ParamName string
 	Err       error
@@ -1678,10 +1945,15 @@ func HandlerWithOptions(si ServerInterface, options StdHTTPServerOptions) http.H
 	}
 
 	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/health", wrapper.GetHealth)
+	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/players/oak", wrapper.ResolveOwnPlayer)
+	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/players/resolve", wrapper.ResolvePlayer)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/public/community-maps/{mapCode}", wrapper.GetPublicCommunityMap)
 	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/public/heroes", wrapper.GetPublicHeroes)
 	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/public/heroes/{heroId}", wrapper.GetPublicHero)
 	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/public/latest", wrapper.GetPublicLatestStrategies)
 	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/public/maps", wrapper.GetPublicHomeMaps)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/public/players", wrapper.SearchPublicPlayers)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/public/players/{userId}", wrapper.GetPublicPlayer)
 	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/public/references", wrapper.GetPublicReferences)
 	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/public/strategies", wrapper.DiscoverPublicStrategies)
 	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/public/strategies/{strategyId}", wrapper.GetPublicStrategy)
@@ -1703,6 +1975,7 @@ func HandlerWithOptions(si ServerInterface, options StdHTTPServerOptions) http.H
 	m.HandleFunc(http.MethodPatch+" "+options.BaseURL+"/studio/strategies/{strategyId}/steps/{stepId}", wrapper.UpdateStudioStep)
 	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/studio/strategies/{strategyId}/steps/{stepId}/move", wrapper.MoveStudioStep)
 	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/studio/strategy-references", wrapper.GetStudioStrategyReferences)
+	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/sync/community-maps", wrapper.SyncCommunityMaps)
 
 	return m
 }

@@ -21,6 +21,7 @@ type server struct {
 	databaseErr    error
 	internalSecret []byte
 	logger         *slog.Logger
+	nk             *ninjaKiwiClient
 }
 
 type requestMetricsKey struct{}
@@ -60,6 +61,9 @@ func NewHandlerFromEnvironment() http.Handler {
 	if err := config.validateSecret(); err != nil {
 		return unavailableHandler(logger, err)
 	}
+	if err := config.validateNKAPI(); err != nil {
+		return unavailableHandler(logger, err)
+	}
 
 	var checker healthChecker
 	var databaseErr error
@@ -69,15 +73,20 @@ func NewHandlerFromEnvironment() http.Handler {
 		checker, databaseErr = newPostgresStore(context.Background(), config.DatabaseURL)
 	}
 
-	return newHandler(config.InternalServiceSecret, checker, databaseErr, logger)
+	return newHandlerWithNK(config.InternalServiceSecret, checker, databaseErr, logger, newNinjaKiwiClient(config.NKAPIRoot))
 }
 
 func newHandler(secret string, checker healthChecker, databaseErr error, logger *slog.Logger) http.Handler {
+	return newHandlerWithNK(secret, checker, databaseErr, logger, nil)
+}
+
+func newHandlerWithNK(secret string, checker healthChecker, databaseErr error, logger *slog.Logger, nk *ninjaKiwiClient) http.Handler {
 	service := &server{
 		health:         checker,
 		databaseErr:    databaseErr,
 		internalSecret: []byte(secret),
 		logger:         logger,
+		nk:             nk,
 	}
 	if postgres, ok := checker.(*postgresStore); ok {
 		service.postgres = postgres

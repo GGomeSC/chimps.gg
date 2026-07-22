@@ -8,6 +8,41 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+type CommunityMap struct {
+	MapCode         string             `json:"map_code"`
+	Name            string             `json:"name"`
+	CreatorUserID   *string            `json:"creator_user_id"`
+	CreatedAt       pgtype.Timestamptz `json:"created_at"`
+	CreationVersion string             `json:"creation_version"`
+	MapUrl          string             `json:"map_url"`
+	Plays           int64              `json:"plays"`
+	Wins            int64              `json:"wins"`
+	Losses          int64              `json:"losses"`
+	PlaysUnique     int64              `json:"plays_unique"`
+	WinsUnique      int64              `json:"wins_unique"`
+	LossesUnique    int64              `json:"losses_unique"`
+	FirstObservedAt pgtype.Timestamptz `json:"first_observed_at"`
+	LastSyncedAt    pgtype.Timestamptz `json:"last_synced_at"`
+	UpdatedAt       pgtype.Timestamptz `json:"updated_at"`
+}
+
+// Append-only daily lifetime counters. Per-version activity is derived from consecutive deltas; first observations are partial baselines.
+type CommunityMapSnapshot struct {
+	ID                int64              `json:"id"`
+	MapCode           string             `json:"map_code"`
+	SnapshotDate      pgtype.Date        `json:"snapshot_date"`
+	CapturedAt        pgtype.Timestamptz `json:"captured_at"`
+	GameVersion       string             `json:"game_version"`
+	VersionSourceUrl  string             `json:"version_source_url"`
+	VersionObservedAt pgtype.Timestamptz `json:"version_observed_at"`
+	Plays             int64              `json:"plays"`
+	Wins              int64              `json:"wins"`
+	Losses            int64              `json:"losses"`
+	PlaysUnique       int64              `json:"plays_unique"`
+	WinsUnique        int64              `json:"wins_unique"`
+	LossesUnique      int64              `json:"losses_unique"`
+}
+
 type GameMode struct {
 	ID   int64  `json:"id"`
 	Name string `json:"name"`
@@ -26,6 +61,34 @@ type Map struct {
 	LastSyncedAt pgtype.Timestamptz `json:"last_synced_at"`
 	CreatedAt    pgtype.Timestamptz `json:"created_at"`
 	UpdatedAt    pgtype.Timestamptz `json:"updated_at"`
+}
+
+// Public NK profiles indexed through transient OAK verification, explicit lookup, or observed map creators. OAK values are never stored.
+type NkPlayer struct {
+	UserID                string             `json:"user_id"`
+	DisplayName           string             `json:"display_name"`
+	Rank                  int32              `json:"rank"`
+	VeteranRank           int32              `json:"veteran_rank"`
+	Achievements          int32              `json:"achievements"`
+	MostExperiencedMonkey string             `json:"most_experienced_monkey"`
+	HighestRound          int32              `json:"highest_round"`
+	AvatarUrl             *string            `json:"avatar_url"`
+	BannerUrl             *string            `json:"banner_url"`
+	Followers             int64              `json:"followers"`
+	BloonsPopped          int64              `json:"bloons_popped"`
+	GameCount             int64              `json:"game_count"`
+	GamesWon              int64              `json:"games_won"`
+	ProfileData           []byte             `json:"profile_data"`
+	FirstObservedAt       pgtype.Timestamptz `json:"first_observed_at"`
+	LastSyncedAt          pgtype.Timestamptz `json:"last_synced_at"`
+	UpdatedAt             pgtype.Timestamptz `json:"updated_at"`
+}
+
+type NkVersionObservation struct {
+	ID          int64              `json:"id"`
+	GameVersion string             `json:"game_version"`
+	SourceUrl   string             `json:"source_url"`
+	ObservedAt  pgtype.Timestamptz `json:"observed_at"`
 }
 
 type Placement struct {
