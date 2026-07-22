@@ -390,10 +390,7 @@ func (s *server) latestSnapshotVersion(ctx context.Context) (string, error) {
 }
 func compareVersions(a, b string) int {
 	aa, bb := strings.Split(a, "."), strings.Split(b, ".")
-	n := len(aa)
-	if len(bb) > n {
-		n = len(bb)
-	}
+	n := max(len(bb), len(aa))
 	for i := 0; i < n; i++ {
 		av, bv := 0, 0
 		if i < len(aa) {
